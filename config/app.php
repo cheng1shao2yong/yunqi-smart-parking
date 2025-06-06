@@ -20,11 +20,11 @@ return [
     'app_map'          => [],
     // 域名绑定（自动多应用模式有效）
     'domain_bind'      => [
-        'screen.cqbolian.com'=>'screen',
-        'api.cqbolian.com'=>'api',
-        'admin.cqbolian.com'=>'admin',
-        'parking.cqbolian.com'=>'parking',
-        'www.cqbolian.com'=>'index',
+        'screen.test.com'=>'screen',
+        'api.test.com'=>'api',
+        'admin.test.com'=>'admin',
+        'parking.test.com'=>'parking',
+        'www.test.com'=>'index',
     ],
     // 禁止URL访问的应用列表（自动多应用模式有效）
     'deny_app_list'    => ['common'],
