@@ -1,4 +1,4 @@
 /.env
 /.idea
 /uniapp
-/config
+/config/app.php
