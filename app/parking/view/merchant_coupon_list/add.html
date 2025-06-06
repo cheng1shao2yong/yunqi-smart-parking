@@ -1,0 +1,34 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            @submit="onSubmit"
+            ref="yunForm"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+import form from "@components/Form.js";
+export default{
+    components:{
+        'YunForm':form
+    },
+    data:{
+        columns:[
+            {field:"merch_id",title:"发券商户",edit:"select",rules:"required",searchList: Yunqi.data.merchList},
+            {field:"plate_number",title:"车牌号",edit:"text",rules:"required"},
+            {field:"coupon_id",title:"停车券类型",edit:"select",searchList:Yunqi.data.coupon,rules:"required"},
+        ]
+    },
+    methods: {
+        onSubmit:function (data){
+            return true;
+        }
+    }
+}
+</script>
+<style>
+</style>

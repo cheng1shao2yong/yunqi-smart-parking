@@ -1,0 +1,38 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            :data="row"
+            ref="yunform"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    export default {
+        components: {
+            'YunForm': form
+        },
+        data: {
+            columns: [
+                {field: "id", title: "ID", edit: "hidden"},
+                {field: "title", title: "接口名称", edit: "text"},
+                {field: "access_type", title: "接口类型", edit: "select",searchList: {parking:"停车场",merchant:"商户",charge:"充电"}},
+                {field: "parking_id", title: "停车场", edit: {form:"selectpage",url:"user/accesskey/parking",labelField:"title"},visible:function(row){
+                    return row.access_type=='parking';
+                }},
+                {field: "merchant_id", title: "商户", edit: {form:"selectpage",url:"user/accesskey/merchant",labelField:"merch_name"},visible:function(row){
+                    return row.access_type=='merchant';
+                }},
+                {field:"status",title:"状态",edit:'radio',searchList:{normal:"正常",hidden:"隐藏"}},
+            ],
+            row: Yunqi.data.row || {auth:[],status:'normal'}
+        },
+        methods: {}
+    }
+</script>
+<style>
+</style>

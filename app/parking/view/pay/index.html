@@ -1,0 +1,143 @@
+<template>
+    <el-card shadow="never">
+        <el-tabs type="card" v-model="pay_type" @tab-change="tabChange">
+            <el-tab-pane v-for="(tab,key) in pay_type_arr" :name="key" :label="tab"></el-tab-pane>
+        </el-tabs>
+        <yun-table
+            v-if="extend"
+            :show-summary="true"
+            :auth="{
+                download:{:$auth->check('app\\parking\\controller\\Records','download')},
+            }"
+            ref="yunTable"
+            :columns="columns"
+            toolbar="refresh,download"
+            :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+import {parseNumber} from "@util.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:'',
+        pay_type_arr:{
+            'online':'线上支付',
+            'underline':'线下支付'
+        },
+        pay_type:'online',
+        columns:[
+            {checkbox: true},
+            {field:"pay_time",title:"支付时间",operate:"daterange"},
+            {field:"out_trade_no",title:"商户单号",operate:"="},
+            {field:"transaction_id",title:"渠道流水号",operate:"="},
+            {field:"order_type",title:"订单类型",operate:"select",searchList:Yunqi.data.orderType},
+            {field:"pay_price",title:"订单金额",operate:'between'},
+            {field:"plate_number",title:"车牌号",operate:{form:'input',type:'text',filter:false},visible:'none'},
+            {field:"handling_fees",title:"手续费",operate:false,formatter:function (data){
+                return parseNumber(data/100);
+            }},
+            {field:"detail",title:"商品详情",operate:false,formatter:function (data,row){
+                if(row.order_type=='parking_monthly' && row.pay_type!='underline'){
+                    let attach=JSON.parse(row.attach);
+                    return data+'，车牌：'+attach.plate_number;
+                }
+                return data;
+            }},
+            {field:"refund_price",title:"退款金额",operate:false},
+            {field:"invoicing",title:"是否开票",operate:false,formatter:function (data){
+                let tag=Yunqi.formatter.tag
+                if(data){
+                    tag.value='是';
+                    tag.type='success';
+                }else{
+                    tag.value='否';
+                    tag.type='danger';
+                }
+                return tag
+            }},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:90,
+                action:{
+                    detail:{
+                        tooltip:true,
+                        icon:'fa fa-list',
+                        type:'primary',
+                        text:'停车详情',
+                        method:'detail',
+                        visible:function (row){
+                            return row.order_type=='parking';
+                        }
+                    },
+                    refund:{
+                        tooltip:true,
+                        icon:'fa fa-share-square-o',
+                        type:'danger',
+                        text:'操作退款',
+                        method:'refund',
+                        visible:function (row){
+                            if(Number(row.refund_price)>=Number(row.pay_price)){
+                                return false;
+                            }
+                            return true;
+                        }
+                    }
+                }
+            }
+        ]
+    },
+    onLoad(){
+        this.setExtend();
+    },
+    methods: {
+        refund:function (e){
+            let title='订单退款';
+            if(e.detail){
+                title=e.detail+' - 订单退款';
+            }
+            Yunqi.api.open({
+                url:'pay/refund?ids='+e.id,
+                width:800,
+                height:550,
+                title:title,
+                icon:'fa fa-share-square-o',
+                close:()=>{
+                    this.$refs.yunTable.reload();
+                }
+            });
+        },
+        detail:function (e){
+            let attach=JSON.parse(e.attach);
+            let records_id=attach.records_id;
+            Yunqi.api.open({
+                url:'records/detail?ids='+records_id,
+                width:800,
+                height:550,
+                title:'详情',
+                icon:'fa fa-list'
+            });
+        },
+        setExtend:function (){
+            let extend={
+                index_url: 'pay/index?pay_type='+this.pay_type,
+                download_url: 'pay/download?pay_type='+this.pay_type
+            };
+            this.extend=extend;
+        },
+        tabChange:function (e){
+            Vue.nextTick(()=>{
+                this.setExtend();
+                this.$refs.yunTable.reset();
+            });
+        }
+    }
+}
+</script>
+<style>
+</style>

@@ -1,0 +1,53 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            :data="row"
+            ref="yunForm"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+            <template #mode="{rows}">
+                <el-form-item label="收费规则:" required>
+                    <Fieldlist :label='["选择收费模式，排在靠前的权重越大"]' :keys='["mode_id"]' :value="rows.mode" @change="changeMode">
+                        <template #mode_id="{list,row,key}">
+                            <el-select v-model="list[row][key]" style="width: 100%" placeholder="请选择">
+                                <el-option v-for="(mode,name) in parking_mode" :value="name" :label="mode">{{mode}}</el-option>
+                            </el-select>
+                        </template>
+                    </Fieldlist>
+                </el-form-item>
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+import form from "@components/Form.js";
+import fieldlist from "@components/Fieldlist.js";
+export default{
+    components:{
+        'YunForm':form,
+        'Fieldlist':fieldlist
+    },
+    data:{
+        parking_mode:Yunqi.data.parking_mode,
+        columns:[
+            {field:"title",title:"内场名称",edit:'text',rules:"required"},
+            {field:"entry_barrier",title:"入场通道",edit:{form:'select',multiple:true},searchList:Yunqi.data.entry_barrier,rules:"required"},
+            {field:"exit_barrier",title:"离场通道",edit:{form:'select',multiple:true},searchList:Yunqi.data.exit_barrier,rules:"required"},
+            {field:"rules",title:"临停收费",edit:{form:'radio',value:'outfield'},searchList:Yunqi.data.rules,rules:"required"},
+            {field:"mode",title:"收费规则",edit: 'slot',visible:function(row){
+                return row.rules=='diy';
+            }},
+        ],
+        row:Yunqi.data.row || {mode: []}
+    },
+    methods: {
+        changeMode:function (e){
+            this.$refs.yunForm.setValue('mode',e);
+        }
+    }
+}
+</script>
+<style>
+</style>

@@ -1,0 +1,99 @@
+<template>
+    <el-card shadow="never">
+        <el-alert type="warning">登录地址：{{loginUrl}}</el-alert>
+        <br>
+        <yun-table
+                :columns="columns"
+                toolbar="refresh,add,edit,del"
+                ref="yunTable"
+                tabs="role"
+                :common-search="false"
+                search="nickname"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\Admin','add')},
+                    edit:{:$auth->check('app\\parking\\controller\\Admin','edit')},
+                    del:{:$auth->check('app\\parking\\controller\\Admin','del')},
+                    multi:{:$auth->check('app\\parking\\controller\\Admin','multi')},
+                }"
+                :extend="extend">
+                <template #formatter="{field,rows}">
+                    <div v-if="field=='admin.third'">
+                        <div style="display: flex;align-items: center;justify-content: center;">
+                            <img v-if="rows.admin.avatar" :src="rows.admin.avatar" style="width: 50px;margin-right: 5px;"/>
+                            <el-tag effect="dark" v-if="rows.admin.openname">{{rows.admin.openname}}</el-tag>
+                        </div>
+                    </div>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components: {
+            'YunTable': table
+        },
+        data: {
+            loginUrl:Yunqi.config.baseUrl+'login?parking='+Yunqi.data.uniqid,
+            extend: {
+                add_url: 'admin/add',
+                edit_url: 'admin/edit',
+                index_url: 'admin/index',
+                del_url: 'admin/del',
+                multi_url: 'admin/multi',
+            },
+            columns:[
+                {checkbox: true,selectable:function (row,index){
+                    if(row.role=='admin'){
+                        return false;
+                    }
+                    return true;
+                }},
+                {field: 'role', title: __('职务'),searchList: Yunqi.data.usertype},
+                {field: 'admin.username', title: __('用户名')},
+                {field: 'admin.nickname', title: __('昵称')},
+                {field: 'admin.mobile', title: __('手机号')},
+                {field: 'admin.third', title: __('绑定微信'),formatter: Yunqi.formatter.slot},
+                {field: 'admin.status', title: __('状态'),operate:false, searchList: {'normal': __('正常'),'hidden': __('隐藏')},formatter:function(data,row){
+                        let sw=Yunqi.formatter.switch;
+                        sw.activeValue='normal';
+                        sw.inactiveValue='hidden';
+                        sw.value=row.admin.status;
+                        sw.disabled=false;
+                        if(row.role=='admin'){
+                            sw.disabled=true;
+                        }
+                        return sw;
+                }},
+                {
+                    field: 'operate',
+                    title: __('操作'),
+                    width:100,
+                    action:{
+                        edit:function(row){
+                            if(row.role=='admin'){
+                                return false;
+                            }
+                            return true;
+                        },
+                        del:function(row){
+                            if(row.role=='admin'){
+                                return false;
+                            }
+                            return true;
+                        }
+                    }
+                }
+            ]
+        },
+        onLoad:function (){
+
+        },
+        methods: {
+
+        }
+    }
+</script>
+<style>
+
+</style>

@@ -1,0 +1,33 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{
+            'YunTable':table
+        },
+        data:{
+            extend:{
+                index_url:'pay/refund-list'
+            },
+            columns:[
+                {field:"refund_time",title:"退款日期",operate:"daterange"},
+                {field:"refund_price",title:"退款金额",operate:false},
+                {field:"pay.out_trade_no",title:"商户单号",operate:"="},
+                {field:"refund_cause",title:"退款原因",operate:false,align:'left'}
+            ]
+        },
+        methods: {
+
+        }
+    }
+</script>
+<style>
+</style>

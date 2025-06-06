@@ -1,0 +1,84 @@
+<template>
+    <el-card shadow="never" style="border: none;">
+        <el-tabs type="card" v-model="tabValue" @tab-change="tabChange">
+            <el-tab-pane name="monthly" label="月卡记录"></el-tab-pane>
+            <el-tab-pane name="stored" label="储值记录"></el-tab-pane>
+        </el-tabs>
+        <yun-table
+                ref="yunTable"
+                :columns="columns[tabValue]"
+                toolbar="refresh,download"
+                :extend="extend[tabValue]">
+                <template #formatter="{field,rows}">
+                    <template v-if="field=='plate'">
+                        <plate-type :plate_number="rows.cars.plates_count>1?rows.plate[0].plate_number+'等'+rows.cars.plates_count+'辆车..':rows.plate[0].plate_number" :plate_type="rows.plate[0].plate_type"></plate-type>
+                    </template>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import platetype from "@components/PlateType.js";
+    export default{
+        components: {
+            'YunTable': table,
+            'PlateType': platetype,
+        },
+        data: {
+            tabValue:'monthly',
+            extend:'',
+            columns: {
+                monthly:[
+                    {field: "createtime", title: "充值时间", operate: "daterange", formatter: Yunqi.formatter.datetime},
+                    {field: "plate", title: "车牌号",operate: {form:'input',type:'text',filter:false},formatter: Yunqi.formatter.slot},
+                    {field: "money", title: "金额", operate: false},
+                    {field: "starttime", title: "开始时间", operate: false,formatter:Yunqi.formatter.date},
+                    {field: "endtime", title: "结束时间", operate: false,formatter:Yunqi.formatter.date},
+                    {field: "payunion.pay_type", title: "支付方式", operate: false,formatter: function (data){
+                        return Yunqi.data.pay_type[data];
+                    }}
+                ],
+                stored:[
+                    {field: 'createtime', title: '充值时间',operate: {form:'date-picker',type:'daterange'},width: 150},
+                    {field: "plate", title: "车牌号",operate: {form:'input',type:'text',filter:false},formatter: Yunqi.formatter.slot},
+                    {field: 'before', title: '交易前',operate:false,width:100},
+                    {field: 'change', title: '变化数目',operate:false,width:100},
+                    {field: 'after', title: '交易后',operate:false,width:100},
+                    {field: 'payunion.pay_type', title: '支付方式', operate: false,visible: false,formatter: function (data){
+                        return data?Yunqi.data.pay_type[data]:'';
+                    }},
+                    {field: 'payunion.out_trade_no', title: '商户单号', operate: false,visible: false,formatter: function (data){
+                        return data || '';
+                    }},
+                    {field: 'payunion.transaction_id', title: '支付流水号', operate: false,visible: false,formatter: function (data){
+                        return data || '';
+                    }},
+                    {field: 'remark', title: '备注',operate:false}
+                ]
+            }
+        },
+        onLoad:function (e){
+            this.extend={
+                monthly:{
+                    index_url: 'cars/recharge-log?type=monthly',
+                    download_url: 'cars/download-recharge?type=monthly'
+                },
+                stored:{
+                    index_url: 'cars/recharge-log?type=stored',
+                    download_url: 'cars/download-recharge?type=stored'
+                }
+            }
+        },
+        methods: {
+            tabChange:function (e){
+                Vue.nextTick(()=>{
+                    this.$refs.yunTable.reset();
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

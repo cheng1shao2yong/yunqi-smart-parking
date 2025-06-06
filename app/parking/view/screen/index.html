@@ -1,0 +1,403 @@
+<template>
+    <div ref="pageContainer" class="page-contaier" :style="fullScreen?'padding:15px;':''">
+        <el-row>
+            <el-col :md="18" :xs="24">
+                <el-row v-if="screen.length>0">
+                    <el-col :span="screen.length>1?12:24" v-for="(item,index) in screen">
+                        <el-card shadow="hover" body-style="padding:0">
+                            <div class="screen" :style="`height:${girdheight}px;`">
+                                <div class="screen-top">
+                                    <div class="title">{{item.title}}</div>
+                                </div>
+                                <template v-if="item.url">
+                                    <div class="zhuji">
+                                        <div style="width:100%;" :id="`video-${item.id}`"></div>
+                                        <div class="fuji" :style="fuji.expand?`width:100%;left:0;top:0;z-index:999;`:`width:30%;height:${girdheight/3.5}px;left:${30*findex}%`" v-for="(fuji,findex) in item.fuji">
+                                            <div class="title">
+                                                辅机
+                                                <i @click="fuji.expand=!fuji.expand" :class="fuji.expand?'fa fa-compress':'fa fa-expand'"></i>
+                                            </div>
+                                            <div style="width:100%;" :id="`video-${fuji.id}`"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div class="error" v-else><i class="fa fa-remove"></i>&nbsp;获取视频地址失败</div>
+                                <div class="btn-group">
+                                    <el-button @click="photo(item)" type="primary">拍照</el-button>
+                                    <el-button @click="trigger(item)" type="warning">识别</el-button>
+                                    <el-button @click="open(item)" type="danger">开闸</el-button>
+                                    <el-button @click="close(item)" type="info">关闸</el-button>
+                                </div>
+                            </div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+                <el-row v-else>
+                    <el-col :span="24">
+                        <el-card shadow="hover">
+                            <div @click="drawer.show=true" class="barrier" :style="`height:${girdheight}px;`"><i class="fa fa-plus"></i>&nbsp;添加通道监控</div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+            </el-col>
+            <el-col :md="6" :xs="24">
+                <div style="width:100%;padding-left: 10px">
+                    <el-card shadow="never">
+                        <template #header>
+                            <div class="log-title">通道即时消息</div>
+                        </template>
+                        <div class="log-container" :style="`height:${logheight}px;`">
+                            <el-scrollbar>
+                            <template v-for="i in log.length">
+                                <div v-html="log[log.length-i].message" class="log-item" :style="`color:${log[log.length-i].color}`"></div>
+                            </template>
+                            <div class="nodata" v-if="log.length===0">😢暂无消息！</div>
+                            </el-scrollbar>
+                        </div>
+                    </el-card>
+                    <el-card shadow="never" style="margin-top:10px;">
+                        <div style="display: flex;justify-content: space-between;">
+                            <el-button @click="drawer.show=true" type="primary" style="width: 30%"><i class="fa fa-cogs"></i>&nbsp;设置通道</el-button>
+                            <el-button v-if="fullScreen" @click="disfullscreen" type="success" style="width: 30%"><i class="fa fa-compress"></i>&nbsp;取消全屏</el-button>
+                            <el-button v-else @click="fullscreen" type="success" style="width: 30%"><i class="fa fa-expand"></i>&nbsp;全屏展示</el-button>
+                            <el-button @click="clearCache" type="warning" style="width: 30%"><i class="fa fa-trash"></i>&nbsp;清除记录</el-button>
+                        </div>
+                    </el-card>
+                </div>
+            </el-col>
+        </el-row>
+    </div>
+    <el-dialog width="800" v-model="drawer.show" size="40%">
+        <template #header>
+            <div style="font-size: 18px;font-weight: bold;"><i class="fa fa-plus"></i>&nbsp;添加通道监控</div>
+        </template>
+        <template #default>
+            <yun-form ref="yunform" :columns="columns">
+                <template #tips>
+                    <el-form-item label="">
+                        <el-alert :closable="false" type="warning" show-icon title="1、使用本地视频更加清晰。2、使用云视频时，管理人员长时间无任何操作，监控将自动停止。"></el-alert>
+                    </el-form-item>
+                </template>
+                <template #footer>
+                    <el-button @click="confirm" type="primary">提交</el-button>
+                    <el-button @click="drawer.show=false">取消</el-button>
+                </template>
+            </yun-form>
+        </template>
+    </el-dialog>
+</template>
+<script>
+    let jessibuca;
+    let mqtt;
+    let mouseX,mouseY,flvPlayer=[],ispause=false,changetime=0;
+    import form from "@components/Form.js";
+    export default {
+        components: {
+            'YunForm': form
+        },
+        data:{
+            screen:Yunqi.data.screen,
+            fullScreen:false,
+            drawer:{
+                show:false
+            },
+            girdheight:0,
+            logheight:0,
+            columns: [
+                {field: "barrier_id", title: "选择通道", edit: {form:'select',multiple:true,value:Yunqi.data.screen.map(res=>{return res.id;})}, searchList:Yunqi.data.barrier,rules: "required;length(1~4)"},
+            ],
+            log:[]
+        },
+        onLoad(){
+            Yunqi.use(['/assets/js/jessibuca/jessibuca.js','/assets/js/mqtt.min.js']).then(res=>{
+                jessibuca=res.Jessibuca;
+                mqtt=res.mqtt;
+                this.connectMqtt();
+            });
+        },
+        onShow(e){
+            let containerHeight=this.$refs.pageContainer.clientHeight;
+            if(parent==window){
+                this.fullScreen=true;
+                if(this.screen.length>1){
+                    this.girdheight=(containerHeight-34)/2;
+                }else{
+                    this.girdheight=containerHeight-34;
+                }
+                this.logheight=containerHeight-218;
+            }else{
+                if(this.screen.length>1){
+                    this.girdheight=(containerHeight)/2;
+                }else{
+                    this.girdheight=containerHeight;
+                }
+                this.logheight=containerHeight-180;
+            }
+            document.addEventListener('mousemove', function(event) {
+                if(mouseX!=event.clientX || mouseY!=event.clientY){
+                    mouseX = event.clientX;
+                    mouseY = event.clientY;
+                    changetime=0;
+                    return;
+                }
+            });
+            if(Yunqi.data.screen.length>0){
+                let that=this;
+                setTimeout(()=>{
+                    if(top!=window){
+                        let title=top.Yunqi.app.activeMenu.title;
+                        if(title=='通道监控'){
+                            that.playscreen();
+                        }
+                    }else{
+                        that.playscreen();
+                    }
+                },1500);
+                setInterval(()=>{
+                    if(changetime>600){
+                        for(let i=0;i<flvPlayer.length;i++){
+                            if(!ispause){
+                                flvPlayer[i].pause();
+                                console.log('视频已经暂停')
+                            }
+                        }
+                        ispause=true;
+                    }else{
+                        for(let i=0;i<flvPlayer.length;i++){
+                            if(ispause){
+                                flvPlayer[i].play();
+                                console.log('视频重新开始')
+                            }
+                        }
+                        ispause=false;
+                    }
+                    changetime++;
+                },1000);
+            }
+        },
+        methods: {
+            playscreen:function (){
+                for(let i=0;i<Yunqi.data.screen.length;i++){
+                    this.play(Yunqi.data.screen[i]);
+                    if(Yunqi.data.screen[i].fuji.length>0){
+                        for(let j=0;j<Yunqi.data.screen[i].fuji.length;j++){
+                            this.play(Yunqi.data.screen[i].fuji[j]);
+                        }
+                    }
+                }
+            },
+            connectMqtt:function (){
+                let config=Yunqi.data.mqtt;
+                let options={
+                    clean: true,
+                    connectTimeout: 4000,
+                    reconnectPeriod: 1000,
+                    clientId:Yunqi.data.clientId,
+                    username:config.mqtt_username,
+                    password:config.mqtt_password
+                };
+                let client = mqtt.connect('wss://'+config.mqtt_host+':'+config.mqtt_web_port+'/mqtt', options);
+                let topic=[];
+                for(let i=0;i<this.screen.length;i++){
+                    topic.push(this.screen[i].serialno+'/barrier/screen/record/message/'+this.screen[i].parking_id);
+                }
+                client.on('connect', () => {
+                    client.subscribe(topic,() => {
+                        console.log(`mqtt连接成功`);
+                    });
+                });
+                client.on('message', (topic, res) => {
+                    res=JSON.parse(res.toString());
+                    let body=res.payload.body;
+                    if(body.type=="pay"){
+                        let {color,message}=body;
+                        this.log.push({color:color,message:message});
+                    }
+                    if(body.type=="message"){
+                        this.log.push(body);
+                    }
+                });
+            },
+            play:function (screen){
+                if(!screen.url){
+                    return;
+                }
+                try{
+                    let showOperateBtns=false;
+                    let forceNoOffscreen=true;
+                    let container=document.getElementById('video-'+screen.id);
+                    let jess = new jessibuca({
+                        container: container,
+                        videoBuffer: 0.2, // 缓存时长
+                        isResize: false,
+                        text: "",
+                        decoder:'/assets/js/jessibuca/decoder.js',
+                        loadingText: "加载中",
+                        debug: false,
+                        showBandwidth: showOperateBtns, // 显示网速
+                        operateBtns: {
+                            fullscreen: showOperateBtns,
+                            screenshot: showOperateBtns,
+                            play: showOperateBtns,
+                            audio: showOperateBtns,
+                            record: showOperateBtns
+                        },
+                        useWCS: true,
+                        wcsUseVideoRender:true,
+                        forceNoOffscreen: forceNoOffscreen,
+                        isNotMute: false,
+                    });
+                    flvPlayer.push(jess);
+                    setTimeout(()=>{
+                        jess.play(screen.url);
+                    },200);
+                }catch (e){
+                    console.log(e);
+                }
+            },
+            confirm:function (){
+                let barrier_id=this.$refs.yunform.getValue('barrier_id');
+                if(barrier_id.length===0){
+                    Yunqi.message.error('请选择通道');
+                    return;
+                }
+                if(barrier_id.length>4){
+                    Yunqi.message.error('最多选择4个通道');
+                    return
+                }
+                this.drawer.show=false;
+                Yunqi.ajax.post('screen/add',{barrier_id}).then(res=>{
+                    location.reload();
+                });
+            },
+            fullscreen:function (){
+                parent.location.href=Yunqi.config.baseUrl+'screen/index.html';
+            },
+            disfullscreen:function (){
+                location.href=Yunqi.config.baseUrl+'screen/index.html?ref=addtabs';
+            },
+            clearCache:function (){
+                this.log=[];
+            },
+            open:function (barrier){
+                Yunqi.confirm('您确定要打开'+barrier.title+'吗？').then(res=>{
+                    Yunqi.ajax.post('screen/open',{barrier_id:barrier.id});
+                });
+            },
+            close:function (barrier){
+                Yunqi.confirm('您确定要关闭'+barrier.title+'吗？').then(res=>{
+                    Yunqi.ajax.post('screen/close',{barrier_id:barrier.id});
+                });
+            },
+            photo:function (barrier){
+                Yunqi.ajax.post('screen/photo',{barrier_id:barrier.id});
+            },
+            trigger:function (barrier){
+                Yunqi.ajax.post('screen/trigger',{barrier_id:barrier.id});
+            }
+        }
+    }
+</script>
+<style>
+.page-contaier{
+    background-color: var(--el-bg-color-page);
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+.screen{
+    position: relative;
+}
+.screen,.barrier{
+    text-align: center;
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.screen-top{
+    position: absolute;
+    top: 0px;
+    left: 0;
+    width: 100%;
+    z-index: 3;
+}
+.screen-top .title{
+    font-size: 16px;
+    display: inline;
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+.barrier{
+    cursor: pointer;
+}
+.log-title{
+    font-weight: bold;
+    font-size: 16px;
+}
+.log-container{
+    overflow-y: auto;
+    font-size: 14px;
+}
+.log-item{
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+.error{
+    color: var(--el-color-error);
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.nodata{
+    color: grey;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.btn-group{
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+    width: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+}
+.zhuji{
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.fuji{
+    background: rgba(255,255,255,0.8);
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    z-index: 1;
+}
+.fuji .title{
+    font-size: 12px;
+    display: inline;
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    padding: 3px 0px;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+}
+.fuji .title .fa{
+    position: absolute;
+    right: 5px;
+    top: 7px;
+    cursor: pointer;
+    z-index: 9999;
+}
+</style>

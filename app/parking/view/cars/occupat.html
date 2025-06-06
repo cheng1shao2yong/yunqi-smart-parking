@@ -1,0 +1,37 @@
+<template>
+    <el-card shadow="never" style="border: 0">
+        <el-table :data="list">
+            <el-table-column prop="code" label="车位编号"></el-table-column>
+            <el-table-column prop="records_id" label="车位状态">
+                <template #default="scope">
+                    <el-tag v-if="!scope.row.records_id" type="success">空闲</el-tag>
+                    <el-tag v-else type="danger">占用</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column prop="plate_number" label="车牌号"></el-table-column>
+            <el-table-column prop="records.entry_time_txt" label="车辆入场时间"></el-table-column>
+            <el-table-column prop="entry_time" label="占用车位时间"></el-table-column>
+            <el-table-column prop="entry_time" label="临停时长">
+                <template #default="scope">
+                    <el-tag v-if="scope.row.provisional>60*5" type="danger">{{parseInt(scope.row.provisional/60)}}分钟</el-tag>
+                    <el-tag v-else type="info">不存在</el-tag>
+                </template>
+            </el-table-column>
+        </el-table>
+    </el-card>
+</template>
+<script>
+    export default{
+        data:{
+            list:Yunqi.data.list
+        },
+        onLoad:function (e){
+
+        },
+        methods: {
+
+        }
+    }
+</script>
+<style>
+</style>

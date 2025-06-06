@@ -1,0 +1,50 @@
+<template>
+    <el-card shadow="never" style="border:none;">
+        <yun-table
+                v-if="extend"
+                :columns="columns"
+                ref="yunTable"
+                :common-search="false"
+                toolbar="refresh"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    onLoad:function(e){
+        this.extend={
+            index_url: 'traffic/orders?ids='+e.ids,
+        }
+    },
+    data:{
+        extend:'',
+        columns:[
+            {field: 'id',title: __('ID'),width:80},
+            {field: "records.plate_number", title: "车牌号"},
+            {field: "records.entry_time_txt", title: "入场时间"},
+            {field: "records.exit_time_txt", title: "出场时间"},
+            {field: 'status',title: __('状态'),formatter: function (data){
+                let tag=Yunqi.formatter.tag;
+                if(data){
+                    tag.type='success';
+                    tag.value='上传成功';
+                }else{
+                    tag.type='info';
+                    tag.value='等待上传';
+                }
+                return tag;
+            }},
+        ]
+    },
+    methods: {
+
+    }
+}
+</script>
+<style>
+</style>

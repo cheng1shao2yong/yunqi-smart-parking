@@ -1,0 +1,85 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="row"
+                ref="yunform"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+                <template #virtual_serialno="{rows}">
+                    <el-form-item label="虚拟序列号" prop="virtual_serialno">
+                        <el-input v-model="rows.virtual_serialno" placeholder="请获取虚拟序列号" size="small">
+                            <template #append>
+                                <el-button type="primary" @click="createVirtualSerialno">生成序列号</el-button>
+                            </template>
+                        </el-input>
+                    </el-form-item>
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import {inArray,getUniqid} from "@util.js";
+    export default {
+        components: {
+            'YunForm': form
+        },
+        data: {
+            columns:Yunqi.data.fuji?[
+                {field: "id", title: "ID", edit: "hidden"},
+                {field: "pid", title: "主机", edit: "select",searchList:Yunqi.data.list,rules: "required"},
+                {field: "serialno", title: "序列号", edit: "text"},
+                {field:"camera",title:"摄像机厂家",edit: 'select',searchList:Yunqi.data.camera,rules:'required'},
+                {field:"support_led",title:"支持LED屏",searchList: {0:'否',1:'是'},edit:'radio'},
+                {field: "local_ip", title: "本地IP", edit: "text"}
+            ]:[
+                {field: "id", title: "ID", edit: "hidden"},
+                {field: "title", title: "通道名称", edit: "text", rules: "required"},
+                {field:"barrier_type",title:"通道类型",searchList: {entry:'入口',exit:'出口'},edit:'radio'},
+                {field: "serialno", title: "序列号", edit: "text"},
+                {field: "virtual_serialno", title: "虚拟序列号", edit: 'slot', rules: "required"},
+                {field:"camera",title:"摄像机厂家",edit: 'select',searchList:Yunqi.data.camera,rules:'required'},
+                {field:"support_led",title:"支持LED屏",searchList: {0:'否',1:'是'},edit:'radio'},
+                {field: "limit_pay_time", title: "付款等待时间", edit: {form:'input',type:'number',value:300,append:'秒'}, rules: "required"},
+                {field: "screen_time", title: "屏显时间", edit: {form:'input',type:'number',value:30,append:'秒'}, rules: "required"},
+                {field: "local_ip", title: "本地IP", edit: "text"},
+                {field:"manual_confirm",title:"人工确认开闸",searchList: {0:'否',1:'是'},edit:'radio',visible:function (row) {
+                    return row.barrier_type=='entry';
+                }},
+                {
+                    field: "plate_type",
+                    title: "允许通行车牌",
+                    edit: "checkbox",
+                    rules: "required",
+                    searchList: Yunqi.data.plate_type
+                },
+                {
+                    field: "rules_type",
+                    title: "允许通行车辆",
+                    edit: "checkbox",
+                    rules: "required",
+                    searchList: Yunqi.data.rules_type
+                },
+                {
+                    field: "rules_id",
+                    title: "允许通行规则",
+                    edit: "checkbox",
+                    searchList:Yunqi.data.rules,
+                    visible:function (row) {
+                        return inArray(row.rules_type,'unprovisional');
+                    }
+                }
+            ],
+            row: Yunqi.data.row || {support_led:0,manual_confirm:0,barrier_type:'entry',plate_type:Object.keys(Yunqi.data.plate_type),rules_type:['provisional']}
+        },
+        methods: {
+            createVirtualSerialno:function (){
+                this.$refs.yunform.setValue('virtual_serialno',getUniqid());
+            }
+        }
+    }
+</script>
+<style>
+</style>

@@ -1,0 +1,62 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="row"
+                ref="yunForm"
+                @submit="onSubmit"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+                <template #qrcode="{rows}">
+                    <el-form-item label="">
+                        <img style="width: 150px;" :src="baseUrl+'records/qrcode?records_id='+rows.records_id"/>
+                    </el-form-item>
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import {formatDateTime} from "@util.js";
+    export default{
+        components:{
+            'YunForm':form
+        },
+        data:{
+            columns:[
+                {field:"records_id",title:"ID",edit: 'hidden'},
+                {field:"plate_number",title:"车牌号",edit: 'readonly'},
+                {field:"entry_time",title:"入场时间",edit: 'readonly'},
+                {field:"total_fee",title:"费用合计",edit: {form:'input',type:'number',readonly:true,append:'元'}},
+                {field:"coupon",title:"减免券",edit: 'readonly',visible:function (row){return Yunqi.data.coupon!='无';}},
+                {field:"pay_fee",title:"预付金额",visible:function (row){return row.pay_fee>0;},edit: {form:'input',type:'number',readonly:true,append:'元'}},
+                {field:"need_pay_fee",title:"实际支付费用",edit: {form:'input',type:'number',readonly:true,append:'元'},visible:function (row){return row.need_pay_fee!=row.total_fee;}},
+                {field:"pay_type",title:"支付方式",edit: {form: 'radio',value:'scanqrcode'},searchList:{scanqrcode:'扫码付款',underline:'线下收款'}},
+                {field:"qrcode",edit:'slot',visible:function (row){return row.pay_type=='scanqrcode'}},
+                {field:"remark",title:"备注",edit: 'text'},
+            ],
+            row:{
+                records_id:Yunqi.data.records.id,
+                plate_number:Yunqi.data.records.plate_number,
+                entry_time:formatDateTime(new Date(Yunqi.data.records.entry_time*1000)),
+                coupon:Yunqi.data.coupon,
+                total_fee:Yunqi.data.total_fee,
+                pay_fee:Yunqi.data.pay_fee,
+                need_pay_fee:Yunqi.data.need_pay_fee
+            },
+            baseUrl:Yunqi.config.baseUrl
+        },
+        methods: {
+            onSubmit:function (row){
+                if(row.need_pay_fee==0){
+                    Yunqi.message.error('费用为0，无需支付')
+                    return false;
+                }
+                return true;
+            }
+        }
+    }
+</script>
+<style>
+</style>

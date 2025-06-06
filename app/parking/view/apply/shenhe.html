@@ -1,0 +1,119 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            :data="row"
+            ref="yunForm"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+            <template #rules.title="{rows}">
+                <el-form-item label="申请停车规则:">
+                    <el-input disabled :value="rules_type[rows.rules.rules_type]+' - '+rows.rules.title"></el-input>
+                </el-form-item>
+            </template>
+            <template #plates="{rows}">
+                <el-form-item label="车辆:" required>
+                    <Fieldlist :label='["车牌号","车牌颜色","车型"]' :keys='["plate_number","plate_type","car_models"]' @change="changePlates" :value="rows.plates">
+                        <template #plate_type="{list,row,key}">
+                            <el-select v-model="list[row][key]" style="width: 100%" placeholder="请选择">
+                                <el-option v-for="(mode,name) in plate_type" :value="name" :label="mode">{{mode}}</el-option>
+                            </el-select>
+                        </template>
+                        <template #car_models="{list,row,key}">
+                            <el-select v-model="list[row][key]" style="width: 100%" placeholder="请选择">
+                                <el-option v-for="(mode,name) in car_models" :value="name" :label="mode">{{mode}}</el-option>
+                            </el-select>
+                        </template>
+                    </Fieldlist>
+                </el-form-item>
+            </template>
+            <template #remark="{rows}" >
+                <el-form-item :label="key+':'" v-for="(item,key) in formark(rows.remark)">
+                    <img v-if="item.startsWith('http')" :src="item" style="width: 150px;cursor: pointer;" @click="showPic(item)"/>
+                    <el-input v-else disabled :value="item"></el-input>
+                </el-form-item>
+            </template>
+            <template #footer>
+                <el-button type="success" @click="approved"><i class="fa fa-check"></i>&nbsp;审核通过</el-button>
+                <el-button type="danger" @click="refuse"><i class="fa fa-remove"></i>&nbsp;拒绝通过</el-button>
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+import form from "@components/Form.js";
+import fieldlist from "@components/Fieldlist.js";
+export default{
+    components:{
+        'YunForm':form,
+        'Fieldlist':fieldlist,
+    },
+    data:{
+        rules_type:Yunqi.data.rules_type,
+        plate_type:Yunqi.data.plate_type,
+        car_models:Yunqi.data.car_models,
+        columns:[
+            {field:"rules.title",title:"停车规则",edit:"slot"},
+            {field:"plates",title:"车辆信息",edit:"slot"},
+            {field:"contact",title:"车主姓名",edit:"text",rules:"required"},
+            {field:"mobile",title:"手机号",edit:"text",rules:"required"},
+            {field:"remark",title:"申请备注",edit:"slot"},
+        ],
+        row:Yunqi.data.apply
+    },
+    methods: {
+        changePlates:function (e){
+            this.$refs.yunForm.setValue('plates',e);
+        },
+        formark:function (data){
+            if(!data){
+                return [];
+            }
+            data=JSON.parse(data);
+            return data;
+        },
+        showPic:function (url){
+            Yunqi.api.previewImg(url);
+        },
+        refuse:function (){
+            Yunqi.ajax.post('apply/shenhe',{ids:this.row.id,status:2}).then(res=>{
+                Yunqi.api.closelayer(Yunqi.config.window.id,true);
+            });
+        },
+        approved:function (){
+            let contact=this.$refs.yunForm.getValue('contact');
+            let mobile=this.$refs.yunForm.getValue('mobile');
+            let plates=this.$refs.yunForm.getValue('plates');
+            if(!contact){
+                Yunqi.message.error('请输入车主姓名');
+                return;
+            }
+            if(!mobile){
+                Yunqi.message.error('请输入车主手机号');
+                return;
+            }
+            for(let i=0;i<plates.length;i++){
+                let plate_number=plates[i].plate_number;
+                let plate_type=plates[i].plate_type;
+                let car_models=plates[i].car_models;
+                if(!plate_number || !plate_type || !car_models){
+                    Yunqi.message.error('请输入完整车辆信息');
+                    return;
+                }
+            }
+            Yunqi.ajax.post('apply/shenhe',{
+                ids:this.row.id,
+                plates:plates,
+                contact:contact,
+                mobile:mobile,
+                status:1
+            }).then(res=>{
+                Yunqi.api.closelayer(Yunqi.config.window.id,true);
+            });
+        }
+    }
+}
+</script>
+<style>
+</style>

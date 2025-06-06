@@ -1,0 +1,42 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh"
+                :common-search="false"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import platetype from "@components/PlateType.js";
+    export default{
+        components:{
+            'YunTable':table,
+            'PlateType': platetype
+        },
+        data:{
+            extend:'',
+            columns:[
+                {field:"transaction_id",title:"订单号"},
+                {field:"order_type",title:"订单类型",searchList:Yunqi.data.orderType,formatter:Yunqi.formatter.tag},
+                {field:"pay_price",title:"支付金额",formatter:Yunqi.formatter.datetime},
+                {field:"pay_time",title:"支付时间",formatter:Yunqi.formatter.datetime},
+            ]
+        },
+        onLoad(e){
+            this.extend={
+                index_url: 'finance/invoice/orders?ids='+e.ids,
+            }
+        },
+        methods: {
+
+        }
+    }
+</script>
+<style>
+    .toolbar{
+        display: none;
+    }
+</style>

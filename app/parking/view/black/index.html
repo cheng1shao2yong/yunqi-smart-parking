@@ -1,0 +1,48 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh,add,del"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\Black','add')},
+                    del:{:$auth->check('app\\parking\\controller\\Black','del')},
+                    multi:{:$auth->check('app\\parking\\controller\\Black','multi')},
+                }"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:{
+            index_url: 'black/index',
+            add_url: 'black/add',
+            del_url: 'black/del',
+        },
+        columns:[
+            {checkbox: true},
+            {field:"createtime",title:"创建时间",operate:"daterange",formatter:Yunqi.formatter.datetime},
+            {field:"plate_number",title:"车牌号"},
+            {field:"remark",title:"备注",operate:false},
+            {field:"admin.nickname",title:"操作人员",operate:false},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:130,
+                action:{
+                    del:true,
+                }
+            }
+        ]
+    },
+    methods: {
+    }
+}
+</script>
+<style>
+</style>

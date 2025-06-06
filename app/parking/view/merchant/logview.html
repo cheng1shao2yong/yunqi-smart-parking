@@ -1,0 +1,156 @@
+<template>
+    <el-card shadow="never" style="border: none;">
+        <el-tabs type="card" v-model="tabValue" @tab-change="tabChange">
+            <el-tab-pane name="bill" label="消费账单"></el-tab-pane>
+            <el-tab-pane name="balance" label="余额流水"></el-tab-pane>
+            <el-tab-pane name="recharge" label="充值记录"></el-tab-pane>
+        </el-tabs>
+        <yun-table
+                ref="yunTable"
+                :search-form-visible="false"
+                :columns="columns[tabValue]"
+                :show-summary="tabValue=='bill'?true:false"
+                toolbar="refresh,download"
+                :extend="extend[tabValue]">
+                <template #header="{field}">
+                    <div v-if="field=='after'" style="text-align: center;width: 100%;">
+                        <span v-if="merchant.settle_type=='after'">商户账单</span>
+                        <span v-else>商户余额</span>
+                    </div>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import {formatDuration} from "@util.js";
+    export default{
+        components: {
+            'YunTable': table
+        },
+        data: {
+            tabValue:'bill',
+            merchant:Yunqi.data.merchant,
+            extend:'',
+            columns: {
+                bill:[
+                    {field: "createtime", title: "时间", operate: {form:'date-picker',type:'daterange',filter:'between time'}, formatter: Yunqi.formatter.datetime},
+                    {field: "records.plate_number", title: "车牌号", operate: {form:'input',type:'text',filter:false}},
+                    {field: "records.entry_time_txt", title: "入场时间", operate:false},
+                    {field: "records.exit_time_txt", title: "离场时间", operate:false},
+                    {field: "records.parking_time", title: "停车时长", operate:false,formatter: function (data,row){
+                        let time=row.records.exit_time-row.records.entry_time;
+                        return formatDuration(time);
+                    }},
+                    {field: "records.total_fee", title: "停车费用", operate:false},
+                    {field: "records.activities_fee", title: "减免金额", operate:false},
+                    {field: "change", title: "商户扣款", operate:false,formatter: function (data){
+                        let settle_type=Yunqi.data.merchant.settle_type;
+                        let html=Yunqi.formatter.html;
+                        if(settle_type=='time'){
+                            html.value='<div style="width:100%;color: red;text-align: center;">-'+parseInt(data)+'分钟</div>';
+                        }else{
+                            html.value='<div style="width:100%;color: red;text-align: center;">-'+data+'</div>';
+                        }
+                        return html;
+                    }},
+                    {field: "after", title: "账单/余额", operate:false,formatter: function (data){
+                            let settle_type=Yunqi.data.merchant.settle_type;
+                            if(settle_type=='time'){
+                                if(data<0){
+                                    data=-data;
+                                    let str='欠'+parseInt(data)+'分钟';
+                                    return str;
+                                }else{
+                                    let str=parseInt(data)+'分钟';
+                                    return str;
+                                }
+                            }
+                            return data;
+                    }},
+                ],
+                recharge:[
+                    {field: "createtime", title: "时间", operate: "daterange", formatter: Yunqi.formatter.datetime},
+                    {field: "payunion.pay_price", title: "金额", operate: false},
+                    {field: "payunion.pay_type", title: "支付方式", operate: false,formatter: function (data){
+                        return Yunqi.data.payType[data];
+                    }}
+                ],
+                balance:[
+                    {field: 'createtime', title: '时间',operate: {form:'date-picker',type:'daterange',size:'large'}},
+                    {field: 'log_type', title: '交易类型',operate: false,searchList:Yunqi.data.logType},
+                    {field: 'before', title: '交易前',operate:false,formatter: function (data,row){
+                        let settle_type=Yunqi.data.merchant.settle_type;
+                        if(settle_type=='time'){
+                            if(data<0){
+                                data=-data;
+                                let str='欠'+parseInt(data)+'分钟';
+                                return str;
+                            }else{
+                                let str=parseInt(data)+'分钟';
+                                return str;
+                            }
+                        }
+                        return data;
+                    }},
+                    {field: 'change', title: '变化数目',operate:false,formatter: function (data,row){
+                        let settle_type=Yunqi.data.merchant.settle_type;
+                        if(settle_type=='time'){
+                            let str=parseInt(data)+'分钟';
+                            return str;
+                        }
+                        return data;
+                    }},
+                    {field: 'after', title: '交易后',operate:false,formatter: function (data,row){
+                        let settle_type=Yunqi.data.merchant.settle_type;
+                        if(settle_type=='time'){
+                            if(data<0){
+                                data=-data;
+                                let str='欠'+parseInt(data)+'分钟';
+                                return str;
+                            }else{
+                                let str=parseInt(data)+'分钟';
+                                return str;
+                            }
+                        }
+                        return data;
+                    }},
+                    {field: 'payunion.pay_type', title: '支付方式', operate: false,formatter: function (data){
+                        return data?Yunqi.data.payType[data]:'';
+                    }},
+                    {field: 'payunion.pay_price', title: '实付金额', operate: false},
+                    {field: 'payunion.transaction_id', width:200,title: '交易单号', operate: false,formatter: function (data){
+                        return data || '';
+                    }},
+                    {field: 'remark', title: '备注',width:600,operate:false}
+                ]
+            }
+        },
+        onLoad:function (e){
+            this.extend={
+                bill:{
+                    index_url: 'merchant/logview?type=bill&ids='+e.ids,
+                    download_url: 'merchant/downlog?type=bill&ids='+e.ids
+                },
+                recharge:{
+                    index_url: 'merchant/logview?type=recharge&ids='+e.ids,
+                    download_url: 'merchant/downlog?type=recharge&ids='+e.ids
+                },
+                balance:{
+                    index_url: 'merchant/logview?type=balance&ids='+e.ids,
+                    download_url: 'merchant/downlog?type=balance&ids='+e.ids
+                }
+            }
+        },
+        methods: {
+            tabChange:function (e){
+                Vue.nextTick(()=>{
+                    this.$refs.yunTable.reset();
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

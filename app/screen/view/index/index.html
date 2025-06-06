@@ -1,0 +1,564 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>本地通道监控</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="shortcut icon" href="{:request()->domain()}/favicon.ico" />
+    <link rel="stylesheet" href="{:request()->domain()}/assets/css/element-plus.css" />
+    <link rel="stylesheet" href="{:request()->domain()}/assets/libs/font-awesome/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="{:request()->domain()}/assets/css/platenumber.css" />
+    <script src="{:request()->domain()}/assets/js/vue.global.js" type="text/javascript"></script>
+    <script src="{:request()->domain()}/assets/js/axios.min.js" type="text/javascript"></script>
+    <script src="{:request()->domain()}/assets/js/element-plus.js" type="text/javascript"></script>
+    <script src="{:request()->domain()}/assets/js/jessibuca/jessibuca.js" type="text/javascript"></script>
+    <script src="{:request()->domain()}/assets/js/mqtt.min.js" type="text/javascript"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .page-contaier{
+            background-color: var(--el-bg-color-page);
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+        }
+        .screen{
+            position: relative;
+        }
+        .screen,.barrier{
+            text-align: center;
+            font-size: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .screen-top{
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            z-index: 99998;
+        }
+        .screen-top .title{
+            font-size: 16px;
+            display: inline;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        .barrier{
+            cursor: pointer;
+        }
+        .log-header{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .log-title{
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .log-container{
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        .log-item{
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .error{
+            color: var(--el-color-error);
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .nodata{
+            color: grey;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn-group{
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            display: flex;
+            z-index: 99999;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .zhuji{
+            position: relative;
+        }
+        .fuji{
+            background: rgba(255,255,255,0.8);
+            position: absolute;
+            bottom: 0px;
+            left: 0px;
+            z-index: 99999;
+        }
+        .fuji .title{
+            font-size: 12px;
+            display: inline;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            padding: 3px 0px;
+            border-radius: 4px;
+            text-align: center;
+            width: 100%;
+            position: absolute;
+            z-index: 99999;
+            left: 0;
+        }
+        .fuji .title .fa{
+            position: absolute;
+            right: 10px;
+            top: 7px;
+            cursor: pointer;
+            z-index: 9999;
+        }
+        .dialog-body{
+            padding: 5px;
+        }
+        .drawer-footer{
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container id="container">
+        <el-main>
+            <div ref="pageContainer" class="page-contaier" style="padding:15px;">
+                <el-row>
+                    <el-col :span="18">
+                        <el-row>
+                            <el-col :span="this.screen.length>1?12:24" v-for="(item,index) in screen">
+                                <el-card shadow="hover" :body-style="{padding:0}">
+                                    <div class="screen" :style="`height:${girdheight}px;`">
+                                        <div class="screen-top">
+                                            <div class="title">{{item.title}}</div>
+                                        </div>
+                                        <template v-if="item.url">
+                                            <div class="zhuji">
+                                                <div :style="`width:${girdwidth}px;height:${girdheight}px;`" :id="`video-${item.id}`"></div>
+                                                <div class="fuji" :style="fuji.expand?`width:100%;left:0;top:0;`:`width:200px;height:${girdheight/3.5}px;left:${30*findex}%`" v-for="(fuji,findex) in item.fuji">
+                                                    <div class="title">
+                                                        <span>辅机</span>
+                                                        <i @click="fuji.expand=!fuji.expand" :class="fuji.expand?'fa fa-compress':'fa fa-expand'"></i>
+                                                    </div>
+                                                    <div :style="fuji.expand?`width:${girdwidth}px;height:${girdheight}px;`:`width:200px;height:${girdheight/3.5}px;position:absolute;top:0;`" :id="`video-${fuji.id}`"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <div class="error" v-else><i class="fa fa-remove"></i>&nbsp;获取视频地址失败</div>
+                                        <div class="btn-group">
+                                            <el-button v-if="item.barrier_type=='entry'" @click="entry(item)" type="success">入场</el-button>
+                                            <el-button v-if="item.barrier_type=='exit'" @click="exit(item)" type="warning">出场</el-button>
+                                            <el-button @click="trigger(item)" type="primary">识别</el-button>
+                                            <el-button @click="showopen(item)" type="danger">开闸</el-button>
+                                            <el-button @click="close(item)" type="info">关闸</el-button>
+                                        </div>
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+                    </el-col>
+                    <el-col :span="6" style="position: relative;">
+                        <div style="padding-left: 10px">
+                            <el-card shadow="never">
+                                <template #header>
+                                    <div class="log-header">
+                                        <div class="log-title">通道即时记录</div>
+                                        <el-select v-model="fontSize" style="width: 110px;">
+                                            <el-option label="字体 - 小" :value="12"></el-option>
+                                            <el-option label="字体 - 中" :value="14"></el-option>
+                                            <el-option label="字体 - 大" :value="16"></el-option>
+                                            <el-option label="字体 - 特大" :value="20"></el-option>
+                                        </el-select>
+                                    </div>
+                                </template>
+                                <div class="log-container" :style="`height:${logheight}px;`">
+                                    <template v-for="i in log.length">
+                                        <div v-html="log[log.length-i].message" class="log-item" :style="`font-size:${fontSize}px;color:${log[log.length-i].color}`"></div>
+                                    </template>
+                                    <div class="nodata" v-if="log.length===0">😢暂无记录！</div>
+                                </div>
+                            </el-card>
+                            <el-card shadow="never" style="margin-top:10px;">
+                                <div style="display: flex;justify-content: space-between">
+                                    <el-button size="large" @click="clearCache" type="warning" style="width: 30%"><i class="fa fa-trash"></i>&nbsp;清除记录</el-button>
+                                    <el-button size="large" v-if="fullScreen" @click="changeFullScreen" type="success" style="width: 30%"><i class="fa fa-compress"></i>&nbsp;取消全屏</el-button>
+                                    <el-button size="large" v-else @click="changeFullScreen" type="success" style="width: 30%"><i class="fa fa-expand"></i>&nbsp;全屏展示</el-button>
+                                    <el-button size="large" @click="lockScreen" type="info" style="width: 30%"><i class="fa fa-lock"></i>&nbsp;关闭锁屏</el-button>
+                                </div>
+                            </el-card>
+                        </div>
+                    </el-col>
+                </el-row>
+            </div>
+            <el-drawer v-model="drawer.show" size="50%" :with-header="false" direction="btt" :show-close="false">
+                <platenumber ref="platenumber"></platenumber>
+                <div class="drawer-footer">
+                    <template v-if="drawer.barrier.barrier_type=='entry'">
+                        <el-button size="large" @click="drawer.show=false" type="info">取消入场</el-button>
+                        <el-button size="large" @click="plateNumberSubmit" type="success">确定入场</el-button>
+                    </template>
+                    <template v-if="drawer.barrier.barrier_type=='exit'">
+                        <el-button size="large" @click="drawer.show=false" type="info">取消出场</el-button>
+                        <el-button size="large" @click="plateNumberSubmit('x4')" type="success">免费出场</el-button>
+                        <el-button size="large" @click="plateNumberSubmit('x3')" type="primary">缴费出场</el-button>
+                        <el-button size="large" @click="plateNumberSubmit('x7')" type="danger">欠费出场</el-button>
+                    </template>
+                </div>
+            </el-drawer>
+            <el-dialog
+                    v-model="dialog.show"
+                    title="开闸提示"
+                    custom-class="dialog-body"
+                    width="650">
+                <div style="width: 100%;margin-bottom: 10px;">{{dialog.message}}</div>
+                <div v-if="dialog.photo" style="width: 100%;margin-bottom: 10px;text-align: center;"><img :src="dialog.photo" style="width: 60%;"></div>
+                <template v-if="tips && tips.length>0">
+                    <el-select v-model="dialog.remark" placeholder="请选择开闸原因：" style="width: 100%">
+                        <template v-if="dialog.barrier.barrier_type=='exit'">
+                            <el-option label="现金收费" value="现金收费"></el-option>
+                        </template>
+                        <el-option v-for="(item,key) in tips" :key="key" :label="item.remark" :value="item.remark"></el-option>
+                        <el-option label="填写原因" value="填写原因"></el-option>
+                    </el-select>
+                </template>
+                <el-input style="margin-top: 10px" type="textarea" v-if="dialog.remark=='填写原因'" v-model="dialog.diy_remark" :rows="4" placeholder="请输入开闸原因！"></el-input>
+                <template #footer>
+                    <div class="dialog-footer">
+                        <el-button @click="cancelDialog">取消</el-button>
+                        <el-button type="primary" @click="open">确认</el-button>
+                    </div>
+                </template>
+            </el-dialog>
+        </el-main>
+    </el-container>
+</div>
+</body>
+<script type="module">
+    import zhcn from '{:request()->domain()}/assets/js/zh-cn.js';
+    import platenumber from '{:request()->domain()}/assets/js/components/plate-number.js';
+    import {requestGet,requestPost} from '{:request()->domain()}/assets/js/sentrybox.js';
+    const apiHost='{$apiHost}';
+    const app = Vue.createApp({
+        components:{
+            'platenumber':platenumber
+        },
+        data() {
+            return {
+                tips:'',
+                fontSize:12,
+                drawer: {
+                    show:false,
+                    barrier:''
+                },
+                screen:[],
+                mqttConfig:'',
+                clientId:'',
+                girdwidth:0,
+                girdheight:0,
+                logheight:0,
+                log:[],
+                fullScreen:false,
+                dialog:{
+                    show:false,
+                    message:'',
+                    barrier:'',
+                    records_id:'',
+                    trigger_id:'',
+                    recovery_id:'',
+                    remark:'',
+                    diy_remark:'',
+                    photo:''
+                }
+            }
+        },
+        mounted:function (){
+            localStorage.setItem('apiHost',apiHost);
+            requestGet('index/config').then(res=>{
+                this.screen=res.screen;
+                this.tips=res.tips;
+                this.mqttConfig=res.mqttConfig;
+                this.connectMqtt();
+                for(let i=0;i<this.screen.length;i++){
+                    this.setScreenWidth();
+                    Vue.nextTick(()=>{
+                        this.play(this.screen[i]);
+                        if(this.screen[i].fuji.length>0){
+                            for(let j=0;j<this.screen[i].fuji.length;j++){
+                                this.play(this.screen[i].fuji[j]);
+                            }
+                        }
+                    });
+                }
+            });
+        },
+        methods:{
+            setScreenWidth:function (){
+                if(this.fullScreen){
+                    let containerHeight=this.$refs.pageContainer.clientHeight;
+                    if(this.screen.length<=4){
+                        this.girdheight=(containerHeight)/2;
+                    }else if(this.screen.length>4){
+                        this.girdheight=(containerHeight)/3;
+                    }
+                    this.logheight=containerHeight-65;
+                }else{
+                    let containerHeight=this.$refs.pageContainer.clientHeight;
+                    if(this.screen.length<=4){
+                        this.girdheight=(containerHeight-70)/2;
+                    }else if(this.screen.length>4){
+                        this.girdheight=(containerHeight-70)/3;
+                    }
+                    this.logheight=containerHeight-220;
+                }
+                let containerWidth=this.$refs.pageContainer.clientWidth;
+                this.girdwidth=(containerWidth-20)*(18/24)*0.5;
+            },
+            lockScreen:function (){
+                localStorage.setItem('token','');
+                let uniqid=localStorage.getItem('uniqid');
+                location.href='/login?uniqid='+uniqid;
+            },
+            connectMqtt:function (){
+                let options={
+                    clean: true,
+                    connectTimeout: 4000,
+                    reconnectPeriod: 1000,
+                    clientId:this.clientId,
+                    username:this.mqttConfig.mqtt_username,
+                    password:this.mqttConfig.mqtt_password
+                };
+                let client = mqtt.connect('wss://'+this.mqttConfig.mqtt_host+':'+this.mqttConfig.mqtt_web_port+'/mqtt', options);
+                let topic=[];
+                for(let i=0;i<this.screen.length;i++){
+                    topic.push(this.screen[i].serialno+'/barrier/screen/record/message/'+this.screen[i].parking_id);
+                }
+                client.on('connect', () => {
+                    client.subscribe(topic,() => {
+                        console.log(`mqtt连接成功`);
+                    });
+                });
+                client.on('message', (topic, res) => {
+                    res=JSON.parse(res.toString());
+                    let body=res.payload.body;
+                    if(body.type=="manual"){
+                        let {trigger_id,color,message,barrier_id,photo}=body;
+                        let barrier;
+                        for(let i=0;i<this.screen.length;i++){
+                            if(this.screen[i].id==barrier_id){
+                                barrier=this.screen[i];
+                                break;
+                            }
+                        }
+                        this.log.push({color:color,message:message});
+                        this.dialog={
+                            show:true,
+                            message:message,
+                            trigger_id:trigger_id,
+                            barrier:barrier,
+                            photo:photo,
+                            remark:'',
+                            diy_remark:''
+                        };
+                    }
+                    if(body.type=="recovery"){
+                        let {recovery_id,color,message,barrier_id,photo}=body;
+                        let barrier;
+                        for(let i=0;i<this.screen.length;i++){
+                            if(this.screen[i].id==barrier_id){
+                                barrier=this.screen[i];
+                                break;
+                            }
+                        }
+                        this.dialog={
+                            show:true,
+                            message:message,
+                            recovery_id:recovery_id,
+                            barrier:barrier,
+                            photo:photo,
+                            remark:'',
+                            diy_remark:''
+                        };
+                    }
+                    if(body.type=="pay"){
+                        let {records_id,message,color,barrier_id,photo}=body;
+                        let barrier;
+                        for(let i=0;i<this.screen.length;i++){
+                            if(this.screen[i].id==barrier_id){
+                                barrier=this.screen[i];
+                                break;
+                            }
+                        }
+                        this.log.push({color:color,message:message});
+                        this.dialog={
+                            show:true,
+                            message:message,
+                            records_id:records_id,
+                            barrier:barrier,
+                            photo:photo,
+                            remark:'',
+                            diy_remark:''
+                        };
+                    }
+                    if(body.type=="message"){
+                        if(body.message.indexOf('支付成功')!=-1){
+                            this.dialog.show=false;
+                        }
+                        this.log.push(body);
+                    }
+                });
+            },
+            play:function (screen){
+                let showOperateBtns=false;
+                let forceNoOffscreen=true;
+                let container=document.getElementById('video-'+screen.id);
+                let jessibuca = new Jessibuca({
+                    container: container,
+                    videoBuffer: 0.2, // 缓存时长
+                    isResize: false,
+                    text: "",
+                    decoder:'{:request()->domain()}/assets/js/jessibuca/decoder.js',
+                    loadingText: "加载中",
+                    debug: false,
+                    showBandwidth: showOperateBtns, // 显示网速
+                    operateBtns: {
+                        fullscreen: showOperateBtns,
+                        screenshot: showOperateBtns,
+                        play: showOperateBtns,
+                        audio: showOperateBtns,
+                        record: showOperateBtns
+                    },
+                    useWCS: true,
+                    wcsUseVideoRender:true,
+                    forceNoOffscreen: forceNoOffscreen,
+                    isNotMute: false,
+                },);
+                setTimeout(()=>{
+                    jessibuca.play(screen.url);
+                },1000);
+            },
+            clearCache:function (){
+                this.log=[];
+            },
+            showopen:function (barrier){
+                requestPost('index/photo',{
+                    barrier_id:barrier.id,
+                },true,false).then(res=>{
+                    let {isplate,plate_number,plate_type,photo}=res;
+                    let msg = "未检测到车辆";
+                    if (isplate && plate_number)
+                    {
+                        let plate_color = {
+                            "blue": "蓝色",
+                            "green": "绿色",
+                            "yellow": "黄色",
+                            "black": "黑色",
+                            "white": "白色"
+                        }
+                        msg ="检测到车辆，车牌号："+ plate_number+ "，车牌颜色：" + plate_color[plate_type];
+                    }
+                    if (isplate && !plate_number)
+                    {
+                        msg = "检测到无牌车";
+                    }
+                    this.dialog={
+                        barrier:barrier,
+                        show:true,
+                        photo:photo,
+                        message:msg,
+                        remark:'填写原因'
+                    };
+                });
+            },
+            open:function (){
+                requestPost('index/open', {
+                    remark:this.dialog.remark,
+                    diy_remark:this.dialog.diy_remark,
+                    records_id:this.dialog.records_id,
+                    trigger_id:this.dialog.trigger_id,
+                    recovery_id:this.dialog.recovery_id,
+                    barrier_id:this.dialog.barrier.id
+                }).then(res=>{
+                    this.cancelDialog();
+                });
+            },
+            cancelDialog:function (){
+                this.dialog={
+                    show:false,
+                    barrier:'',
+                    remark:'',
+                    records_id:'',
+                    trigger_id:'',
+                    recovery_id:'',
+                    photo:''
+                }
+            },
+            close:function (barrier){
+                ElementPlus.ElMessageBox.confirm('您确定要关闭'+barrier.title+'吗？').then(res=>{
+                    requestPost('index/close',{barrier_id:barrier.id});
+                });
+            },
+            trigger:function (barrier){
+                requestPost('index/trigger',{barrier_id:barrier.id});
+            },
+            changeFullScreen:function (){
+                let doc = document.documentElement;
+                if (this.fullScreen) {
+                    location.reload();
+                } else {
+                    this.fullScreen=true;
+                    doc.requestFullscreen ? doc.requestFullscreen() : doc.mozRequestFullScreen ? doc.mozRequestFullScreen() : doc.webkitRequestFullscreen ? doc.webkitRequestFullscreen() : doc.msRequestFullscreen && doc.msRequestFullscreen();
+                    this.setScreenWidth();
+                }
+            },
+            entry:function (barrier){
+                this.drawer.barrier=barrier;
+                this.drawer.show=true;
+            },
+            exit:function (barrier){
+                this.drawer.barrier=barrier;
+                this.drawer.show=true;
+            },
+            plateNumberSubmit:function (pay_status=''){
+                let platenumber=this.$refs.platenumber.getPlatenumber();
+                let platecolor=this.$refs.platenumber.getPlatecolor();
+                if(this.drawer.barrier.barrier_type=='entry'){
+                    requestPost('index/entry',{
+                        barrier_id:this.drawer.barrier.id,
+                        platenumber:platenumber,
+                        plate_type:platecolor
+                    }).then(res=>{
+                        this.drawer.show=false;
+                    });
+                }
+                if(this.drawer.barrier.barrier_type=='exit'){
+                    requestPost('index/exit',{
+                        barrier_id:this.drawer.barrier.id,
+                        platenumber:platenumber,
+                        plate_type:platecolor,
+                        pay_status:pay_status
+                    }).then(res=>{
+                        this.drawer.show=false;
+                    });
+                }
+            }
+        }
+    })
+    app.use(ElementPlus, {locale: zhcn});
+    app.mount('#app')
+</script>
+</html>

@@ -1,0 +1,536 @@
+<template>
+    <el-row>
+        <el-col :span="24">
+            <div class="card-container">
+                <el-card shadow="always" body-style="padding-bottom:10px;">
+                    <el-row>
+                        <el-col :md="6" :sm="12" :xs="12">
+                            <div class="style-1 bkcolor1">
+                                <div class="box">
+                                    <div class="box-title">用户总数</div>
+                                    <div class="box-number">{{panel[0]}}</div>
+                                </div>
+                                <i class="fa fa-user-circle-o"></i>
+                            </div>
+                        </el-col>
+                        <el-col :md="6" :sm="12" :xs="12">
+                            <div class="style-1 bkcolor4">
+                                <div class="box">
+                                    <div class="box-title">关注用户</div>
+                                    <div class="box-number">{{panel[1]}}</div>
+                                </div>
+                                <i class="fa fa-database"></i>
+                            </div>
+                        </el-col>
+                        <el-col :md="6" :sm="12" :xs="12">
+                            <div class="style-1 bkcolor2">
+                                <div class="box">
+                                    <div class="box-title">车场总数</div>
+                                    <div class="box-number">{{panel[2]}}</div>
+                                </div>
+                                <i class="fa fa-tasks"></i>
+                            </div>
+                        </el-col>
+                        <el-col :md="6" :sm="12" :xs="12">
+                            <div class="style-1 bkcolor3">
+                                <div class="box">
+                                    <div class="box-title">通道总数</div>
+                                    <div class="box-number">{{panel[3]}}</div>
+                                </div>
+                                <i class="fa fa-dashcube"></i>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </el-card>
+            </div>
+            <div class="card-container">
+                <el-card shadow="always">
+                    <template #header>
+                        <div class="header">
+                            <div class="title"><i class="fa fa-caret-right"></i>车流情况</div>
+                        </div>
+                    </template>
+                    <div class="chart1" id="chart1"></div>
+                </el-card>
+            </div>
+            <div class="card-container">
+                <el-card shadow="always">
+                    <template #header>
+                        <div class="header">
+                            <div class="title"><i class="fa fa-caret-right"></i>临停收益统计</div>
+                            <div class="right-filter">
+                                <el-button-group>
+                                    <el-button @click="changeLine('month')" size="small" :type="(filterForm.line=='month')?'primary':''">按月</el-button>
+                                    <el-button @click="changeLine('day')" size="small" :type="(filterForm.line=='day')?'primary':''">按天</el-button>
+                                    <el-button @click="changeLine('hour')" size="small" :type="(filterForm.line=='hour')?'primary':''">按时</el-button>
+                                </el-button-group>
+                            </div>
+                        </div>
+                    </template>
+                    <div class="chart1" id="chart3"></div>
+                </el-card>
+            </div>
+            <div class="card-container">
+                <el-card shadow="always">
+                    <template #header>
+                        <div class="header">
+                            <div class="title"><i class="fa fa-caret-right"></i>出入统计</div>
+                            <div class="right-filter">
+                                <el-form :model="filterForm">
+                                    <el-form-item label="出入类型" style="margin-bottom: 0;">
+                                        <el-select v-model="filterForm.select" style="margin-right: 10px;width: 150px;" @change="changeBar">
+                                            {foreach $ruletype as $k=>$v}
+                                            <el-option label="{$v}" value="{$k}"></el-option>
+                                            {/foreach}
+                                        </el-select>
+                                        <el-date-picker :shortcuts="shortcuts" @change="changeBar" v-model="filterForm.datepicker" style="width: 250px;" type="daterange" range-separator="到"></el-date-picker>
+                                    </el-form-item>
+                                </el-form>
+                            </div>
+                        </div>
+                    </template>
+                    <div class="chart2" id="chart2"></div>
+                </el-card>
+            </div>
+            <div class="card-container">
+                <el-card shadow="always">
+                    <template #header>
+                        <div class="header">
+                            <div class="title"><i class="fa fa-caret-right"></i>停车场在线支付排名</div>
+                            <div class="right-filter">
+                                <el-button-group>
+                                    <el-button @click="changeTable('all')" size="small" :type="(filterForm.table=='all')?'primary':''">全部</el-button>
+                                    <el-button @click="changeTable('today')" size="small" :type="(filterForm.table=='today')?'primary':''">今日</el-button>
+                                    <el-button @click="changeTable('week')" size="small" :type="(filterForm.table=='week')?'primary':''">本周</el-button>
+                                    <el-button @click="changeTable('month')" size="small" :type="(filterForm.table=='month')?'primary':''">当月</el-button>
+                                    <el-button @click="changeTable('lastmonth')" size="small" :type="(filterForm.table=='lastmonth')?'primary':''">上月</el-button>
+                                </el-button-group>
+                            </div>
+                        </div>
+                    </template>
+                    <el-table :data="table">
+                        <el-table-column label="排名" width="100" prop="sort">
+                            <template #default="{row}">{{10*(table_page-1)+row.sort}}</template>
+                        </el-table-column>
+                        <el-table-column label="停车场" prop="title"></el-table-column>
+                        <el-table-column>
+                            <template #header>
+                                <div>销售金额&nbsp;<i style="cursor: pointer;color: #000;" @click="changeTableSort" :class="(table_sort=='asc')?'fa fa-sort-amount-desc':'fa fa-sort-amount-desc fa-rotate-180'"></i></div>
+                            </template>
+                            <template #default="{row}">￥{{row.pay_price}}</template>
+                        </el-table-column>
+                        <el-table-column label="手续费">
+                            <template #default="{row}">￥{{row.handling_fees}}</template>
+                        </el-table-column>
+                    </el-table>
+                    <div class="pagination">
+                        <el-pagination background layout="prev, pager, next" :page-size="10" :total="panel[2]" @current-change="changePage"></el-pagination>
+                    </div>
+                </el-card>
+            </div>
+        </el-col>
+    </el-row>
+</template>
+<script>
+    import {formatDate} from '@util.js';
+    export default{
+        data:{
+            echarts:'',
+            panel:[],
+            line:{
+                date:[],
+                data:[]
+            },
+            syline: {
+                date: [],
+                data: []
+            },
+            table:[],
+            table_sort:'desc',
+            table_page:1,
+            bar:{
+                title:[],
+                name:[],
+                data:[]
+            },
+            order:{
+                percentage:[0,0]
+            },
+            filterForm:{
+                table:'today',
+                select:'all',
+                line:'day',
+                datepicker:[new Date(),new Date()],
+            },
+            shortcuts:[
+                {text:'今天',value:function(){
+                    const start = new Date();
+                    return [start, start];
+                }},
+                {text:'昨天',value:function(){
+                    const start = new Date();
+                    start.setTime(start.getTime()-3600*1000*24*1);
+                    return [start, start];
+                }},
+                {text:'最近7天',value:function(){
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime()-3600*1000*24*6);
+                    return [start, end];
+                }},
+                {text:'最近30天',value:function(){
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime()-3600*1000*24*29);
+                    return [start, end];
+                }},
+                {text:'本月',value:function(){
+                    const end = new Date();
+                    const start=new Date(formatDate(end).slice(0,7)+'-01');
+                    return [start, end];
+                }},
+                {text:'上月',value:function(){
+                    const currentDate = new Date();
+                    let lastMonth = currentDate.getMonth() - 1;
+                    let year = currentDate.getFullYear();
+                    if (lastMonth < 0) {
+                        year--;
+                        lastMonth = 11;
+                    }
+                    let firstDay = new Date(year, lastMonth, 1);
+                    let lastDay = new Date(year, lastMonth + 1, 0);
+                    return [firstDay, lastDay];
+                }},
+                {text:'今年',value:function(){
+                    let currentDate = new Date();
+                    let year = currentDate.getFullYear();
+                    let start = new Date(year, 0, 1);
+                    let end = new Date(year, 11, 31);
+                    return [start, end];
+                }},
+                {text:'去年',value:function(){
+                    let currentDate = new Date();
+                    let year = currentDate.getFullYear() - 1;
+                    let start = new Date(year, 0, 1);
+                    let end = new Date(year, 11, 31);
+                    return [start, end];
+                }}
+            ]
+        },
+        onLoad:function (){
+            Yunqi.use('/assets/js/echarts.min.js').then(res=>{
+                this.echarts=res;
+                this.parseData();
+                this.changeTable('today');
+                this.changeLine('day');
+                this.changeBar();
+            });
+        },
+        methods:{
+            parseData:function (){
+                Yunqi.ajax.get('dashboard/index').then(res=>{
+                    this.panel=res.panel;
+                    this.line=res.line;
+                    this.chart1();
+                });
+            },
+            chart1:function () {
+                let mychart = this.echarts.init(document.getElementById('chart1'), 'walden');
+                mychart.setOption({
+                    title: {text: '24小时车流情况',left: 'center'},
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    toolbox: {
+                        show: false,
+                        feature: {
+                            magicType: {show: true, type: ['stack', 'tiled']},
+                            saveAsImage: {show: true}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: this.line.date
+                    },
+                    yAxis: {},
+                    grid: [{
+                        left: 40,
+                        top: 40,
+                        right: 20,
+                        bottom:30
+                    }],
+                    series: [{
+                        name: '通道响应次数',
+                        type: 'line',
+                        smooth: false,
+                        areaStyle: {
+                            normal: {}
+                        },
+                        lineStyle: {
+                            normal: {
+                                width: 1.5
+                            }
+                        },
+                        data: this.line.data
+                    }]
+                });
+                window.addEventListener('resize',()=>{
+                    mychart.resize();
+                });
+            },
+            chart2:function (){
+                let mychart = this.echarts.init(document.getElementById('chart2'))
+                mychart.setOption({
+                    title: {text: '停车场出入统计',left: 'center'},
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left',
+                    },
+                    yAxis: {},
+                    xAxis: {
+                        data: this.bar.title
+                    },
+                    grid: [{
+                        left: 100,
+                        top: 40,
+                        right: 40,
+                        bottom:20
+                    }],
+                    series: [
+                        {
+                            type: 'bar',
+                            name:this.bar.name[0],
+                            data: this.bar.data[0]
+                        },
+                        {
+                            type: 'bar',
+                            name:this.bar.name[1],
+                            data: this.bar.data[1]
+                        }
+                    ]
+                });
+                window.addEventListener('resize',()=>{
+                    mychart.resize();
+                });
+            },
+            chart3: function () {
+                let mychart = this.echarts.init(document.getElementById('chart3'), 'walden');
+                mychart.setOption({
+                    title: {text: '临停收入金额（元）', left: 'center'},
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    toolbox: {
+                        show: false,
+                        feature: {
+                            magicType: {show: true, type: ['stack', 'tiled']},
+                            saveAsImage: {show: true}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: this.syline.date
+                    },
+                    yAxis: {},
+                    grid: [{
+                        left: 40,
+                        top: 40,
+                        right: 0,
+                        bottom: 30
+                    }],
+                    series: [{
+                        name: '金额',
+                        type: 'line',
+                        smooth: true,
+                        areaStyle: {
+                            normal: {}
+                        },
+                        lineStyle: {
+                            normal: {
+                                width: 1.5
+                            }
+                        },
+                        data: this.syline.data
+                    }]
+                });
+                window.addEventListener('resize', () => {
+                    mychart.resize();
+                });
+            },
+            changeForm:function (type){
+                if(type){
+                    this.filterForm.table=type;
+                }
+                this.parseData();
+            },
+            changeTableSort:function (){
+                if(this.table_sort=='desc'){
+                    this.table_sort='asc';
+                }else{
+                    this.table_sort='desc';
+                }
+                this.changeTable(this.filterForm.table);
+            },
+            changeBar:function (){
+                let [starttime,endtime]=this.filterForm.datepicker;
+                if(starttime instanceof Date){
+                    starttime=formatDate(starttime);
+                }
+                if(endtime instanceof Date){
+                    endtime=formatDate(endtime);
+                }
+                starttime=starttime+' 00:00:00';
+                endtime=endtime+' 23:59:59';
+                let rules_type=this.filterForm.select;
+                Yunqi.ajax.get('dashboard/bar', {starttime,endtime,rules_type}).then(res=>{
+                    this.bar=res;
+                    this.chart2();
+                });
+            },
+            changeTable:function (type){
+                this.filterForm.table=type;
+                Yunqi.ajax.get('dashboard/table', {type:type,sort: this.table_sort,page:this.table_page}).then(res=>{
+                   this.table=res;
+                });
+            },
+            changeLine:function (type){
+                this.filterForm.line=type;
+                Yunqi.ajax.get('dashboard/line', {type:this.filterForm.line}).then(res => {
+                    this.syline = res;
+                    this.chart3();
+                });
+            },
+            changePage:function (e){
+                this.table_page=e;
+                this.changeTable(this.filterForm.table);
+            }
+        }
+    }
+</script>
+<style>
+.pay{
+    text-align: center;
+    padding: 10px;
+}
+.pay img{
+    width: 180px;
+    height: 180px;
+}
+.card-container{
+    margin-bottom: 10px;
+}
+.card-container.left{
+    padding-right: 10px;
+}
+@media screen and (max-width: 992px) {
+    .card-container.left{
+        padding-right: 0;
+    }
+}
+.card-container .el-card__header{
+    padding: 8px 20px;
+}
+.card-container .header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.card-container .el-card__header .title{
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+.card-container .el-card__header .title i{
+    font-size: 22px;
+    color: var(--el-color-primary);
+    margin-right: 8px;
+}
+.style-1{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 6px;
+    width: 87%;
+    margin:0 auto 10px;
+    color: #fff;
+}
+.style-1 i{
+    font-size: 42px;
+    color: #fff;
+}
+.style-2{
+    padding: 10px;
+    width: 87%;
+    margin:0 auto;
+    text-align: center;
+}
+.style-3{
+    padding: 10px;
+    width: 87%;
+    margin:0 auto;
+    text-align: center;
+}
+.style-3 .box-title{
+    text-align: left;
+}
+.style-3 .box{
+    height: 190px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+.style-3 .box-content-left{
+    text-align: left;
+}
+.style-3 .box-number-top{
+    font-size: 26px;
+}
+.style-3 .box-number-bottom{
+    color: darkgrey;
+}
+.style-3 .box-content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.style-3 .icon{
+    color: #fff;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    font-size: 32px;
+}
+.box .box-title{
+    font-size: 18px;
+}
+.bkcolor1{
+    background: linear-gradient(to right,var(--el-color-primary-light-3),var(--el-color-primary));
+}
+.bkcolor2{
+    background: linear-gradient(to right,var(--el-color-warning-light-3),var(--el-color-warning));
+}
+.bkcolor3{
+    background: linear-gradient(to right,var(--el-color-danger-light-3),var(--el-color-danger));
+}
+.bkcolor4{
+    background: linear-gradient(to right,var(--el-color-success-light-3),var(--el-color-success));
+}
+.chart1{
+    width: 100%;
+    height: 400px;
+}
+.chart2{
+    width: 100%;
+    height: 400px;
+}
+.pagination{
+    padding-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+}
+</style>

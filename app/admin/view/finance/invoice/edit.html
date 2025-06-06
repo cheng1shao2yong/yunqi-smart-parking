@@ -1,0 +1,60 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            :data="row"
+            v-if="columns"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+import form from "@components/Form.js";
+export default{
+    components:{
+        'YunForm':form
+    },
+    data:{
+        columns:'',
+        row:Yunqi.data.row
+    },
+    onLoad(){
+        let columns=[];
+        if(this.row.invoice_type=='company'){
+            columns.push({title:"开票信息",isTitle:true});
+            columns.push({field:"name",title:"发票抬头",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+            columns.push({field:"code",title:"企业税号",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+            if(this.row.address || this.row.phone || this.row.bank || this.row.bank_account){
+                columns.push({title:"单位信息",isTitle:true});
+                columns.push({field:"address",title:"单位地址",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+                columns.push({field:"phone",title:"电话号码",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+                columns.push({field:"bank",title:"开户银行",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+                columns.push({field:"bank_account",title:"银行账号",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+            }
+            columns.push({title:"收票人信息",isTitle:true});
+            columns.push({field:"mobile",title:"手机号码",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+            columns.push({field:"email",title:"电子邮箱",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+        }
+        if(this.row.invoice_type=='personal'){
+            columns.push({title:"开票信息",isTitle:true});
+            columns.push({field:"name",title:"发票抬头",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+            columns.push({title:"收票人信息",isTitle:true});
+            columns.push({field:"mobile",title:"手机号码",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+            columns.push({field:"email",title:"电子邮箱",edit:{form:'input',type:'text',readonly:true,button:{type:'primary',text:'复制',method:'copy'}}});
+        }
+        columns.push({title:"发票文件",field:'file',edit:{form:'files',accept:'.pdf',limit:1,multiple:false}});
+        this.columns=columns;
+    },
+    methods: {
+        copy:function (data){
+            //js复制data
+            navigator.clipboard.writeText(data);
+            Yunqi.message.success('复制成功');
+        }
+    }
+}
+</script>
+<style>
+</style>

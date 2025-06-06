@@ -1,0 +1,104 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh,add,edit,del"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\Mode','add')},
+                    edit:{:$auth->check('app\\parking\\controller\\Mode','edit')},
+                    del:{:$auth->check('app\\parking\\controller\\Mode','del')},
+                    multi:{:$auth->check('app\\parking\\controller\\Mode','multi')},
+                }"
+                :common-search="false"
+                search="title"
+                :extend="extend">
+                <template #formatter="{field,rows}">
+                    <template v-if="field=='plate_type'">
+                        <div class="tag-box tag-box-center">
+                            <plate-type v-for="(item,index) in rows.plate_type" :plate_number="plateType[item]" :plate_type="item"></plate-type>
+                        </div>
+                    </template>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import platetype from "@components/PlateType.js";
+    export default {
+        components: {
+            'YunTable': table,
+            'PlateType': platetype,
+        },
+        data: {
+            plateType:Yunqi.data.plateType,
+            extend: {
+                index_url: 'mode/index',
+                add_url: 'mode/add',
+                edit_url: 'mode/edit',
+                del_url: 'mode/del',
+                multi_url: 'mode/multi',
+            },
+            columns: [
+                {checkbox: true},
+                {field: "title", title: "收费名称"},
+                {field:"fee_setting",title:"收费类型",searchList:Yunqi.data.feeSetting,formatter:Yunqi.formatter.tag},
+                {field:"plate_type",title:"车牌颜色",width:350,formatter:Yunqi.formatter.slot},
+                {field:"time_setting",title:"有效期",formatter:function (data,row){
+                    if(data=='all'){
+                        let tags=Yunqi.formatter.tags;
+                        tags.value=['所有日期'];
+                        return tags;
+                    }
+                    if(data=='holiday'){
+                        let tags=Yunqi.formatter.tags;
+                        tags.value=['节假日'];
+                        return tags;
+                    }
+                    if(data=='date'){
+                        let tags=Yunqi.formatter.tags;
+                        tags.value=row.time_setting_rules.split(',');
+                        return tags;
+                    }
+                    if(data=='period'){
+                        let tags=Yunqi.formatter.tags;
+                        tags.value=[row.time_setting_rules.replace(',',' 到 ')];
+                        return tags;
+                    }
+                    if(data=='week'){
+                        let week=['星期天','星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+                        let value=[];
+                        row.time_setting_rules.split(',').forEach(function (item,index) {
+                            value.push(week[item]);
+                        });
+                        let tags=Yunqi.formatter.tags;
+                        tags.value=value;
+                        return tags;
+                    }
+                    if(data=='month'){
+                        let tags=Yunqi.formatter.tags;
+                        let value=row.time_setting_rules.split(',').map(res=>{
+                           return res+'号';
+                        });
+                        tags.value=value;
+                        return tags;
+                    }
+                    return data;
+                }},
+                {field: 'status', title: '启用状态',width:100,searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch},
+                {
+                    field: 'operate',
+                    title: '操作',
+                    width: 90,
+                    action: {
+                        edit: true,
+                        del: true,
+                    }
+                }
+            ]
+        },
+        methods: {}
+    }
+</script>
+<style>
+</style>

@@ -1,0 +1,218 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="row"
+                ref="yunForm"
+                :columns="columns[rules_type_value]">
+                <template #default>
+                    {:token_field()}
+                </template>
+                <template #plates="{rows}">
+                    <el-form-item label="车辆:" required>
+                        <template v-if="rows.plates_count && rows.plates_count>10">
+                            <el-button type="primary" size="small" @click="addPlates">当前有车辆数：{{rows.plates_count}}，点击设置车辆</el-button>
+                        </template>
+                        <template v-else>
+                            <Fieldlist :label='["车牌号","车牌颜色","车型"]' :keys='["plate_number","plate_type","car_models"]' @change="changePlates" :value="rows.plates">
+                                <template #plate_type="{list,row,key}">
+                                    <el-select v-model="list[row][key]" style="width: 100%" placeholder="请选择">
+                                        <el-option v-for="(mode,name) in plate_type" :value="name" :label="mode">{{mode}}</el-option>
+                                    </el-select>
+                                </template>
+                                <template #car_models="{list,row,key}">
+                                    <el-select v-model="list[row][key]" style="width: 100%" placeholder="请选择">
+                                        <el-option v-for="(mode,name) in car_models" :value="name" :label="mode">{{mode}}</el-option>
+                                    </el-select>
+                                </template>
+                            </Fieldlist>
+                        </template>
+                    </el-form-item>
+                </template>
+                <template #third_id="{rows}">
+                    <el-form-item label="绑定微信:">
+                        <third :value="rows.third_id" :multiple="false" :selectable="false" @change="changValue"></third>
+                    </el-form-item>
+                </template>
+                <template #remark_line="{rows}">
+                    <el-form-item :label="item.remark+':'" v-for="(item,key) in remarkline">
+                        <el-input v-if="item.type=='txt'" v-model="rows.remark_line[item.remark]" :placeholder="'请输入'+item.remark"></el-input>
+                        <Uploadimg v-if="item.type=='image'" :field="item.remark" :image-url="rows.remark_line[item.remark]" @change="changeRemarkImg"></Uploadimg>
+                    </el-form-item>
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import fieldlist from "@components/Fieldlist.js";
+    import selectpage from "@components/SelectPage.js";
+    import uploadimg from "@components/UploadImg.js";
+    import {formatDate} from "@util.js";
+    import third from "@components/Third.js";
+    function formatNextMonthDate(){
+        let now=new Date();
+        let date=new Date(now.getTime()-24*3600*1000);
+        let year = date.getFullYear();
+        let month = date.getMonth() + 2;
+        if(month<10){
+            month='0'+month;
+        }
+        if(month>12){
+            month=1;
+            year++;
+        }
+        let day = date.getDate();
+        if(day<10){
+            day='0'+day;
+        }
+        return year+'-'+month+'-'+day;
+    }
+    export default{
+        components:{
+            'YunForm':form,
+            'Fieldlist':fieldlist,
+            'Selectpage':selectpage,
+            'Uploadimg':uploadimg,
+            'Third':third
+        },
+        data:{
+            rules_type:Yunqi.data.rules_type,
+            rules_type_value:Yunqi.data.rules_type_value,
+            plate_type:Yunqi.data.plate_type,
+            car_models:Yunqi.data.car_models,
+            remarkline:[],
+            columns:{
+                monthly:[
+                    {field:"id",title:"ID",edit:"hidden"},
+                    {field:"rules_id",title:"选择月卡",edit:{form:'select',change:'changeRules'},searchList:Yunqi.data.rules,rules:'required'},
+                    {field:"code",title:"车位编号",edit:'text'},
+                    {field:"plates",title:"车辆",edit:{form:'slot',value:[{plate_number:'贵A',plate_type:'blue',car_models:'small'}],name:'plates'}},
+                    {field:"occupat_number",title:"占用车位",edit: {form:'input',type:'number',append: '个',value:1},rules:'required',visible:(Yunqi.data.row && Yunqi.data.row.plates_count>10)?true:false},
+                    {field:"contact",title:"车主姓名",edit:'text',rules:'required'},
+                    {field:"mobile",title:"手机号",edit:'text',rules:'required;mobile'},
+                    {field:'third_id',title:'绑定微信',edit:'slot'},
+                    {field:"starttime",title:"开始日期",edit:'date',rules:'required'},
+                    {field:"endtime",title:"结束日期",edit:'date',rules:'required'},
+                    {field:"pay",title:"首充金额",edit: {form:'input',type:'number',name:'pay',append:'元'},rules:'range(0~)',visible: function (){
+                        return Yunqi.data.row?false:true;
+                    }},
+                    {field:"remark_line",title:"备注",edit:{form:'slot',value: {}}},
+                    {field:"remark",title:"备注",edit:'textarea'},
+                    {field:"status",title:"启用状态",searchList:{'normal':'是','hidden':'否'},edit:{form:'radio',value:'normal'}},
+                ],
+                day:[
+                    {field:"id",title:"ID",edit:"hidden"},
+                    {field:"rules_id",title:"选择日租卡",edit:'select',searchList:Yunqi.data.rules,rules:'required'},
+                    {field:"plates",title:"车辆",edit:{form:'slot',value:[{plate_number:'贵A',plate_type:'blue',car_models:'small'}],name:'plates'}},
+                    {field:"contact",title:"车主姓名",edit:'text',rules:'required'},
+                    {field:"mobile",title:"手机号",edit:'text',rules:'required;mobile'},
+                    {field:'third_id',title:'绑定微信',edit:'slot'},
+                    {field:"starttime",title:"开始日期",edit:'date',rules:'required'},
+                    {field:"endtime",title:"结束日期",edit:'date',rules:'required'},
+                    {field:"remark_line",title:"备注",edit:{form:'slot',value: {}}},
+                    {field:"remark",title:"备注",edit:'textarea'},
+                    {field:"status",title:"启用状态",searchList:{'normal':'是','hidden':'否'},edit:{form:'radio',value:'normal'}},
+                ],
+                member:[
+                    {field:"id",title:"ID",edit:"hidden"},
+                    {field:"rules_id",title:"选择会员卡",edit:'select',searchList:Yunqi.data.rules,rules:'required'},
+                    {field:"plates",title:"车辆",edit:{form:'slot',value:[{plate_number:'贵A',plate_type:'blue',car_models:'small'}],name:'plates'}},
+                    {field:"contact",title:"车主姓名",edit:'text',rules:'required'},
+                    {field:"mobile",title:"手机号",edit:'text',rules:'required;mobile'},
+                    {field:'third_id',title:'绑定微信',edit:'slot'},
+                    {field:"starttime",title:"开始日期",edit:'date',rules:'required'},
+                    {field:"endtime",title:"结束日期",edit:'date',rules:'required'},
+                    {field:"remark_line",title:"备注",edit:{form:'slot',value: {}}},
+                    {field:"remark",title:"备注",edit:'textarea'},
+                    {field:"status",title:"启用状态",searchList:{'normal':'是','hidden':'否'},edit:{form:'radio',value:'normal'}},
+                ],
+                stored:[
+                    {field:"id",title:"ID",edit:"hidden"},
+                    {field:"rules_id",title:"选择储值卡",edit:'select',searchList:Yunqi.data.rules,rules:'required'},
+                    {field:"plates",title:"车辆",edit:{form:'slot',value:[{plate_number:'贵A',plate_type:'blue',car_models:'small'}],name:'plates'}},
+                    {field:"contact",title:"车主姓名",edit:'text',rules:'required'},
+                    {field:"mobile",title:"手机号",edit:'text',rules:'required;mobile'},
+                    {field:'third_id',title:'绑定微信',edit:'slot'},
+                    {field:"starttime",title:"开始日期",edit:'date',rules:'required'},
+                    {field:"endtime",title:"结束日期",edit:'date',rules:'required'},
+                    {field:"pay",title:"首充金额",edit: {form:'input',type:'number',name:'pay',append:'元'},rules:'integer(+)',visible: function (){
+                        return Yunqi.data.row?false:true;
+                    }},
+                    {field:"insufficient_balance",title:"余额不足",edit: {form:'select',value:'prohibit'},searchList:Yunqi.data.insufficient_balance,rules:'required'},
+                    {field:"remark_line",title:"备注",edit:{form:'slot',value: {}}},
+                    {field:"remark",title:"备注",edit:'textarea'},
+                    {field:"status",title:"启用状态",searchList:{'normal':'是','hidden':'否'},edit:{form:'radio',value:'normal'}},
+                ],
+                vip:[
+                    {field:"id",title:"ID",edit:"hidden"},
+                    {field:"rules_id",title:"选择VIP卡",edit:'select',searchList:Yunqi.data.rules,rules:'required'},
+                    {field:"plates",title:"车辆",edit:{form:'slot',value:[{plate_number:'贵A',plate_type:'blue',car_models:'small'}],name:'plates'}},
+                    {field:"contact",title:"车主姓名",edit:'text',rules:'required'},
+                    {field:"mobile",title:"手机号",edit:'text',rules:'required;mobile'},
+                    {field:'third_id',title:'绑定微信',edit:'slot'},
+                    {field:"starttime",title:"开始日期",edit:'date',rules:'required'},
+                    {field:"endtime",title:"结束日期",edit:'date',rules:'required'},
+                    {field:"remark_line",title:"备注",edit:{form:'slot',value: {}}},
+                    {field:"remark",title:"备注",edit:'textarea'},
+                    {field:"status",title:"启用状态",searchList:{'normal':'是','hidden':'否'},edit:{form:'radio',value:'normal'}},
+                ]
+            },
+            activeRules:'',
+            row:Yunqi.data.row || {starttime:formatDate(new Date()),endtime:formatNextMonthDate()},
+        },
+        onShow:function (){
+            Vue.nextTick(()=>{
+                if (Yunqi.data.row){
+                    this.changeMode(Yunqi.data.row.rules_id);
+                }
+            });
+        },
+        methods: {
+            addPlates:function (e){
+                Yunqi.api.open({
+                    url:'cars/listplate?cars_id='+Yunqi.data.row.id,
+                    title:'设置车牌',
+                    width:850,
+                    icon:'fa fa-edit'
+                });
+            },
+            changeRules:function (e){
+                Yunqi.ajax.get('cars/change-rules',{id:e}).then(res=>{
+                    if(res.rules_type=='monthly' && !Yunqi.data.row){
+                        this.$refs.yunForm.setValue('pay',res.fee);
+                    }
+                });
+            },
+            changePlates:function (e){
+                this.$refs.yunForm.setValue('plates',e);
+                if(e.length>1){
+                    this.$refs.yunForm.showField('occupat_number');
+                }else{
+                    this.$refs.yunForm.hideField('occupat_number');
+                }
+            },
+            changValue:function (e){
+                this.$refs.yunForm.setValue('third_id',e);
+            },
+            changeRemarkImg:function (e){
+                let remark_line=this.$refs.yunForm.getValue('remark_line');
+                remark_line[e.field]=e.value;
+                this.$refs.yunForm.setValue('remark_line',remark_line);
+            },
+            changeMode:function (e){
+                if(!e){
+                    return;
+                }
+                Yunqi.ajax.get('cars/rulesRemark',{rules_id:e}).then(res=>{
+                    if(!res){
+                        this.remarkline=[];
+                        return;
+                    }
+                    this.remarkline=res;
+                });
+            }
+        }
+    }
+</script>
+<style>
+</style>

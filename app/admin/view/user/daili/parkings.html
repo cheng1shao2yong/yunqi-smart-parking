@@ -1,0 +1,64 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-table
+            :common-search="false"
+            :columns="columns"
+            search="parking.title"
+            ref="yuntable"
+            toolbar="refresh,addParking"
+            :add-form="{height:500}"
+            :extend="extend">
+            <template #toolbar="{tool}">
+                <el-button v-if="tool=='addParking'" @click.stop="addParking" type="primary"><i class="fa fa-plus"></i>&nbsp;添加</el-button>
+            </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{'YunTable':table},
+        data:{
+            daili_id:'',
+            columns: [
+                {field: 'parking.title', title: __('停车场')},
+                {field: 'persent', title: __('提成比例（‰）')},
+                {
+                    field: 'operate',
+                    title: __('操作'),
+                    width:50,
+                    action:{
+                        del:true
+                    }
+                }
+            ],
+            extend:''
+        },
+        onLoad:function (e){
+            this.daili_id=e.ids;
+            this.extend={
+                index_url:'user/daili/parkings?ids='+this.daili_id,
+                del_url:'user/daili/del-parking'
+            };
+        },
+        methods: {
+            addParking:function (){
+                Yunqi.api.open({
+                    url:'user/daili/add-parking?ids='+this.daili_id,
+                    title:__('添加'),
+                    icon:'fa fa-plus',
+                    close:(e)=>{
+                        console.log(e);
+                        if(e){
+                            this.$refs.yuntable.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>
+

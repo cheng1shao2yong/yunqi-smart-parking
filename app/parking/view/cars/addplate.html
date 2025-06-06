@@ -1,0 +1,31 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            :data="row"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+import form from "@components/Form.js";
+export default{
+    components:{
+        'YunForm':form
+    },
+    data:{
+        columns:[
+            {field:"plate_number",title:"车牌号",edit:"text",rules:"required"},
+            {field:"plate_type",title:"车牌颜色",edit:'select',searchList:Yunqi.data.plate_type,rules:"required"},
+            {field:"car_models",title:"车辆类型",edit:'select',searchList:Yunqi.data.car_models,rules:"required"},
+        ],
+        row:{plate_number:Yunqi.data.plate_number}
+    },
+    methods: {
+    }
+}
+</script>
+<style>
+</style>

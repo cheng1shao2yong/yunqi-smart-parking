@@ -1,0 +1,43 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+            ref="yunTable"
+            :columns="columns"
+            toolbar="refresh,download"
+            :auth="{
+                download:{:$auth->check('app\\parking\\controller\\Pay','downsettle')},
+            }"
+            :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:{
+            index_url: 'pay/settle',
+            download_url: 'pay/downsettle',
+        },
+        columns:[
+            {field:'date',title:'日期',operate:'daterange'},
+            {field:'total_income',title:'日收益',operate:false},
+            {field:'parking_income',title:'停车支付',operate:false},
+            {field:'parking_monthly_income',title:'月卡支付',operate:false},
+            {field:'parking_stored_income',title:'储值卡充值',operate:false},
+            {field:'merch_recharge_income',title:'商户充值',operate:false},
+            {field:'total_refund',title:'日退款',operate:false},
+            {field:'handling_fees',title:'日手续费',operate:false},
+            {field:'net_income',title:'日结算',operate:false},
+        ]
+    },
+    methods: {
+
+    }
+}
+</script>
+<style>
+</style>

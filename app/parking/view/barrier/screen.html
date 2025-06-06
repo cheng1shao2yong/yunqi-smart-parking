@@ -1,0 +1,92 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <div class="line">
+            <div class="title">屏幕广告：</div>
+            <div class="content">
+                <el-input type="textarea" v-model="text" :rows="6" placeholder="请输入广告内容" style="width: 100%;"></el-input>
+            </div>
+            <div class="btn">
+                <el-button type="primary" @click="saveScreen">提交</el-button>
+            </div>
+        </div>
+        <div class="line">
+            <div class="title">语音音量：</div>
+            <div class="content">
+                <el-input-number v-model="voice" :min="0" :max="9" :step="1"></el-input-number>
+            </div>
+            <div class="btn">
+                <el-button type="primary" @click="saveVoice">提交</el-button>
+            </div>
+        </div>
+        <div class="line">
+            <div class="title">同步时间：</div>
+            <div class="content">
+                {{formatDateTime(new Date(time*1000))}}
+            </div>
+            <div class="btn">
+                <el-button type="primary" @click="saveTime">提交</el-button>
+            </div>
+        </div>
+    </el-card>
+</template>
+<script>
+    import {formatDateTime} from "@util.js";
+    export default {
+        data: {
+            id:Yunqi.data.id,
+            text:Yunqi.data.barrier_type=='entry'?'云起停车\n余位{剩余车位}\n一车一杆\n保持车距':'云起停车\n一路顺风\n一车一杆\n保持车距',
+            voice:5,
+            time:Yunqi.data.time
+        },
+        onLoad(){
+            setInterval(()=>{
+                this.time++;
+            },1000);
+        },
+        methods: {
+            formatDateTime,
+            saveScreen:function (){
+                Yunqi.ajax.post('barrier/screen',{
+                    id:this.id,
+                    text:this.text,
+                    type:'screen'
+                });
+            },
+            saveVoice:function (){
+                Yunqi.ajax.post('barrier/screen',{
+                    id:this.id,
+                    voice:this.voice,
+                    type:'voice'
+                });
+            },
+            saveTime:function (){
+                Yunqi.ajax.post('barrier/screen',{
+                    id:this.id,
+                    type:'time'
+                });
+            }
+        }
+    }
+</script>
+<style>
+    .line{
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(222, 222, 222, 0.24);
+        padding-bottom: 20px;
+    }
+    .line:last-child{
+        border-bottom: 0;
+    }
+    .line .title{
+        width: 100px;
+    }
+    .line .content{
+        width: 500px;
+    }
+    .line .btn{
+        width: 150px;
+        text-align: center;
+    }
+</style>

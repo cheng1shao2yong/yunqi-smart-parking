@@ -1,0 +1,101 @@
+.plate-number-container{
+    width: 100%;
+}
+.plate-number-container .plate-title{
+    text-align: center;
+    font-size: 32px;
+    margin: 10px 0 20px 0;
+}
+.plate-number-container .plate-input-box{
+    width: 400px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0 auto;
+    padding: 10px 20px;
+    border-radius: 10px;
+}
+.plate-number-container .blue{
+    background: deepskyblue;
+    color: #fff;
+}
+.plate-number-container .yellow{
+    background: #e6a23c;
+    color: #fff;
+}
+.plate-number-container .green{
+    background: #67c23a;
+    color: #fff;
+}
+.plate-number-container .yellow-green{
+    background: linear-gradient(to right,#e6a23c,#67c23a);
+    color: #fff;
+}
+.plate-number-container .white{
+    background: #eeeeee;
+    color: #363636;
+}
+.plate-number-container .black{
+    background: #363636;
+    color: #fff;
+}
+.plate-number-container .plate-input-box .xnumber{
+    border: 1px solid #fff;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    text-align: center;
+    line-height: 40px;
+    cursor: pointer;
+}
+.plate-number-container .plate-input-box .active{
+    background: #989898;
+    font-weight: bolder;
+}
+.plate-number-container .province,
+.plate-number-container .number{
+    width: 90%;
+    display: flex;
+    justify-content: space-between;
+    margin: 15px auto;
+}
+.plate-number-container .font{
+    width: 90%;
+    display: flex;
+    margin: 15px auto;
+}
+.plate-number-container .box-item{
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    line-height: 40px;
+    font-size: 18px;
+}
+.plate-number-container .font .box-item{
+    margin-right: 10px;
+}
+.plate-number-container .digit{
+    font-size: 33px;
+}
+.plate-number-container .box-item.able{
+    cursor: pointer;
+    color: green;
+    border: 1px solid green;
+}
+.plate-number-container .box-item.able:hover{
+    background: #e89595;
+    color: #fff;
+}
+.plate-number-container .box-item.disable{
+    cursor: not-allowed;
+    color: darkgray;
+    border: 1px solid darkgray;
+}
+.plate-number-container .color-item{
+    cursor: pointer;
+    text-align: center;
+    line-height: 40px;
+    font-size: 18px;
+    margin-right: 10px;
+    padding: 0 10px;
+}

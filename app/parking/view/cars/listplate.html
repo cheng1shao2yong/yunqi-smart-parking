@@ -1,0 +1,73 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                v-if="extend"
+                search="plate_number"
+                :common-search="false"
+                ref="yuntable"
+                toolbar="refresh,addplate,import,del"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\Cars','addplate')},
+                    import:{:$auth->check('app\\parking\\controller\\Cars','importplate')},
+                    del:{:$auth->check('app\\parking\\controller\\Cars','delplate')},
+                }"
+                :add-form="{width:850}"
+                :extend="extend">
+                <template #toolbar="{tool}">
+                    <el-button v-if="tool=='addplate'" @click.stop="addplate" type="primary"><i class="fa fa-plus"></i>&nbsp;添加</el-button>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{
+            'YunTable':table
+        },
+        data:{
+            extend:'',
+            columns:[
+                {checkbox: true},
+                {field:"plate_number",title:"车牌号"},
+                {field:"plate_type",title:"车牌颜色",searchList:Yunqi.data.plate_type,operate:false},
+                {field:"car_models",title:"车辆类型",searchList:Yunqi.data.car_models,operate:false},
+                {
+                    field: 'operate',
+                    title: __('操作'),
+                    width:50,
+                    action:{
+                        del:true,
+                    }
+                }
+            ]
+        },
+        onLoad:function (e){
+            this.extend = {
+                index_url:'cars/listplate?cars_id='+e.cars_id,
+                del_url:'cars/delplate?cars_id='+e.cars_id,
+                add_url:'cars/addplate?cars_id='+e.cars_id,
+                import_url:'cars/importplate?cars_id='+e.cars_id,
+            };
+        },
+        methods: {
+            addplate:function (){
+                let that=this;
+                Yunqi.api.open({
+                    title:'添加车牌',
+                    url:this.extend.add_url,
+                    width:850,
+                    icon:'fa fa-plus',
+                    close:function (e){
+                        if(e){
+                            that.$refs.yuntable.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+</script>
+<style>
+</style>

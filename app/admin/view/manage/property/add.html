@@ -1,0 +1,54 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            :data="row"
+            :tabs="tabs"
+            ref="yunForm"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+            <template v-slot:admin.third_id="{rows}">
+                <el-form-item label="绑定微信:">
+                    <third :value="rows.admin.third_id" :selectable="true" @change="changValue"></third>
+                </el-form-item>
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+import form from "@components/Form.js";
+import third from "@components/Third.js";
+import {getUniqid} from "@util.js";
+const uniqid = getUniqid();
+export default{
+    components:{
+        'YunForm':form,
+        'Third':third
+    },
+    data:{
+        tabs:['基础数据','系统管理员'],
+        columns:[
+            {field:"id",tab:0,title:"ID",edit:"hidden"},
+            {field:"uniqid",tab:0,title:"ID",edit:(Yunqi.config.route[2]=='add')?'hidden':false},
+            {field:"title",tab:0,title:"名称",edit:"text",rules:"required"},
+            {field:"contact",tab:0,title:"联系人",edit:"text",rules:"required"},
+            {field:"phone",tab:0,title:"联系电话",edit:"text",rules:"required;mobile"},
+            {field:"address",tab:0,title:"地址",edit:"text"},
+            {field:"admin.id",tab:1,title:"ADMINID",edit: {form:'input',type:'hidden',name:'admin[id]'}},
+            {field:"admin.username",tab:1,title:"用户名",edit:{form:'input',type:'text',name:'admin[username]',prepend:(Yunqi.config.route[2]=='add')?uniqid+'-':Yunqi.data.row.uniqid+'-'},rules:"required"},
+            {field:'admin.password',tab:1,title: '密码',edit:{form:'input',type:'password',name:'admin[password]'},rules:(Yunqi.config.route[2]=='add')?'required':''},
+            {field:'admin.nickname',tab:1,title: '昵称',edit:{form:'input',type:'text',name:'admin[nickname]'},rules:'required'},
+            {field:'admin.third_id',tab:1,title: '绑定微信',edit:{form:'slot',name:'admin[third_id]'},rules:'required'}
+        ],
+        row:Yunqi.data.row || {uniqid:uniqid,admin:{third_id:null}}
+    },
+    methods: {
+        changValue:function (e){
+            this.$refs.yunForm.setValue('admin.third_id',e);
+        }
+    }
+}
+</script>
+<style>
+</style>

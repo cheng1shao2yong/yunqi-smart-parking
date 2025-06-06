@@ -1,0 +1,254 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                ref="yunTable"
+                toolbar="refresh,add,edit,del,recyclebin"
+                :common-search="false"
+                search="merch_name,phone"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\Merchant','add')},
+                    edit:{:$auth->check('app\\parking\\controller\\Merchant','edit')},
+                    del:{:$auth->check('app\\parking\\controller\\Merchant','del')},
+                    multi:{:$auth->check('app\\parking\\controller\\Merchant','multi')},
+                    recyclebin:{:$auth->check('app\\parking\\controller\\Merchant','recyclebin')},
+                }"
+                :extend="extend">
+                <template #formatter="{field,rows}">
+                    <div v-if="field=='third'">
+                        <el-tag v-for="(item,index) in rows.third" effect="dark" style="margin-right: 5px;">{{item.openname}}</el-tag>
+                    </div>
+                </template>
+        </yun-table>
+    </el-card>
+    <el-dialog
+            v-model="dialogRecharge.show"
+            :title="dialogRecharge.title"
+            width="500">
+        <el-form :model="dialogRecharge" label-width="100">
+            <el-form-item label="当前余额:">
+                <el-input v-model="dialogRecharge.balance" type="text" disabled>
+                    <template #append v-if="dialogRecharge.settle_type=='before'">元</template>
+                    <template #append v-if="dialogRecharge.settle_type=='after'">元</template>
+                    <template #append v-if="dialogRecharge.settle_type=='time'">分钟</template>
+                </el-input>
+            </el-form-item>
+            <el-form-item label="充值方式:">
+                <el-radio-group v-model="dialogRecharge.change_type">
+                    <el-radio label="add">增加</el-radio>
+                    <el-radio label="minus">减少</el-radio>
+                    <el-radio label="last">最终</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="充值金额:" v-if="dialogRecharge.settle_type=='before' || dialogRecharge.settle_type=='after'">
+                <el-input v-model="dialogRecharge.money" type="number">
+                    <template #append>元</template>
+                </el-input>
+            </el-form-item>
+            <el-form-item label="充值时间:" v-if="dialogRecharge.settle_type=='time'">
+                <el-input @blur="dialogRecharge.money=parseNumber(dialogRecharge.time*dialogRecharge.price/60)" v-model="dialogRecharge.time" type="number">
+                    <template #append>分钟</template>
+                </el-input>
+            </el-form-item>
+            <el-form-item label="合计金额:" v-if="dialogRecharge.settle_type=='time' && dialogRecharge.change_type=='add'">
+                <el-input disabled v-model="dialogRecharge.money" type="number">
+                    <template #append>元</template>
+                </el-input>
+            </el-form-item>
+            <el-form-item label="备注:">
+                <el-input v-model="dialogRecharge.remark" type="textarea"></el-input>
+            </el-form-item>
+        </el-form>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="dialogRecharge.show = false">取消</el-button>
+                <el-button type="primary" @click="confirmRecharge">
+                    确定
+                </el-button>
+            </div>
+        </template>
+    </el-dialog>
+</template>
+<script>
+import table from "@components/Table.js";
+import {parseNumber} from "@util.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:{
+            index_url: 'merchant/index',
+            add_url: 'merchant/add',
+            edit_url: 'merchant/edit',
+            del_url: 'merchant/del',
+            multi_url: 'merchant/multi',
+            recyclebin_url: 'merchant/recyclebin',
+        },
+        columns:[
+            {checkbox: true},
+            {field:"merch_name",title:"商户名称"},
+            {field:"phone",title:"联系电话"},
+            {field:"coupon",title:"支持减免类型",searchList: Yunqi.data.coupon,formatter:Yunqi.formatter.tags},
+            {field:"discount",title:"折扣",formatter:function (data){
+                if(data){
+                    return data+'折';
+                }
+                return '不打折';
+            }},
+            {field:"settle_type",title:"结算方式",searchList:Yunqi.data.settleType},
+            {field:"allow_arrears",title:"允许最多欠费",formatter: function (data) {
+                if(data){
+                    return data+'元';
+                }
+                let tag=Yunqi.formatter.tag;
+                tag.type='danger';
+                tag.value='不允许欠费';
+                return tag;
+            }},
+            {field: 'balance', title: '余额/账单',formatter: function (data,row){
+                let html=Yunqi.formatter.html;
+                let str='';
+                if(row.settle_type=='time'){
+                    if(data<0){
+                        data=-data;
+                        str='欠'+parseInt(data)+'分钟';
+                    }else{
+                        str=parseInt(data)+'分钟';
+                    }
+                }
+                if(row.settle_type=='before' || row.settle_type=='after'){
+                    str=data+'元';
+                }
+                if(data>0){
+                    html.value='<p style="color: green;text-align: center;">'+str+'</p>';
+                }
+                if(data<=0){
+                    html.value='<p style="color: red;text-align: center;">'+str+'</p>';
+                }
+                return html;
+            }},
+            {field: 'third', title: '绑定微信',formatter: Yunqi.formatter.slot},
+            {field: 'is_self', title: '自营商户',width:100,searchList: {'0': '否','1': '是'},formatter:Yunqi.formatter.switch},
+            {field: 'status', title: '启用状态',width:100,searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:170,
+                align: 'right',
+                action:{
+                    recharge:{
+                        tooltip:true,
+                        icon:'fa fa-plug',
+                        type:'warning',
+                        text:'充值',
+                        method:'recharge'
+                    },
+                    detail:{
+                        tooltip:true,
+                        icon:'fa fa-list',
+                        type:'info',
+                        text:'账单',
+                        method:'detail'
+                    },
+                    setting:{
+                        tooltip:true,
+                        icon:'fa fa-cog',
+                        type:'success',
+                        text:'设置',
+                        method:'setting'
+                    },
+                    del:true,
+                    edit:true
+                }
+            }
+        ],
+        dialogRecharge:{
+            show:false,
+            settle_type: '',
+            title:'',
+            change_type:'add',
+            id:'',
+            balance:0,
+            price:0,
+            money:'',
+            time:'',
+            remark:''
+        }
+    },
+    methods: {
+        parseNumber,
+        detail:function (row){
+            Yunqi.api.open({
+                url:'merchant/logview?ids='+row.id,
+                expand:true,
+                title:'商户账单',
+                icon:'fa fa-list'
+            });
+        },
+        setting:function (row){
+            Yunqi.api.open({
+                url:'merchant/setting?ids='+row.id,
+                expand:true,
+                title:'停车券设置',
+                icon:'fa fa-cog'
+            });
+        },
+        recharge:function (row){
+            this.dialogRecharge.title=row.merch_name+' - 余额充值';
+            this.dialogRecharge.id=row.id;
+            if(row.settle_type=='before'){
+                this.dialogRecharge.balance=row.balance;
+            }
+            if(row.settle_type=='after'){
+                if (row.balance>=0){
+                    this.dialogRecharge.balance=row.balance;
+                }else{
+                    this.dialogRecharge.balance='欠'+(-row.balance);
+                }
+            }
+            if(row.settle_type=='time'){
+                this.dialogRecharge.price=row.price;
+                this.dialogRecharge.time=60;
+                this.dialogRecharge.money=this.dialogRecharge.time*this.dialogRecharge.price/60;
+                if(row.balance<0){
+                    this.dialogRecharge.balance='欠'+parseInt(-row.balance);
+                }else{
+                    this.dialogRecharge.balance=parseInt(row.balance);
+                }
+            }
+            this.dialogRecharge.settle_type=row.settle_type;
+            this.dialogRecharge.show=true;
+        },
+        confirmRecharge:function (){
+            let m=(this.dialogRecharge.settle_type=='time')?this.dialogRecharge.time:this.dialogRecharge.money;
+            if(this.dialogRecharge.change_type=='add' && m<=0){
+                Yunqi.message.error('增加的金额不能小于或等于0');
+                return;
+            }
+            if(this.dialogRecharge.change_type=='minus' && m<0){
+                Yunqi.message.error('减少的金额不能小于0');
+                return;
+            }
+            if(this.dialogRecharge.change_type=='last' && m<0){
+                Yunqi.message.error('最终金额不能小于0');
+                return;
+            }
+            Yunqi.ajax.post('merchant/recharge', {
+                merch_id:this.dialogRecharge.id,
+                money:this.dialogRecharge.money,
+                time:this.dialogRecharge.time,
+                change_type:this.dialogRecharge.change_type,
+                remark:this.dialogRecharge.remark
+            }).then(res=>{
+                this.dialogRecharge.show=false;
+                this.dialogRecharge.remark='';
+                this.dialogRecharge.change_type='add';
+                this.$refs.yunTable.reload();
+            });
+        }
+    }
+}
+</script>
+<style>
+</style>

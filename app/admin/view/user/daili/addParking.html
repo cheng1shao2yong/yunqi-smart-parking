@@ -1,0 +1,29 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    export default {
+        components: {
+            'YunForm': form
+        },
+        data: {
+            columns: [
+                {field:"parking_id",title:"停车场",edit:{form:'selectpage',url:'manage/parking/index',labelField:'title',keyField:'id'}},
+                {field:'persent',title: '提成比例',edit:{form:'input',type:'text',append:'‰'},rules:'required;range(0~10)'},
+            ]
+        },
+        methods: {
+
+        }
+    }
+</script>
+<style>
+</style>

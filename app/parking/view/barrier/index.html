@@ -1,0 +1,220 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                :common-search="false"
+                ref="yunTable"
+                :pagination="false"
+                @render="checkOnline"
+                toolbar="refresh,addtd,fuji,duijiang,tjtc"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\Barrier','add')},
+                    edit:{:$auth->check('app\\parking\\controller\\Barrier','edit')},
+                    del:{:$auth->check('app\\parking\\controller\\Barrier','del')},
+                    multi:{:$auth->check('app\\parking\\controller\\Barrier','multi')},
+                }"
+                :add-form="{height:580}"
+                :edit-form="{height:580}"
+                :extend="extend">
+                <template #toolbar="{tool}">
+                    <el-button v-if="tool=='addtd'" @click.stop="addTongdao" type="primary"><i class="fa fa-plus"></i>&nbsp;添加通道</el-button>
+                    <el-button v-if="tool=='fuji'" @click.stop="addFuji" type="success"><i class="fa fa-plus"></i>&nbsp;添加辅机</el-button>
+                    <el-button v-if="tool=='tjtc'" @click.stop="addTjtc" type="warning"><i class="fa fa-plus"></i>&nbsp;防拍车尾</el-button>
+                </template>
+                <template #formatter="{field,rows}">
+                    <template v-if="field=='plate_type'">
+                        <div class="tag-box tag-box-center">
+                            <plate-type v-for="(item,index) in rows.plate_type" :plate_number="plateType[item]" :plate_type="item"></plate-type>
+                        </div>
+                    </template>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import platetype from "@components/PlateType.js";
+    export default{
+        components:{
+            'YunTable':table,
+            'PlateType': platetype,
+        },
+        data:{
+            plateType:Yunqi.data.plate_type,
+            extend:{
+                index_url: 'barrier/index',
+                del_url: 'barrier/del',
+                add_url: 'barrier/add',
+                edit_url: 'barrier/edit',
+                multi_url: 'barrier/multi',
+            },
+            columns:[
+                {field:"barrier_type",title:"通道类型",formatter:function (data,row){
+                    let tag=Yunqi.formatter.tag;
+                    if(row.pid){
+                        tag.value='辅机';
+                        tag.type='';
+                        return tag;
+                    }
+                    if(row.barrier_type=='entry' && row.trigger_type=='outfield'){
+                        tag.value='入口通道';
+                    }
+                    if(row.barrier_type=='exit' && row.trigger_type=='outfield'){
+                        tag.value='出口通道';
+                    }
+                    if(row.barrier_type=='entry' && row.trigger_type=='infield'){
+                        tag.value='内场入口通道';
+                    }
+                    if(row.barrier_type=='exit' && row.trigger_type=='infield'){
+                        tag.value='内场出口通道';
+                    }
+                    if(row.barrier_type=='entry' && row.trigger_type=='inside'){
+                        tag.value='内场入口-外场出口通道';
+                    }
+                    if(row.barrier_type=='exit' && row.trigger_type=='inside'){
+                        tag.value='内场出口-外场入口通道';
+                    }
+                    if(row.barrier_type=='entry' && row.trigger_type=='outside'){
+                        tag.value='外场入口-内场出口通道';
+                    }
+                    if(row.barrier_type=='exit' && row.trigger_type=='outside'){
+                        tag.value='外场出口-内场入口通道';
+                    }
+                    tag.type='';
+                    return tag;
+                }},
+                {field:"title",title:"通道名称",formatter:function(data,row){
+                    if(row.pid){
+                        data=data+'辅机';
+                    }
+                    let html=Yunqi.formatter.html;
+                    html.value=data.replace(/&nbsp;/g,'&nbsp;&nbsp;');
+                    return html;
+                }},
+                {field:"serialno",title:"序列号"},
+                {field:"camera",title:"摄像机厂家",searchList:Yunqi.data.camera},
+                {field:"plate_type",title:"允许通行车牌",align:"center",formatter:Yunqi.formatter.slot},
+                {field:"rules_type",title:"允许通行车辆",align:"center",searchList:Yunqi.data.rules_type,formatter:Yunqi.formatter.tags},
+                {field:"rules_id",title:"允许通行规则", searchList:Yunqi.data.rules,formatter:Yunqi.formatter.tags},
+                {field: 'online', title: '连接状态',operate: false,formatter: function (data){
+                    let tag=Yunqi.formatter.tag;
+                    if(data){
+                        tag.value='在线';
+                        tag.type='success';
+                    }else{
+                        tag.value='离线';
+                        tag.type='info';
+                    }
+                    return tag;
+                }},
+                {field: 'cloud_online', title: '云在线',operate: false,formatter: function (data){
+                    let tag=Yunqi.formatter.tag;
+                    if(data){
+                        tag.value='在线';
+                        tag.type='success';
+                    }else{
+                        tag.value='离线';
+                        tag.type='info';
+                    }
+                    return tag;
+                }},
+                {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch, operate: false},
+                {
+                    field: 'operate',
+                    title: '操作',
+                    fixed:'right',
+                    width:170,
+                    action:{
+                        act:{
+                            tooltip:true,
+                            icon:'fa fa-cog',
+                            type:'warning',
+                            text:'访问设备',
+                            method:'control'
+                        },
+                        screen:{
+                            tooltip:true,
+                            icon:'fa fa-dashboard',
+                            type:'success',
+                            text:'相机设置',
+                            method:'screen',
+                            visible:function (row){
+                                return row.pid===0;
+                            }
+                        },
+                        edit:true,
+                        del:true,
+                    }
+                }
+            ]
+        },
+        methods: {
+            checkOnline:function (e){
+                let ids=[];
+                e.forEach(item=>{
+                    ids.push(item.id);
+                });
+                Yunqi.ajax.get('barrier/online',{ids:ids.join(',')}).then(res=>{
+                    let list=this.$refs.yunTable.list;
+                    for(let i=0;i<list.length;i++){
+                        if(!res[list[i].serialno]){
+                            continue;
+                        }
+                        if(res[list[i].serialno].online){
+                            list[i].online=true;
+                        }
+                        if(res[list[i].serialno].cloud_online){
+                            list[i].cloud_online=true;
+                        }
+                    }
+                    this.$refs.yunTable.render(list);
+                });
+            },
+            screen:function (row){
+                Yunqi.api.open({
+                    url:'barrier/screen?barrier_id='+row.id+'&barrier_type='+row.barrier_type,
+                    title:'设置屏幕广告音量 - '+row.title,
+                    icon:'fa fa-dashboard'
+                });
+            },
+            control:function (row){
+                Yunqi.ajax.get('barrier/get-control',{barrier_id:row.id}).then(res=>{
+                     window.open(res,'_blank','');
+                });
+            },
+            addTongdao:function (){
+                Yunqi.api.open({
+                    url:'barrier/add',
+                    title:'添加通道',
+                    icon:'fa fa-plus',
+                    close:(e)=>{
+                        if(e){
+                            this.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            },
+            addFuji:function (){
+                Yunqi.api.open({
+                    url:'barrier/add?fuji=1',
+                    title:'添加辅机',
+                    icon:'fa fa-plus',
+                    close:(e)=>{
+                        if(e){
+                            this.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            },
+            addTjtc:function (){
+                Yunqi.api.open({
+                    url:'barrier/tjtc',
+                    title:'同进同出，或出入摄像机靠近时防止异常拍到车尾',
+                    icon:'fa fa-plus'
+                });
+            }
+        }
+    }
+</script>
+<style>
+</style>

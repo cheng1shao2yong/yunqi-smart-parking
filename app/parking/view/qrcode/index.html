@@ -1,0 +1,130 @@
+<template>
+    <el-card shadow="never">
+        <el-table :data="tableData">
+            <el-table-column prop="title" label="二维码类型" width="280"></el-table-column>
+            <el-table-column prop="background" label="背景图" width="280">
+                <template #default="{row}">
+                    <el-tag v-if="row.background" type="success">有</el-tag>
+                    <el-tag v-else type="info">无</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column prop="act" label="操作" width="380">
+                <template #default="{row}">
+                    <el-button @click="edit(row)" type="primary" size="small">背景图设置</el-button>
+                    <el-button v-if="row.background" @click="del(row)" type="danger" size="small">删除背景图</el-button>
+                    <el-button type="success" size="small" @click="download(row)">下载二维码</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+    </el-card>
+    <el-drawer v-model="drawer.show">
+        <template #header>
+            <div style="font-size: 28px;font-weight: bold;">下载 - {{drawer.title}}</div>
+        </template>
+        <template #default>
+            <div class="imgbox">
+                <img :src="drawer.url" style="width: 100%"/>
+            </div>
+            <template v-if="drawer.name=='entry'">
+                <p>选择通道：</p>
+                <el-select @change="changeUrl('entry',drawer.serialno)" v-model="drawer.serialno" placeholder="请选择通道" style="width: 100%">
+                    <el-option :label="title" :key="serialno" :value="serialno" v-for="(title,serialno) in barrier_entry">{{title}}</el-option>
+                </el-select>
+            </template>
+            <template v-if="drawer.name=='exit'">
+                <p>选择通道：</p>
+                <el-select @change="changeUrl('exit',drawer.serialno)" v-model="drawer.serialno" placeholder="请选择通道" style="width: 100%">
+                    <el-option :label="title" :key="serialno" :value="serialno" v-for="(title,serialno) in barrier_exit">{{title}}</el-option>
+                </el-select>
+            </template>
+            <p>下载尺寸：</p>
+            <el-radio-group v-model="drawer.size">
+                <el-radio :label="400">400px</el-radio>
+                <el-radio :label="800">800px</el-radio>
+                <el-radio :label="1600">1600px</el-radio>
+                <el-radio :label="2500">2500px</el-radio>
+            </el-radio-group>
+        </template>
+        <template #footer>
+            <div style="flex: auto">
+                <el-button @click="drawer.show=false">取消</el-button>
+                <el-button type="primary" @click="download">下载</el-button>
+            </div>
+        </template>
+    </el-drawer>
+</template>
+<script>
+export default{
+    data:{
+        tableData:Yunqi.data.row,
+        barrier_entry:Yunqi.data.barrier_entry,
+        barrier_exit:Yunqi.data.barrier_exit,
+        drawer:{
+            show:false,
+            title:'',
+            size:400,
+            url:'',
+            serialno:'',
+            name:''
+        }
+    },
+    methods: {
+        changeUrl:function (type,serialno){
+            this.drawer.url=Yunqi.config.baseUrl+'qrcode/show?parking_id='+Yunqi.data.parking_id+'&background=1&name='+type+'&serialno='+serialno;
+        },
+        del:function (row){
+            Yunqi.api.del('qrcode/del',row.id,function (){
+                location.reload();
+            });
+        },
+        edit:function (e){
+            Yunqi.api.open({
+                url:'qrcode/edit?name='+e.name,
+                title:'设置背景图 - '+e.title,
+                icon:'fa fa-image',
+                expand:true,
+                close:function (r){
+                    if(r){
+                        location.reload();
+                    }
+                }
+            });
+        },
+        download:function (row){
+            if(!this.drawer.show){
+                this.drawer.name=row.name;
+                this.drawer.title=row.title;
+                this.drawer.show=true;
+                let url=Yunqi.config.baseUrl+'qrcode/show?parking_id='+Yunqi.data.parking_id+'&background=1&name='+row.name;
+                if(row.name=='entry'){
+                    let keys=Object.keys(this.barrier_entry);
+                    if(keys.length>0){
+                        this.drawer.serialno=keys[0];
+                    }
+                    url+='&serialno='+this.drawer.serialno;
+                }
+                if(row.name=='exit'){
+                    let keys=Object.keys(this.barrier_exit);
+                    if(keys.length>0){
+                        this.drawer.serialno=keys[0];
+                    }
+                    url+='&serialno='+this.drawer.serialno;
+                }
+                this.drawer.url=url;
+            }else{
+                let url=Yunqi.config.baseUrl+'qrcode/download?size='+this.drawer.size+'&name='+this.drawer.name;
+                if(this.drawer.name=='entry' || this.drawer.name=='exit'){
+                    url+='&serialno='+this.drawer.serialno;
+                }
+                location.href=url;
+            }
+        }
+    }
+}
+</script>
+<style>
+    .imgbox{
+        padding: 0 10%;
+        text-align: center;
+    }
+</style>

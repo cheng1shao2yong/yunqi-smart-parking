@@ -1,0 +1,115 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+            :columns="columns"
+            ref="yunTable"
+            toolbar="refresh,refuse"
+            :common-search="false"
+            search="plate_number"
+            tabs="apply_type"
+            :extend="extend">
+            <template #formatter="{field,rows}">
+                <template v-if="field=='plate_number'">
+                    <plate-type :plate_number="rows.plate_number" :plate_type="rows.plate_type"></plate-type>
+                    -
+                    {{car_models[rows.car_models]}}
+                </template>
+            </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import platetype from "@components/PlateType.js";
+    export default{
+        components:{
+            'YunTable':table,
+            'PlateType': platetype
+        },
+        data:{
+            car_models:Yunqi.data.car_models,
+            extend:{
+                index_url: 'apply/index',
+            },
+            columns:[
+                {field:"createtime",title:"申请时间",operate:"daterange",formatter:Yunqi.formatter.datetime},
+                {field:"apply_type",title:"申请类型",searchList:Yunqi.data.applyType},
+                {field:"plate_number",title:"车辆信息",formatter:function (data,row){
+                        if(row.plate_type){
+                            let slot=Yunqi.formatter.slot;
+                            return slot;
+                        }
+                        return data;
+                    }},
+                {field:"contact",title:"车主信息",formatter:function (data,row){
+                    return row.contact+' - '+row.mobile;
+                }},
+                {field:"pay.pay_price",title:"支付金额"},
+                {field:"status",title:"状态",formatter:function (data){
+                    let tag=Yunqi.formatter.tag;
+                    if(data===0){
+                        tag.value='未审核';
+                        tag.type='warning';
+                    }
+                    if(data===1){
+                        tag.value='已通过';
+                        tag.type='success';
+                    }
+                    if(data===2){
+                        tag.value='已拒绝';
+                        tag.type='danger';
+                    }
+                    return tag;
+                }},
+                {
+                    field: 'operate',
+                    title: __('操作'),
+                    width:130,
+                    action:{
+                        approved:{
+                            tooltip:true,
+                            icon:'fa fa-check',
+                            type:'success',
+                            text:'审核申请',
+                            method:'approved',
+                            visible:function (row){
+                                return row.status===0;
+                            }
+                        },
+                        refuse:{
+                            tooltip:true,
+                            icon:'fa fa-remove',
+                            type:'danger',
+                            text:'拒绝通过',
+                            method:'refuse',
+                            visible:function (row){
+                                return row.status===0;
+                            }
+                        },
+                    }
+                }
+            ]
+        },
+        methods: {
+            refuse:function (e){
+                Yunqi.confirm('您确定要拒绝这个申请吗？').then(res=>{
+                    Yunqi.ajax.post('apply/shenhe',{ids:e.id,status:2}).then(res=>{
+                        this.$refs.yunTable.reload();
+                    });
+                });
+            },
+            approved:function (e){
+                Yunqi.api.open({
+                    url:'apply/shenhe?ids='+e.id,
+                    title:Yunqi.data.applyType[e.apply_type]+' - 审核申请',
+                    icon:'fa fa-check',
+                    close:()=>{
+                        this.$refs.yunTable.reload();
+                    }
+                });
+            }
+        }
+    }
+</script>
+<style>
+</style>

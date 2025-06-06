@@ -1,0 +1,163 @@
+<template>
+    <el-card shadow="never" style="border: 0">
+        <div class="img-container">
+            <img @load="drop('qrcode')" class="qrcode" :src="url" :style="`width: ${size}px;left:${left}px;top:${top}px`"/>
+            <div class="text" v-show="text.title" :style="`font-family:'黑体';font-size: ${text.size}px;color:${text.color};left:${text.left}px;top:${text.top}px`">
+                {{text.title}}
+            </div>
+            <img v-if="background" :src="background" style="width: 100%"/>
+            <div v-else class="upload-box">
+                <upload-img :width="400" :height="400" :image-url="background" @change="changeImg">
+                    <template #title>
+                        <i class="fa fa-upload"></i>
+                        <span>请上传背景图</span>
+                    </template>
+                </upload-img>
+            </div>
+        </div>
+        <div class="islider">
+            <div class="line">
+                <span>二维码尺寸：</span>
+                <el-slider v-model="size" :min="50" :step="10" :max="400"></el-slider>
+            </div>
+        </div>
+        <div class="footer">
+            <el-button @click="delbackground" type="danger" v-if="background">删除背景图</el-button>
+            <el-button @click="submit" type="success" v-if="background">确认背景图</el-button>
+        </div>
+    </el-card>
+</template>
+<script>
+import uploadimg from "@components/UploadImg.js";
+export default{
+    components:{'UploadImg':uploadimg},
+    data:{
+        background:Yunqi.data.qrcode.background,
+        size:Yunqi.data.qrcode.size,
+        left:Yunqi.data.qrcode.left,
+        top:Yunqi.data.qrcode.top,
+        url:Yunqi.data.url,
+        name:Yunqi.data.qrcode.name,
+        text:Yunqi.data.qrcode.text
+    },
+    onShow:function (){
+        this.drop('text');
+    },
+    methods: {
+        changeImg:function (e){
+            this.background=e;
+        },
+        delbackground:function (){
+            this.background='';
+        },
+        submit:function (){
+            Yunqi.ajax.post('qrcode/edit',{
+                background:this.background,
+                size:this.size,
+                left:this.left,
+                top:this.top,
+                name:this.name,
+                text:this.text
+            }).then(res=>{
+                Yunqi.api.closelayer(Yunqi.config.window.id,true);
+            });
+        },
+        changeColor:function (val){
+            this.text.color=val;
+        },
+        drop:function(divClass){
+            const image = document.querySelector('.'+divClass);
+            const container = document.querySelector('.img-container');
+
+            let isDragging = false;
+            let prevX = 0;
+            let prevY = 0;
+
+            image.addEventListener('mousedown', e => {
+                e.preventDefault();
+                isDragging = true;
+                prevX = e.clientX;
+                prevY = e.clientY;
+            });
+
+            image.addEventListener('mousemove', e => {
+                e.preventDefault();
+                if (!isDragging) return;
+
+                const deltaX = e.clientX - prevX;
+                const deltaY = e.clientY - prevY;
+
+                // 计算新的位置
+                const newX = image.offsetLeft + deltaX;
+                const newY = image.offsetTop + deltaY;
+
+                // 将图片限制在容器内
+                const maxX = container.clientWidth - image.clientWidth;
+                const maxY = container.clientHeight - image.clientHeight;
+                const clampedX = Math.max(0, Math.min(newX, maxX));
+                const clampedY = Math.max(0, Math.min(newY, maxY));
+
+                // 更新图片的位置
+                image.style.left = clampedX + 'px';
+                image.style.top = clampedY + 'px';
+
+                prevX = e.clientX;
+                prevY = e.clientY;
+                if(divClass=='qrcode'){
+                    this.left=clampedX;
+                    this.top=clampedY;
+                }
+                if(divClass=='text'){
+                    this.text.left=clampedX;
+                    this.text.top=clampedY;
+                }
+            });
+
+            image.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+        }
+    }
+}
+</script>
+<style>
+.img-container{
+    height: 780px;
+    width: 400px;
+    margin: 0 auto;
+    border: 1px dashed #ddd;
+    position: relative;
+}
+.upload-box{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.footer{
+    position: fixed;
+    bottom:30px;
+    right: 30px;
+}
+.qrcode,.text{
+    position: absolute;
+    cursor: move;
+    z-index: 999;
+    left:0;
+    top:0;
+}
+.islider{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 400px;
+}
+.islider .line{
+    margin-bottom: 20px;
+}
+.islider .line span{
+    font-weight: bold;
+}
+</style>

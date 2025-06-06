@@ -1,0 +1,92 @@
+<template>
+    <el-card shadow="never" style="border: none;">
+        <el-tabs type="card" v-model="tabValue" @tab-change="tabChange">
+            <el-tab-pane name="logs" label="操作记录"></el-tab-pane>
+            {if $rules_type_value=='monthly'}
+            <el-tab-pane name="recharge" label="充值记录"></el-tab-pane>
+            {/if}
+            {if $rules_type_value=='stored'}
+            <el-tab-pane name="balance" label="余额流水"></el-tab-pane>
+            {/if}
+        </el-tabs>
+        <yun-table
+                ref="yunTable"
+                :search-form-visible="false"
+                :columns="columns[tabValue]"
+                toolbar="refresh"
+                :extend="extend[tabValue]">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components: {
+            'YunTable': table
+        },
+        data: {
+            tabValue:'logs',
+            extend:'',
+            columns: {
+                logs:[
+                    {field: "createtime", title: "时间", operate: {form:'date-picker',type:'daterange',filter:'between time'}, formatter: Yunqi.formatter.datetime},
+                    {field: "admin", title: "操作人", operate: false, formatter: function (data,row){
+                        if(row.admin){
+                            return '管理员-'+row.admin.nickname;
+                        }
+                        if(row.merch){
+                            return '商户-'+row.merch.merch_name;
+                        }
+                    }},
+                    {field: "message", title: "操作", operate: false}
+                ],
+                recharge:[
+                    {field: "createtime", title: "时间", operate: "daterange", formatter: Yunqi.formatter.datetime},
+                    {field: "money", title: "金额", operate: false},
+                    {field: "starttime", title: "开始时间", operate: false,formatter:Yunqi.formatter.date},
+                    {field: "endtime", title: "结束时间", operate: false,formatter:Yunqi.formatter.date},
+                    {field: "payunion.pay_type", title: "支付方式", operate: false,formatter: function (data){
+                        return Yunqi.data.pay_type[data];
+                    }}
+                ],
+                balance:[
+                    {field: 'createtime', title: '时间',operate: {form:'date-picker',type:'daterange'}},
+                    {field: 'log_type', title: '交易类型',operate: 'select',searchList:Yunqi.data.logType},
+                    {field: 'before', title: '交易前',operate:false},
+                    {field: 'change', title: '变化数目',operate:false},
+                    {field: 'after', title: '交易后',operate:false},
+                    {field: 'payunion.pay_type', title: '支付方式', operate: false,visible: false,formatter: function (data){
+                        return data?Yunqi.data.pay_type[data]:'';
+                    }},
+                    {field: 'payunion.out_trade_no', title: '商户单号', operate: false,visible: false,formatter: function (data){
+                        return data || '';
+                    }},
+                    {field: 'remark', title: '备注',operate:false}
+                ]
+            }
+        },
+        onLoad:function (e){
+            this.extend={
+                logs:{
+                    index_url: 'cars/logview?type=logs&ids='+e.ids
+                },
+                recharge:{
+                    index_url: 'cars/logview?type=recharge&ids='+e.ids
+                },
+                balance:{
+                    index_url: 'cars/logview?type=balance&ids='+e.ids
+                }
+            }
+        },
+        methods: {
+            tabChange:function (e){
+                Vue.nextTick(()=>{
+                    this.$refs.yunTable.reset();
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

@@ -1,0 +1,53 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                v-if="columns"
+                :data="row"
+                ref="yunForm"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import {formatDateTime} from "@util.js";
+    export default{
+        components:{
+            'YunForm':form
+        },
+        data:{
+            act:'',
+            columns:'',
+            row:{pay_status:'x4',plate_number:Yunqi.data.plate_number,entry_time: formatDateTime(new Date()),exit_time:formatDateTime(new Date())},
+        },
+        onLoad:function (options){
+            let columns=[];
+            if(options.act=='entry' || options.act=='entryexit'){
+                columns.push({field:"entry_time",title:"入场时间",edit: 'datetime',rules:'required'});
+            }
+            if(options.act=='exit' || options.act=='entryexit'){
+                columns.push({field:"exit_time",title:"出场时间",edit: 'datetime',rules:'required'});
+            }
+            let r=[
+                {field:"act",title:"类型",edit: {form:'input',name:'act',type:'hidden',value:options.act}},
+                {field:"plate_number",title:"车牌号",edit: 'text',rules:'required'},
+                {field:"barrier_id",title:"通道",edit: 'select',searchList:Yunqi.data.barrier,rules:'required'},
+                {field:"plate_type",title:"车牌颜色",edit: {form:'select',placeholder:'临时车需要选择车牌颜色'},searchList:Yunqi.data.plate_type},
+                {field:"pay_status",title:"付费状态",edit: 'radio',searchList:{'x4':'免费出场','x3':'已缴费出场','x7':'未缴费出场'},visible:function (row){
+                    return row.act=='exit' || row.act=='entryexit';
+                }},
+                {field:"remark",title:"备注",edit: 'textarea'},
+            ];
+            this.columns=columns.concat(r);
+            this.act=options.act;
+        },
+        methods: {
+
+        }
+    }
+</script>
+<style>
+</style>

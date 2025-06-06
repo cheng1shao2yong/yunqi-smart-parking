@@ -1,0 +1,68 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                ref="yunTable"
+                toolbar="refresh,add"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:{
+            index_url: 'traffic/index',
+            del_url: 'traffic/del',
+            add_url: 'traffic/add',
+            edit_url: 'traffic/edit',
+            multi_url: 'traffic/multi',
+        },
+        columns:[
+            {field: 'id',title: __('ID'),width:80,operate: false},
+            {field:"parking.title",title:"停车场",operate:'like'},
+            {field:"area",title:"备案区域",operate:'=',searchList:Yunqi.data.area},
+            {field:"filings_code",title:"备案编号",operate:'='},
+            {field:"total_parking_number",title:"车位总数",operate:false},
+            {field:"open_parking_number",title:"开放车位数",operate:false},
+            {field:"reserved_parking_number",title:"保留车位数",operate:false},
+            {field:"remain_parking_number",title:"剩余车位数",operate:false},
+            {field:"link",title:"开放链接",operate:false,formatter: Yunqi.formatter.link},
+            {field:'status', title: '状态',width:60,searchList: {normal: '正常',hidden: '隐藏'},formatter:Yunqi.formatter.switch,operate:'select'},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:130,
+                action:{
+                    edit:true,
+                    del:true,
+                    detail:{
+                        tooltip:true,
+                        icon:'fa fa-server',
+                        type:'success',
+                        text:'订单',
+                        method:'detail'
+                    }
+                }
+            }
+        ]
+    },
+    methods: {
+        detail:function (e){
+            Yunqi.api.open({
+                url:'traffic/orders?ids='+e.parking.id,
+                title:'订单',
+                width:800,
+                height:605,
+                icon:'fa fa-server'
+            });
+        }
+    }
+}
+</script>
+<style>
+</style>

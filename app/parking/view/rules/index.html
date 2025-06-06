@@ -1,0 +1,165 @@
+<template>
+    <el-card shadow="never">
+        <el-tabs type="card" v-model="rules_type_value" @tab-change="tabChange">
+            <el-tab-pane v-for="(tab,key) in rules_type_tabs" :name="key" :label="tab"></el-tab-pane>
+        </el-tabs>
+        <yun-table
+                :columns="columns[rules_type_value]"
+                toolbar="refresh,add"
+                sort-name="weigh,id"
+                order="desc,desc"
+                :pagination="false"
+                ref="yunTable"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\Rules','add')},
+                    edit:{:$auth->check('app\\parking\\controller\\Rules','edit')},
+                    del:{:$auth->check('app\\parking\\controller\\Rules','del')},
+                    multi:{:$auth->check('app\\parking\\controller\\Rules','multi')},
+                }"
+                :common-search="false"
+                :extend="extend">
+                <template #formatter="{field,rows}">
+                    <div v-if="field=='mode'" style="text-align: left;">
+                        <p v-for="(mode,key) in rows.mode">{{key+1}}、{{parking_mode[mode.mode_id]}}</p>
+                    </div>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{'YunTable':table},
+        data:{
+            rules_type_tabs:Yunqi.data.rules_type_tabs,
+            rules_type_value:Yunqi.data.rules_type_value,
+            parking_mode:Yunqi.data.parking_mode,
+            columns:{
+                provisional:[
+                    {field:'provisionalmode.title',title:'收费名称'},
+                    {field:'weigh',title:'权重'},
+                    {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch},
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 130,
+                        action: {
+                            sort:true,
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ],
+                monthly:[
+                    {field:'title',title:'月卡名称'},
+                    {field:'fee',title:'月租金额'},
+                    {field:'online_recharge',title:'支持在线续租',searchList:{'yes':"支持",'no':"不支持"}},
+                    {field:'expire_day',title:'过期宽限期'},
+                    {field:'renew_limit_day',title:'续租宽限天数'},
+                    {field:'mode',title:'收费规则',formatter: Yunqi.formatter.slot},
+                    {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch},
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 130,
+                        action: {
+                            sort:true,
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ],
+                day:[
+                    {field:'title',title:'日租卡名称'},
+                    {field:'mode',title:'收费规则',formatter: Yunqi.formatter.slot},
+                    {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch},
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 130,
+                        action: {
+                            sort:true,
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ],
+                member:[
+                    {field:'title',title:'会员卡名称'},
+                    {field:'discount',title:'会员折扣',formatter: function (data){return data+'折'}},
+                    {field:'mode',title:'收费规则',formatter: Yunqi.formatter.slot},
+                    {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch},
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 130,
+                        action: {
+                            sort:true,
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ],
+                stored:[
+                    {field:'title',title:'储值卡名称'},
+                    {field:'mode',title:'收费规则',formatter: Yunqi.formatter.slot},
+                    {field:'min_stored',title:'单次最小充值',formatter: function (data){return data+'元'}},
+                    {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch},
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 130,
+                        action: {
+                            sort:true,
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ],
+                vip:[
+                    {field:'title',title:'VIP名称'},
+                    {field:'mode',title:'收费规则',formatter: Yunqi.formatter.slot},
+                    {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch},
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        width: 130,
+                        action: {
+                            sort:true,
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ]
+            },
+            extend:'',
+        },
+        onLoad:function (){
+            this.setExtend();
+        },
+        methods: {
+            setExtend:function (){
+                let extend={
+                    index_url: 'rules/index',
+                    add_url: 'rules/add',
+                    edit_url: 'rules/edit',
+                    del_url: 'rules/del',
+                    multi_url: 'rules/multi',
+                };
+                for(let key in extend){
+                    extend[key]=extend[key]+'?rules_type='+this.rules_type_value;
+                }
+                this.extend=extend;
+            },
+            tabChange:function (e){
+                Vue.nextTick(()=>{
+                    this.setExtend();
+                    this.$refs.yunTable.reset();
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

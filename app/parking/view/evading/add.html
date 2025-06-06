@@ -1,0 +1,86 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="row"
+                ref="yunForm"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+                <template #tips="{rows}">
+                    <el-form-item label="" v-if="rows.recovery_type=='local'">
+                        <el-alert :closable="false" type="warning">车场追缴，仅在当前停车场内追缴欠费</el-alert>
+                    </el-form-item>
+                    <el-form-item label="" v-if="rows.recovery_type=='network'">
+                        <el-alert :closable="false" type="warning">集团追缴，指在集团下所有停车场内追缴欠费</el-alert>
+                        <div style="margin-top: 5px;">
+                            集团停车场：<el-tag style="margin-right: 5px;" v-for="(title,key) in parkings">{{title}}</el-tag>
+                        </div>
+                    </el-form-item>
+                    <el-form-item label="" v-if="rows.recovery_type=='platform'">
+                        <el-alert :closable="false" type="warning">平台追缴，指在平台下所有停车场追缴欠费，平台追缴欠费需要加入《平台追缴计划》，如有疑问请联系客服</el-alert>
+                    </el-form-item>
+                </template>
+                <template #entry_set="{rows}">
+                    <el-form-item label="入场设置:">
+                        <el-select v-model="rows.entry_set" placeholder="请选择" style="width: 100%">
+                            <el-option label="不予处理" value="0"></el-option>
+                            <el-option label="付费后开闸" value="1"></el-option>
+                            <el-option label="岗亭确认开闸" value="2" :disabled="rows.entry_set_disabled"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </template>
+                <template #exit_set="{rows}">
+                    <el-form-item label="出场设置:">
+                        <el-select v-model="rows.exit_set" placeholder="请选择" style="width: 100%">
+                            <el-option label="不予处理" value="0"></el-option>
+                            <el-option label="付费后开闸" value="1"></el-option>
+                            <el-option label="岗亭确认开闸" value="2" :disabled="rows.exit_set_disabled"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </template>
+                <template #msg="{rows}">
+                    <el-form-item label="">
+                        <el-checkbox-group v-model="rows.msg">
+                            <el-checkbox :value="1" :label="1">入场发送通知给管理员</el-checkbox>
+                        </el-checkbox-group>
+                    </el-form-item>
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    export default{
+        components:{
+            'YunForm':form
+        },
+        data:{
+            parkings:Yunqi.data.parkings,
+            columns:[
+                {field:"records_id",title:"逃费记录",edit:"selects",searchList:Yunqi.data.records,rules:"required"},
+                {field:"recovery_type",title:"追缴方式",edit:{form:'radio',change:'changeRecoveryType'},rules:"required",searchList: Yunqi.data.recoveryType},
+                {field:"tips",title:"",edit:'slot'},
+                {field:"entry_set",title:"入场设置",edit:"slot",rules:"required"},
+                {field:"exit_set",title:"出场设置",edit:"slot",rules:"required"},
+                {field:"msg",title:"推送消息",edit:"slot"},
+            ],
+            row:{records_id:Object.keys(Yunqi.data.records),recovery_type:'local',msg:[1],entry_set_disabled:false,exit_set_disabled:false}
+        },
+        methods: {
+            changeRecoveryType:function (e){
+                if(e=='platform'){
+                    this.$refs.yunForm.setValue('entry_set','');
+                    this.$refs.yunForm.setValue('exit_set','');
+                    this.$refs.yunForm.setValue('entry_set_disabled',true);
+                    this.$refs.yunForm.setValue('exit_set_disabled',true);
+                }else{
+                    this.$refs.yunForm.setValue('entry_set_disabled',false);
+                    this.$refs.yunForm.setValue('exit_set_disabled',false);
+                }
+            }
+        }
+    }
+</script>
+<style>
+</style>

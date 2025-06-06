@@ -1,0 +1,67 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                :common-search="false"
+                toolbar="refresh,add,del"
+                :auth="{
+                    add:{:$auth->check('app\\admin\\controller\\user\\Accesskey','add')},
+                    del:{:$auth->check('app\\admin\\controller\\user\\Accesskey','del')},
+                    multi:{:$auth->check('app\\admin\\controller\\user\\Accesskey','multi')},
+                }"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:{
+            index_url: 'user/accesskey/index',
+            add_url: 'user/accesskey/add',
+            multi_url: 'user/accesskey/multi',
+            del_url: 'user/accesskey/del'
+        },
+        columns:[
+            {field:"createtime",title:"创建时间"},
+            {field:"title",title:"接口名称"},
+            {field:"access_key",title:"AccessKey"},
+            {field:"access_secret",title:"AccessSecret"},
+            {field:'status', title: '状态',width:60,searchList: {normal: '正常',hidden: '隐藏'},formatter:Yunqi.formatter.switch,operate:'select'},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:90,
+                action:{
+                    del:true
+                }
+            }
+        ]
+    },
+    methods: {
+        detail:function (e){
+            Yunqi.api.open({
+                url:'user/invoice/orders?ids='+e.id,
+                title:'订单详情',
+                icon:'fa fa-server'
+            });
+        },
+        edit:function (e){
+            Yunqi.api.open({
+                url:'user/invoice/edit?ids='+e.id,
+                title:'处理发票',
+                icon:'fa fa-pencil',
+                close:()=>{
+                    this.$refs.yunTable.reload();
+                }
+            });
+        }
+    }
+}
+</script>
+<style>
+</style>

@@ -1,0 +1,33 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            :data="row"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+import form from "@components/Form.js";
+export default{
+    components:{
+        'YunForm':form
+    },
+    data:{
+        columns:[
+            {field:"id",title:"ID",edit:{form:'input',type:'hidden',name:'pay_id'}},
+            {field:"pay_price",title:"订单金额",edit:{form:'input',type:'text',readonly:true,append:'元'}},
+            {field:"refund_price_ed",title:"已经退款金额",edit:{form:'input',type:'text',readonly:true,append:'元'}},
+            {field:"refund_price",title:"退款金额",edit:{form:'input',type:'text',append:'元',name:'refund_price'},rules:'required'},
+            {field:"refund_cause",title:"退款原因",edit:{form:'input',type:'textarea',rows:5,name:'refund_cause'},rules:'required'},
+        ],
+        row:Yunqi.data.pay
+    },
+    methods: {
+    }
+}
+</script>
+<style>
+</style>

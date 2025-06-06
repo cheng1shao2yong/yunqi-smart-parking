@@ -1,0 +1,29 @@
+export default{
+    components:{
+
+    },
+    data:{
+
+    },
+    <#if !reduced#>
+    //页面加载完成时执行
+    onLoad:function(query){
+        console.log(query);
+    },
+    //页面初始显示或在框架内显示时执行
+    onShow:function(){
+
+    },
+    //页面在框架内隐藏时执行
+    onHide:function(){
+
+    },
+    //页面在框架内关闭时执行
+    onUnload:function(){
+
+    },
+    <#endif#>
+    methods: {
+
+    }
+}

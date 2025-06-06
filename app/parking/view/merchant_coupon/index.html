@@ -1,0 +1,116 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh,add,edit,del"
+                tabs="coupon_type"
+                :common-search="false"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\MerchantCoupon','add')},
+                    edit:{:$auth->check('app\\parking\\controller\\MerchantCoupon','edit')},
+                    del:{:$auth->check('app\\parking\\controller\\MerchantCoupon','del')},
+                    multi:{:$auth->check('app\\parking\\controller\\MerchantCoupon','multi')},
+                }"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:{
+            index_url: 'merchant-coupon/index',
+            add_url: 'merchant-coupon/add',
+            edit_url: 'merchant-coupon/edit',
+            multi_url: 'merchant-coupon/multi',
+            del_url: 'merchant-coupon/del',
+        },
+        columns:[
+            {checkbox: true},
+            {field:"title",title:"优惠名称"},
+            {field:"coupon_type",title:"优惠类型",searchList:Yunqi.data.couponType,formatter:Yunqi.formatter.tag},
+            {field:"detail",title:"优惠详情",formatter:function (data,row){
+                switch (row.coupon_type){
+                    case 'time':
+                        return row.time+'分钟';
+                    case 'cash':
+                        return row.cash+'元';
+                    case 'discount':
+                        return row.discount+'折';
+                    case 'period':
+                        return row.period+'小时';
+                    case 'timespan':
+                        let timespan=row.timespan;
+                        let str='';
+                        for(let i=0;i<timespan.length;i++){
+                            str+=timespan[i].starttime+'-'+timespan[i].endtime+' ';
+                        }
+                        if(row.timespan_discount){
+                            return str+'时段打'+row.timespan_discount+'折';
+                        }else{
+                            return str+'时段免费';
+                        }
+                    default:
+                        return '免费';
+                }
+            }},
+            {field:"effective",title:"有效时间",formatter:function (data,row){
+                let tag=Yunqi.formatter.tag;
+                if(!data){
+                    tag.value='永久有效';
+                    tag.type='danger';
+                }else{
+                    tag.value=data+'小时';
+                    tag.type='success';
+                }
+                return tag;
+            }},
+            {field:"limit_one",title:"限领一张券",formatter:function (data,row){
+                let tag=Yunqi.formatter.tag;
+                if(!data){
+                    tag.value='否';
+                    tag.type='success';
+                }else{
+                    tag.value='是';
+                    tag.type='danger';
+                }
+                return tag;
+            }},
+            {field:"multiple_use",title:"支持叠加使用",formatter:function (data,row){
+                if(row.limit_one){
+                    return '';
+                }
+                let tag=Yunqi.formatter.tag;
+                if(!data){
+                    tag.value='否';
+                    tag.type='success';
+                }else{
+                    tag.value='是';
+                    tag.type='danger';
+                }
+                return tag;
+            }},
+            {field: 'weigh', title: '优先级',width:100},
+            {field: 'status', title: '启用状态',width:100,searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:130,
+                action:{
+                    sort:true,
+                    edit:true,
+                    del:true
+                }
+            }
+        ]
+    },
+    methods: {
+    }
+}
+</script>
+<style>
+</style>

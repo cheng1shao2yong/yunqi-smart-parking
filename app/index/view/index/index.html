@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <meta name="referrer" content="never">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="{:request()->domain()}/favicon.ico" />
+    <link rel="stylesheet" href="{:request()->domain()}/assets/css/element-plus.css" />
+    <link rel="stylesheet" href="{:request()->domain()}/assets/css/theme/dark.css" />
+    <link rel="stylesheet" href="{:request()->domain()}/assets/libs/font-awesome/css/font-awesome.min.css" />
+    <script src="{:request()->domain()}/assets/js/vue.global.js" type="text/javascript"></script>
+    <script src="{:request()->domain()}/assets/js/element-plus.js" type="text/javascript"></script>
+    <script src="{:request()->domain()}/assets/js/icons-vue.js"></script>
+    <title>云起开发平台</title>
+    <meta name="keywords" content="php框架,php快速开发平台,php开发框架,云起开发平台" />
+    <meta name="description" content="云起-Yunqi开发平台 是基于Thinkphp8.0 + ES6.0 + Vue3.2 + Element Plus2.3等技术开发的，开源免费的快速开发平台。独此一家单页面单应用的设计思路，onLoad，onShow，onUnload，onHide，让管理端也能像uniapp一样开发。系统功能支持模块化打包成扩展，换个项目可以一键安装。"/>
+
+    <style>
+        body{
+            margin: 0;
+            padding: 0;
+        }
+        #ClCache{
+            display: none;
+        }
+        header{
+            box-shadow: 0.33333rem 0 1.33333rem rgba(87, 87, 87, .1);
+        }
+        .header{
+            height: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding:0 1rem;
+        }
+        .header .logo{
+            width: 200px;
+        }
+        .header-menu{
+            width: 800px;
+        }
+        .header-menu ul{
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .header-menu ul li{
+            margin: 0 1rem;
+            list-style: none;
+        }
+        .header-menu ul li a{
+            font-size: 1rem;
+            text-decoration: none;
+            font-size: 14px;
+            color: #333;
+        }
+        .dark .header-menu ul li a{
+            color: #fff;
+        }
+        .header-menu ul li a.active{
+            color: var(--el-color-primary);
+        }
+        .header .header-right{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 120px;
+        }
+        .header .header-right img{
+            width: 25px;
+        }
+        .el-main{
+            background-color: #eeeeee;
+            background-image: url("/assets/img/bg.svg");
+            background-size: 100% 100%;
+            background-size: cover;
+        }
+        .dark .el-main{
+            color: #fff;
+            background-color: #555;
+        }
+        .desbox{
+            background-image: url("/assets/img/banner.png");
+            background-repeat: no-repeat;
+            background-size: 400px;
+            background-position:bottom right;
+        }
+        .desbox p{
+            font-size: 1.5rem;
+        }
+        .imgbox{
+            display: flex;
+            justify-content: space-around;
+            margin:0 auto;
+        }
+        @media screen and (max-width: 800px) {
+            .header-menu{
+                display: none;
+            }
+            .desbox p{
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container style="height: 100vh">
+        <el-header height="80">
+            <div class="header">
+                <div class="header-left">
+                    <a href="/">
+                        <img class="logo" src="{:request()->domain()}/assets/img/logo_full.png" alt="" />
+                    </a>
+                </div>
+                <div class="header-menu">
+                    <ul>
+                        <li><a class="active" href="/">平台首页</a></li>
+                        <li><a target="_blank" href="https://bbs.56q7.com/">开发社区</a></li>
+                        <li><a target="_blank" href="https://www.56q7.com/download/yunqi-{$version}.zip">下载源码</a></li>
+                        <li><a target="_blank" href="https://demo.56q7.com/backend/index">系统演示</a></li>
+                        <li><a target="_blank" href="https://48rmn452q3.k.topthink.com/@48rmwkl52q/xitongjieshao.html">开发文档</a></li>
+                        <li @click="contact"><a href="#">联系合作</a></li>
+                    </ul>
+                </div>
+                <div class="header-right">
+                    <el-switch v-model="dark" style="--el-switch-on-color: #333;" active-action-icon="Moon" inactive-action-icon="Sunny"></el-switch>
+                    <a target="_blank" href="https://gitee.com/lcfms/yunqi-development-platform" title="码云">
+                        <img src="/assets/img/mayun.png" style="width: 24px"/>
+                    </a>
+                     <a target="_blank" href="https://github.com/cheng1shao2yong/yunqi" title="Github">
+                        <img src="/assets/img/github.png"/>
+                    </a>
+                </div>
+            </div>
+        </el-header>
+        <el-main>
+            <el-scrollbar>
+            <div class="desbox">
+                <div style="text-align: center;">
+                    <h1 style="font-size: 3rem;">云起开发平台</h1>
+                    <p>基于ThinkPHP8.0+Vue3.0+ElementPlus的后台管理系统</p>
+                    <p>开源免费，支持二次开发</p>
+                    <p>QQ交流群：237626046</p>
+                    <p>最新版本：v{$version}</p>
+                    <p style="margin-bottom: 0">行到水穷处，坐看云起时，做软件，找贵阳云起信息科技</p>
+                    <div class="imgbox">
+                        <el-row :gutter="24">
+                            <el-col :xs="24" :sm="24" :md="12">
+                                <p>联系我们:</p>
+                                <p><img style="width: 180px" src="/assets/img/qrcode.jpg"/></p>
+                            </el-col>
+                            <el-col :xs="24" :sm="24" :md="12">
+                                <p>打赏我们:</p>
+                                <p><img style="width: 180px" src="/assets/img/pay.png"/></p>
+                            </el-col>
+                        </el-row>
+                    </div>
+                </div>
+            </div>
+            </el-scrollbar>
+        </el-main>
+        <el-footer>
+            <div style="text-align: center;font-size: 14px;">
+                <p>Copyright © 2023-2030，<a href="/" target="_blank">贵阳云起信息科技有限公司</a></p>
+                <p><a href="http://beian.miit.gov.cn/" target="_blank"> 黔ICP备2020011629号-2</a></p>
+            </div>
+        </el-footer>
+    </el-container>
+</div>
+</body>
+<script>
+    let Counter={
+        data:function(){
+            return {
+                dark:false,
+                Moon:ElementPlusIconsVue.Moon,
+                Sunny:ElementPlusIconsVue.Sunny
+            }
+        },
+        watch:{
+            dark:function (data){
+                if(data){
+                    document.getElementsByTagName('html')[0].setAttribute('class','dark');
+                }else{
+                    document.getElementsByTagName('html')[0].setAttribute('class','');
+                }
+            }
+        },
+
+        methods:{
+            contact:function (){
+                ElementPlus.ElMessage.success('请扫下边二维码联系我们！');
+            }
+        }
+    };
+    let app=Vue.createApp(Counter);
+    app.use(ElementPlus);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+    app.mount('#app');
+</script>
+</html>

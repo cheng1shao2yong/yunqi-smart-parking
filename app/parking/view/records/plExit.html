@@ -1,0 +1,36 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="row"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import {formatDateTime} from "@util.js";
+    export default{
+        components:{
+            'YunForm':form
+        },
+        data:{
+            columns:[
+                {field:"ids",title:"ID",edit: 'hidden'},
+                {field:"plate_number",title:"车牌号",edit: {form:'input',type:'textarea',readonly:true}},
+                {field:"exit_time",title:"出场时间",edit: 'datetime',rules:'required'},
+                {field:"barrier_id",title:"出场通道",edit: 'select',searchList:Yunqi.data.barrier,rules:'required'},
+                {field:"pay_status",title:"付费状态",edit: 'radio',searchList:{'x4':'免费出场','x3':'已缴费出场','x7':'未缴费出场'}},
+                {field:"remark",title:"备注",edit: 'textarea'},
+            ],
+            row:Yunqi.data.row
+        },
+        methods: {
+
+        }
+    }
+</script>
+<style>
+</style>

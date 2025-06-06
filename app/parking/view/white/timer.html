@@ -1,0 +1,35 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="row"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    export default{
+        components:{
+            'YunForm':form
+        },
+        data:{
+            parkings:Yunqi.data.parkings,
+            columns:[
+                {field:"day",title:"同步周期",edit:{form:'input',type:'text',append:'天'},rules:"required"},
+                {field:"time",title:"执行时间",edit:'select',searchList:{0:'00点',1:'01点',2:'02点',3:'03点',4:'04点',5:'05点',6:'06点',7:'07点',8:'08点',9:'09点',10:'10点',11:'11点',12:'12点',13:'13点',14:'14点',15:'15点',16:'16点',17:'17点',18:'18点',19:'19点',20:'20点',21:'21点',22:'22点',23:'23点'},rules:"required"},
+                {field:"rules_id",title:"车辆类型",edit:'checkbox',searchList:Yunqi.data.rules,rules:"required"}
+            ],
+            row:Yunqi.data.row
+        },
+        methods: {
+            changeRecoveryType:function (e){
+
+            }
+        }
+    }
+</script>
+<style>
+</style>

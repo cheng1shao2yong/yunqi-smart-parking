@@ -1,0 +1,50 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                :common-search="false"
+                toolbar="refresh,add"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\Infield','add')},
+                    edit:{:$auth->check('app\\parking\\controller\\Infield','edit')},
+                    del:{:$auth->check('app\\parking\\controller\\Infield','del')},
+                }"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:{
+            index_url: 'infield/index',
+            add_url: 'infield/add',
+            edit_url: 'infield/edit',
+            del_url: 'infield/del'
+        },
+        columns:[
+            {field:"title",title:"内场名称"},
+            {field:"entry_barrier",align:'center',title:"入场通道",searchList:Yunqi.data.entry_barrier,formatter:Yunqi.formatter.tags},
+            {field:"exit_barrier",align:'center',title:"离场通道",searchList:Yunqi.data.exit_barrier,formatter:Yunqi.formatter.tags},
+            {field:"rules",align:'center',title:"临停收费",searchList:Yunqi.data.rules},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:90,
+                action:{
+                    edit:true,
+                    del:true
+                }
+            }
+        ]
+    },
+    methods: {
+    }
+}
+</script>
+<style>
+</style>

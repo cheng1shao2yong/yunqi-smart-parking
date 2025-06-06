@@ -1,0 +1,201 @@
+<?php
+/**
+ * ----------------------------------------------------------------------------
+ * 行到水穷处，坐看云起时
+ * 开发软件，找贵阳云起信息科技，官网地址:https://www.56q7.com/
+ * ----------------------------------------------------------------------------
+ * Author: 老成
+ * email：85556713@qq.com
+ */
+declare (strict_types = 1);
+
+namespace app\parking\controller;
+
+use app\common\controller\ParkingBase;
+use app\common\model\Admin;
+use app\common\model\manage\Parking;
+use app\common\model\parking\ParkingAdmin;
+use app\common\model\Qrcode;
+use think\annotation\route\Route;
+use think\captcha\facade\Captcha;
+use think\facade\Cache;
+use think\facade\Session;
+
+class Index extends ParkingBase
+{
+    protected $noNeedLogin = ['loginPost','loginGet','captcha','qrcodeLogin','loginByAdmin'];
+    protected $noNeedRight = ['index','logout','platform','changeTheme'];
+
+    #[Route('GET','index')]
+    public function index()
+    {
+        $referer=Session::pull('referer');
+        if($referer){
+            Session::save(); 
+        }
+        list($platform,$menulist, $selected, $referer) = $this->auth->getSidebar($referer);
+        $this->assign('site',site_config('basic'));
+        $this->assign('platform',$platform);
+        $this->assign('menulist',$menulist);
+        $this->assign('selected',$selected);
+        $this->assign('referer',$referer);
+        return $this->fetch('',[],false);
+    }
+
+    #[Route('POST','change-theme')]
+    public function changeTheme()
+    {
+        $key=$this->request->post('key');
+        $value=$this->request->post('value');
+        if($value==='true'){
+            $value=true;
+        }
+        if($value==='false'){
+            $value=false;
+        }
+        $element_ui=Admin::where('id',$this->auth->id)->value('element_ui');
+        if($element_ui){
+            $element_ui=json_decode($element_ui,true);
+        }else{
+            $element_ui=[];
+        }
+        $element_ui[$key]=$value;
+        $element_ui=json_encode($element_ui);
+        Admin::update(['element_ui'=>$element_ui],['id'=>$this->auth->id]);
+        Session::set('parking.element_ui',$element_ui);
+        Session::save();
+        $this->success();
+    }
+
+    #[Route('GET','captcha')]
+    public function captcha()
+    {
+        return Captcha::create();
+    }
+
+    #[Route('GET','qrcodeLogin')]
+    public function qrcodeLogin()
+    {
+        $token=$this->request->get('token');
+        $admin_id=$this->request->get('admin_id');
+        $adminlist=[];
+        if($this->auth->loginByThird($token,$admin_id,$adminlist)){
+            $this->success(__('登陆成功'));
+        }
+        $this->error('',$adminlist);
+    }
+
+    #[Route('GET','login')]
+    public function loginGet()
+    {
+        if($this->auth->isLogin()){
+            return redirect(request()->domain().'/index');
+        }
+        $parking=$this->request->get('parking');
+        if(!$parking){
+            $parking=$this->request->cookie('parking-uniqid');
+            if($parking){
+                return redirect(request()->domain().'/login?parking='.$parking);
+            }
+            $this->error('未关联停车场');
+        }
+        $parking=Parking::where(['uniqid'=>$parking])->find();
+        if(!$parking){
+            $this->error('未关联停车场');
+        }
+        cookie('parking-uniqid',$parking->uniqid);
+        $thirdLogin=addons_installed('uniapp') && site_config("addons.uniapp_scan_login");
+        if($thirdLogin){
+            $config=[
+                'appid'=>site_config("addons.uniapp_mpapp_id"),
+                'appsecret'=>site_config("addons.uniapp_mpapp_secret"),
+            ];
+            $qrcode=Qrcode::createQrcode(Qrcode::TYPE('停车场扫码登录'),token(),5*60);
+            $wechat=new \WeChat\Qrcode($config);
+            $ticket = $wechat->create($qrcode->id)['ticket'];
+            $url=$wechat->url($ticket);
+            $this->assign('qrcode',$url);
+        }
+        $this->assign('thirdLogin',$thirdLogin);
+        $this->assign('logo',site_config("basic.logo"));
+        $this->assign('sitename',site_config("basic.sitename"));
+        $this->assign('login_captcha',config('yunqi.login_captcha'));
+        return $this->fetch('index/login');
+    }
+
+    #[Route('POST','login')]
+    public function loginPost()
+    {
+        $username = $this->request->post('username');
+        $password = $this->request->post('password');
+        $captcha = $this->request->post('captcha');
+        $useproperty = $this->request->post('useproperty');
+        $uniqid=$this->request->cookie('parking-uniqid');
+        if(empty($useproperty) && !str_starts_with($username,$uniqid)){
+            $username=$uniqid.'-'.$username;
+        }
+        if(config('yunqi.login_captcha') && !captcha_check($captcha)){
+            $this->error(__('验证码错误'),0);
+        }
+        try{
+            $admin=$this->auth->login($username,$password);
+            $parkingModel=null;
+            $parkingAdmin=null;
+            $propertyModel=null;
+            $propertyAdmin=null;
+            //判断是否是集团账户
+            if(!empty($useproperty)){
+                $propertyAdmin=PropertyAdmin::where('admin_id',$admin->id)->find();
+            }
+            if($propertyAdmin){
+                $parkingModel=Parking::withJoin(['setting'])->where(['property_id'=>$propertyAdmin->property_id,'uniqid'=>$uniqid])->find();
+            }else{
+                $parkingAdmin=ParkingAdmin::where('admin_id',$admin->id)->find();
+                if($parkingAdmin){
+                    $parkingModel=Parking::withJoin(['setting'])->find($parkingAdmin->parking_id);
+                }
+            }
+            if($parkingModel){
+                Session::set('parking.parkingModel',$parkingModel);
+                Session::set('parking.parkingAdmin',$parkingAdmin);
+                Session::set('parking.propertyModel',$propertyModel);
+                Session::set('parking.propertyAdmin',$propertyAdmin);
+                Session::delete('captcha');
+                Session::save();
+            }else{
+                Session::delete("parking");
+                Session::save();
+                throw new \Exception(__('你不是停车场管理员'));
+            }
+        }catch (\Exception $e){
+            $this->error($e->getMessage(),1);
+        }
+        $this->success(__('登陆成功'));
+    }
+
+    #[Route('GET','login-by-admin')]
+    public function loginByAdmin()
+    {
+        $token=$this->request->get('token');
+        $parking_id=Cache::pull($token);
+        if(!$parking_id){
+            $this->error('未找到停车场');
+        }
+        $parkingModel=Parking::withJoin(['setting'])->find($parking_id);
+        $parkingAdmin=ParkingAdmin::where(['role'=>'admin','parking_id'=>$parking_id])->find();
+        $admin=Admin::find($parkingAdmin->admin_id);
+        Session::set('parking',$admin->toArray());
+        Session::set('parking.parkingModel',$parkingModel);
+        Session::set('parking.parkingAdmin',$parkingAdmin);
+        Session::save();
+        return redirect(request()->domain().'/index');
+    }
+
+    #[Route('GET','logout')]
+    public function logout()
+    {
+        $this->auth->logout();
+        $url=request()->domain().'/login';
+        return redirect($url);
+    }
+}

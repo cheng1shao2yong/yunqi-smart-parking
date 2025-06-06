@@ -1,0 +1,70 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{'YunTable':table},
+        data:{
+            columns: [
+                {field: 'createtime', title: __('时间'),operate: {form:'date-picker',type:'daterange'}},
+                {field: 'change_type', title: __('交易类型'),operate:'select',searchList:{'add':'收益','minus':'提现'},formatter:function (data,row){
+                    let tag=Yunqi.formatter.tag
+                    if(row.change_type=='add'){
+                        tag.type='success';
+                        tag.value=data;
+                    }else{
+                        tag.type='danger';
+                        tag.value=data;
+                    }
+                    return tag;
+                }},
+                {field: 'before', title: __('交易前'),operate:false},
+                {field: 'change', title: __('变化数目'),operate:false,formatter:function(data,row){
+                    let html=Yunqi.formatter.html;
+                    if(row.change_type=='add'){
+                        html.value='<span style="color: green;display: inline-block;width: 100%;text-align: center;">+'+data+'</span>'
+                    }else{
+                        html.value='<span style="color: red;display: inline-block;width: 100%;text-align: center;">-'+data+'</span>'
+                    }
+                    return html;
+                }},
+                {field: 'after', title: __('交易后'),operate:false},
+                {field: 'remark', title: __('备注'),operate:false,formatter:function(data,row){
+                    if(row.change_type=='add'){
+                        return row.parking.title;
+                    }else{
+                        let tag=Yunqi.formatter.tag
+                        if(data){
+                            tag.type='success';
+                            tag.value='提现成功';
+                        }else{
+                            tag.type='danger';
+                            tag.value='申请中';
+                        }
+                        return tag;
+                    }
+                }}
+            ],
+            extend:'',
+        },
+        onLoad(e){
+            this.extend={
+                index_url: 'user/daili/detail?ids='+e.ids
+            }
+        },
+        methods: {
+
+        }
+    }
+</script>
+<style>
+
+</style>
+

@@ -1,0 +1,72 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                ref="yunTable"
+                search="plate_number"
+                :common-search="false"
+                toolbar="refresh,del"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{'YunTable':table},
+        data:{
+            extend:{
+                index_url: 'plate/index',
+                del_url: 'plate/del'
+            },
+            columns:[
+                {checkbox: true},
+                {field: 'id',title: __('ID'),width:80,sortable: true},
+                {field: 'plate_number',title: __('车牌号'),width:150},
+                {field: 'status',title: __('状态'),width:150,formatter: function (data){
+                     let tag=Yunqi.formatter.tag;
+                     if(data){
+                         tag.value='已认证';
+                         tag.type='success';
+                     }else{
+                         tag.value='认证中';
+                         tag.type='danger';
+                     }
+                     return tag;
+                }},
+                {field: 'createtime', title: __('创建时间'), width:200,formatter: Yunqi.formatter.datetime,operate:false,sortable: true},
+                {
+                    field: 'operate',
+                    title: __('操作'),
+                    width:180,
+                    fixed:'right',
+                    action:{
+                        auth:{
+                            tooltip:true,
+                            icon:'fa fa-pencil',
+                            type:'primary',
+                            text:__('认证'),
+                            method:'auth'
+                        },
+                        del:true
+                    }
+                }
+            ]
+        },
+        methods: {
+            auth:function (row){
+                Yunqi.api.open({
+                    url:'plate/auth?ids='+row.id,
+                    title:__('处理认证'),
+                    icon:'fa fa-list',
+                    close:()=>{
+                        this.$refs.yunTable.reload();
+                    }
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

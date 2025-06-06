@@ -1,0 +1,234 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="row"
+                ref="yunForm"
+                :tabs="tabs"
+                @submit="onSubmit"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+                <template #start_fee="{rows}">
+                    <el-form-item label="起步设置:">
+                        <Fieldlist :label='["起步时长","起步收费"]' :keys='["time","fee"]' :value="rows.start_fee" @change="changeStart">
+                            <template #time="{list,row}">
+                                <el-input v-model="list[row].time" type="number">
+                                    <template #append>分钟</template>
+                                </el-input>
+                            </template>
+                            <template #fee="{list,row}">
+                                <el-input v-model="list[row].fee" type="number">
+                                    <template #append>元</template>
+                                </el-input>
+                            </template>
+                        </Fieldlist>
+                    </el-form-item>
+                </template>
+                <template #period_fee="{rows}">
+                    <el-form-item label="计费规则:" prop="period_fee">
+                        <Fieldlist :label='["时间区间","累加时长","累加收费","封顶收费"]' :keys='["period","add_time","add_fee","top_fee"]' :value="rows.period_fee" @change="changePeriod">
+                            <template #period="{list,row}">
+                                <el-input v-model="list[row].period" type="text"></el-input>
+                            </template>
+                            <template #add_time="{list,row}">
+                                <el-input v-model="list[row].add_time" type="number">
+                                    <template #append>分钟</template>
+                                </el-input>
+                            </template>
+                            <template #add_fee="{list,row}">
+                                <el-input v-model="list[row].add_fee" type="number">
+                                    <template #append>元</template>
+                                </el-input>
+                            </template>
+                            <template #top_fee="{list,row}">
+                                <el-input v-model="list[row].top_fee" type="number">
+                                    <template #append>元</template>
+                                </el-input>
+                            </template>
+                        </Fieldlist>
+                    </el-form-item>
+                </template>
+                <template #step_fee="{rows}">
+                    <el-form-item label="计费规则:">
+                        <Fieldlist :label='["停车时长","停车收费"]' :keys='["time","fee"]' :value="rows.step_fee" @change="changeStep">
+                            <template #time="{list,row}">
+                                <el-input v-model="list[row].time" type="number">
+                                    <template #append>分钟</template>
+                                </el-input>
+                            </template>
+                            <template #fee="{list,row}">
+                                <el-input v-model="list[row].fee" type="number">
+                                    <template #append>元</template>
+                                </el-input>
+                            </template>
+                        </Fieldlist>
+                    </el-form-item>
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import fieldlist from "@components/Fieldlist.js";
+    export default{
+        components:{
+            'YunForm':form,
+            'Fieldlist':fieldlist,
+        },
+        data:{
+            tabs:[],
+            columns:[
+                {field:"id",title:"ID",edit:"hidden"},
+                {field:"title",tab:0,title:"收费名称",edit: 'text',rules:"required"},
+                {field:"fee_setting",tab:0,title:"收费类型",searchList:Yunqi.data.feeSetting,edit:{form:'radio',value:'free',change:'changeFeeSetting'}},
+                {field:"plate_type",tab:0,title:"车牌颜色",edit: {form: 'checkbox',value:['green','blue']},searchList:Yunqi.data.plateType},
+                {field:"time_setting",tab:0,title:"有效期",edit: {form:'select',value:'all',change:'changeTimeSetting'},rules:"required",searchList: Yunqi.data.timeSetting},
+                {field:"time_setting_date",tab:0,title:"指定固定日期",edit: {form:'date-picker',type:'dates'},visible:false},
+                {field:"time_setting_period",tab:0,title:"指定范围日期",edit: 'daterange',visible:false},
+                {field:"time_setting_week",tab:0,title:"指定每周日期",edit: 'checkbox',searchList: {0:'星期天',1:'星期一',2:'星期二',3:'星期三',4:'星期四',5:'星期五',6:'星期六'},visible:false},
+                {field:"time_setting_month",tab:0,title:"指定每月日期",edit: 'checkbox',searchList: function(){
+                    let r={};
+                    for(let i=0;i<31;i++){
+                        r[i+1]=(i+1)+'号';
+                    }
+                    return r;
+                },visible:false},
+                {field:"status",tab:0,title:"启用状态",searchList:{'normal':'是','hidden':'否'},edit:{form:'radio',value:'normal'}},
+                {field:"free_time",tab:1,title:"免费时长",edit:{form:'input',type:'number',append:'分钟'},rules:'integer(+0)'},
+                {field:"start_fee",tab:1,title:"起步收费",edit: {form:'slot',value:Yunqi.data.row?[]:[{time:60,fee:5}]},visible: function (row){
+                    return row.fee_setting!='step';
+                }},
+                {field:"period_fee",tab:1,title:"计费规则",edit: {form:'slot',value:Yunqi.data.row?[]:[{"period":'07:00-22:00',"add_time":30,"add_fee":2.5,"top_fee":75},{"period":'22:00-07:00',"add_time":30,"add_fee":2.5,"top_fee":20}]}},
+                {field:"step_fee",tab:1,title:"计费规则",edit: {form:'slot',value:Yunqi.data.row?[]:[{"time":30,"fee":4}]}},
+                {field:"add_time",tab:1,title:"累加时长",edit:{form:'input',type:'number',append:'分钟'},rules:'integer(+0)'},
+                {field:"add_fee",tab:1,title:"累加收费",edit:{form:'input',type:'number',append:'元'},rules:'range(0~)'},
+                {field:"top_time",tab:1,title:"周期时长",edit:{form:'input',type:'number',append:'分钟'},rules:'integer(+0)'},
+                {field:"top_fee",tab:1,title:"周期封顶",edit:{form:'input',type:'number',append:'元'},rules:'range(0~)'},
+                {field:"day_top_fee",tab:1,title:"每日封顶",edit:{form:'input',type:'number',append:'元'},rules:'range(0~)'}
+            ],
+            row:Yunqi.data.row || {}
+        },
+        onLoad: function (options) {
+            if(Yunqi.data.row){
+                let fee_setting=Yunqi.data.row.fee_setting;
+                this.setTabs(fee_setting);
+            }else{
+                this.tabs=['基本设置'];
+            }
+        },
+        onShow:function (){
+            if(Yunqi.data.row){
+                let fee_setting=Yunqi.data.row.fee_setting;
+                let time_setting=Yunqi.data.row.time_setting;
+                Vue.nextTick(()=>{
+                    this.setShowField(fee_setting);
+                    if(time_setting!='all'){
+                        this.$refs.yunForm.showField('time_setting_'+time_setting);
+                    }
+                });
+            }
+        },
+        methods: {
+            setTabs:function (fee_setting){
+                if(fee_setting=='free'){
+                    this.tabs=['基本设置'];
+                }
+                if(fee_setting=='normal'){
+                    this.tabs=['基本设置','收费设置'];
+                }
+                if(fee_setting=='period'){
+                    this.tabs=['基本设置','时段收费'];
+                }
+                if(fee_setting=='loop'){
+                    this.tabs=['基本设置','周期收费'];
+                }
+                if(fee_setting=='step'){
+                    this.tabs=['基本设置','阶梯收费'];
+                }
+            },
+            setShowField:function(fee_setting){
+                if(fee_setting=='normal'){
+                    this.$refs.yunForm.showField(['add_time','add_fee']);
+                    this.$refs.yunForm.hideField(['period_fee','step_fee','top_time','top_fee']);
+                }
+                if(fee_setting=='period'){
+                    this.$refs.yunForm.showField(['period_fee']);
+                    this.$refs.yunForm.hideField(['step_fee','add_time','add_fee','top_time','top_fee']);
+                }
+                if(fee_setting=='loop'){
+                    this.$refs.yunForm.showField(['top_time','top_fee','add_time','add_fee']);
+                    this.$refs.yunForm.hideField(['step_fee','period_fee']);
+                }
+                if(fee_setting=='step'){
+                    this.$refs.yunForm.showField(['step_fee']);
+                    this.$refs.yunForm.hideField(['period_fee','add_time','add_fee','top_time','top_fee']);
+                }
+            },
+            changeTimeSetting:function (e){
+                this.$refs.yunForm.hideField(['time_setting_date','time_setting_period','time_setting_week','time_setting_month']);
+                if(e!='all'){
+                    this.$refs.yunForm.showField('time_setting_'+e);
+                }
+            },
+            changeFeeSetting:function (e){
+                this.setTabs(e);
+                this.setShowField(e);
+                if(e=='free'){
+                    this.$refs.yunForm.activeTab=0;
+                }else{
+                    this.$refs.yunForm.activeTab=1;
+                }
+            },
+            changePeriod:function (e){
+                this.$refs.yunForm.setValue('period_fee',e);
+            },
+            changeStep:function (e){
+                this.$refs.yunForm.setValue('step_fee',e);
+            },
+            changeStart:function (e){
+                this.$refs.yunForm.setValue('start_fee',e);
+            },
+            onSubmit:function (row){
+                let r=true;
+                if(row.fee_setting=='normal'){
+                    let arr=['free_time','add_time','add_fee'];
+                    r=this.empty(row,arr);
+                }
+                if(row.fee_setting=='period'){
+                    let arr=['free_time','period_fee'];
+                    r=this.empty(row,arr);
+                }
+                if(row.fee_setting=='loop'){
+                    let arr=['free_time','add_time','add_fee','top_time','top_fee'];
+                    r=this.empty(row,arr);
+                }
+                if(row.fee_setting=='step'){
+                    let arr=['free_time','step_fee'];
+                    r=this.empty(row,arr);
+                }
+                return r;
+            },
+            empty:function (row,arr){
+                for(let i=0;i<arr.length;i++){
+                    if(row[arr[i]]==='' || row[arr[i]]===null || row[arr[i]].length===0){
+                        let title='';
+                        for(let j=0;j<this.columns.length;j++){
+                            if(this.columns[j].field==arr[i]){
+                                title=this.columns[j].title;
+                                break;
+                            }
+                        }
+                        this.$refs.yunForm.setError(arr[i],title+'不能为空');
+                        Yunqi.message.error(title+'不能为空');
+                        this.$refs.yunForm.activeTab=1;
+                        return false
+                    }
+                }
+                return true;
+            }
+        }
+    }
+</script>
+<style>
+</style>

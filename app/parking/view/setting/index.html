@@ -1,0 +1,255 @@
+<template>
+    <el-card shadow="never">
+        <el-form :model="rows" label-width="250">
+            <el-form-item label="启用停车规则:">
+                <div class="right-box">
+                    <el-row>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>临时车</div>
+                                <el-switch @change="changeParkingType('provisional')" v-model="rows.provisional" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>月租车</div>
+                                <el-switch @change="changeParkingType('monthly')" v-model="rows.monthly" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>日租车</div>
+                                <el-switch @change="changeParkingType('day')" v-model="rows.day" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>会员车</div>
+                                <el-switch @change="changeParkingType('member')" v-model="rows.member" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>储值车</div>
+                                <el-switch @change="changeParkingType('stored')" v-model="rows.stored" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>VIP车</div>
+                                <el-switch @change="changeParkingType('vip')" v-model="rows.vip" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
+            </el-form-item>
+            <el-form-item label="车位满时禁止驶入:">
+                <div class="right-box">
+                    <el-row>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>临时车</div>
+                                <el-switch @change="changeParkingType('provisional_space_full')" v-model="rows.provisional_space_full" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>月租车</div>
+                                <el-switch @change="changeParkingType('monthly_space_full')" v-model="rows.monthly_space_full" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>日租车</div>
+                                <el-switch @change="changeParkingType('day_space_full')" v-model="rows.day_space_full" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>会员车</div>
+                                <el-switch @change="changeParkingType('member_space_full')" v-model="rows.member_space_full" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>储值车</div>
+                                <el-switch @change="changeParkingType('stored_space_full')" v-model="rows.stored_space_full" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>VIP车</div>
+                                <el-switch @change="changeParkingType('vip_space_full')" v-model="rows.vip_space_full" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
+            </el-form-item>
+            <el-form-item label="无入场记录自动起杆:">
+                <div class="right-box">
+                    <el-row>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>临时车</div>
+                                <el-switch @change="changeParkingType('provisional_no_entry')" v-model="rows.provisional_no_entry" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>月租车</div>
+                                <el-switch @change="changeParkingType('monthly_no_entry')" v-model="rows.monthly_no_entry" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>日租车</div>
+                                <el-switch @change="changeParkingType('day_no_entry')" v-model="rows.day_no_entry" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>会员车</div>
+                                <el-switch @change="changeParkingType('member_no_entry')" v-model="rows.member_no_entry" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>储值车</div>
+                                <el-switch @change="changeParkingType('stored_no_entry')" v-model="rows.stored_no_entry" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3">
+                            <div class="pitem">
+                                <div>VIP车</div>
+                                <el-switch @change="changeParkingType('vip_no_entry')" v-model="rows.vip_no_entry" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
+            </el-form-item>
+            <el-form-item label="特殊车辆免费:">
+                <div class="right-box">
+                    <el-checkbox-group v-model="rows.special_free" @change="changeParkingType('special_free')">
+                        <el-checkbox :label="key" v-for="(item,key) in special">{{item}}</el-checkbox>
+                    </el-checkbox-group>
+                </div>
+            </el-form-item>
+            <el-form-item label="停车场车位总数:">
+                <div class="right-box">
+                    <el-input @blur="changeParkingType('parking_space_total')" type="number" v-model="rows.parking_space_total"><template #append>个</template></el-input>
+                </div>
+            </el-form-item>
+            <el-form-item label="自动更新车位总数:">
+                <div class="right-box">
+                    <el-radio-group v-model="rows.autoupdate_space_total" @change="changeParkingType('autoupdate_space_total')">
+                        <el-radio :label="1">是</el-radio>
+                        <el-radio :label="0">否</el-radio>
+                    </el-radio-group>
+                </div>
+            </el-form-item>
+            <el-form-item label="匹配不到收费规则:">
+                <div class="right-box">
+                   <el-select v-model="rows.match_no_rule" placeholder="请选择">
+                       <el-option label="禁止出入" :value="1"></el-option>
+                       <el-option label="允许出入" :value="2"></el-option>
+                   </el-select>
+                </div>
+            </el-form-item>
+            <el-form-item label="严格限制一进一出:">
+                <div class="right-box">
+                    <el-radio-group v-model="rows.one_entry" @change="changeParkingType('one_entry')">
+                        <el-radio :label="1">是</el-radio>
+                        <el-radio :label="0">否</el-radio>
+                    </el-radio-group>
+                </div>
+            </el-form-item>
+            <el-form-item label="无牌车严格检测车辆:">
+                <div class="right-box">
+                    <el-radio-group v-model="rows.temporary_check_cars" @change="changeParkingType('temporary_check_cars')">
+                        <el-radio :label="1">是</el-radio>
+                        <el-radio :label="0">否</el-radio>
+                    </el-radio-group>
+                </div>
+            </el-form-item>
+            <el-form-item label="月租车入场欢迎语音:">
+                <div class="right-box">
+                    <el-select @blur="changeParkingType('monthly_voice')" v-model="rows.monthly_voice" placeholder="请选择">
+                        <el-option label="欢迎光临" :value="1"></el-option>
+                        <el-option label="请入场停车" :value="20"></el-option>
+                        <el-option label="欢迎回家" :value="39"></el-option>
+                        <el-option label="请通行" :value="40"></el-option>
+                        <el-option label="无" :value="0"></el-option>
+                    </el-select>
+                </div>
+            </el-form-item>
+            <el-form-item label="紧急联系电话:">
+                <div class="right-box">
+                    <el-input v-model="rows.phone" @blur="changeParkingType('phone')"></el-input>
+                </div>
+            </el-form-item>
+            <el-form-item label="收费规则介绍:">
+                <div class="right-box">
+                    <el-input :rows="4" type="textarea" v-model="rows.rules_txt" @blur="changeParkingType('rules_txt')"></el-input>
+                </div>
+            </el-form-item>
+            <el-form-item label="开具发票方式:">
+                <div class="right-box">
+                    <el-radio-group v-model="rows.invoice_type" @change="changeParkingType('invoice_type')">
+                        <el-radio label="handle">手动开票</el-radio>
+                        <el-radio label="backend">后台开票</el-radio>
+                    </el-radio-group>
+                </div>
+            </el-form-item>
+            <el-form-item label="开具发票主体:">
+                <div class="right-box">
+                    <el-input v-model="rows.invoice_entity" @blur="changeParkingType('invoice_entity')"></el-input>
+                </div>
+            </el-form-item>
+            <el-form-item label="清空缓存:">
+                <div class="right-box">
+                    <el-button type="primary" @click="clearCache">立即清除</el-button>
+                </div>
+            </el-form-item>
+        </el-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    export default{
+        components:{
+            'YunForm':form,
+        },
+        data:{
+            rows:Yunqi.data.setting,
+            special:Yunqi.data.special,
+        },
+        methods: {
+            changeParkingType:function (type){
+                let options={ids:this.rows.id,field:type,value:this.rows[type]};
+                Yunqi.api.multi('setting/update',options);
+            },
+            clearCache:function (){
+                Yunqi.ajax.post('setting/clearCache');
+            }
+        }
+    }
+</script>
+<style>
+.right-box{
+    padding-left: 40px;
+    width: 80%;
+}
+.pitem{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 70px;
+    justify-content: flex-start;
+}
+.line{
+    display: flex;
+}
+.line .title{
+    margin-right:40px;
+}
+</style>

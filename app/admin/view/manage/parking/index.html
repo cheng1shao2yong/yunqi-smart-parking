@@ -1,0 +1,112 @@
+<template>
+    <el-card shadow="never">
+        <el-alert type="error" v-if="!queue" effect="dark" style="margin-bottom: 15px;">系统队列未运行，请联系管理员处理！</el-alert>
+        <yun-table
+                :columns="columns"
+                search="title"
+                toolbar="refresh,add,edit,del,recyclebin,download"
+                :auth="{
+                    add:{:$auth->check('app\\admin\\controller\\manage\\Parking','add')},
+                    edit:{:$auth->check('app\\admin\\controller\\manage\\Parking','edit')},
+                    del:{:$auth->check('app\\admin\\controller\\manage\\Parking','del')},
+                    multi:{:$auth->check('app\\admin\\controller\\manage\\Parking','multi')},
+                    recyclebin:{:$auth->check('app\\admin\\controller\\manage\\Parking','recyclebin')},
+                    download:{:$auth->check('app\\admin\\controller\\manage\\Parking','download')},
+                }"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        queue:1,
+        extend:{
+            index_url: 'manage/parking/index',
+            add_url: 'manage/parking/add',
+            edit_url: 'manage/parking/edit',
+            del_url: 'manage/parking/del',
+            multi_url: 'manage/parking/multi',
+            download_url: 'manage/parking/download',
+            recyclebin_url:'manage/parking/recyclebin'
+        },
+        columns:[
+            {checkbox: true},
+            {field:"id",title:"ID",width:50,operate:false},
+            {field:"title",title:"名称",operate:"like"},
+            {
+                field:"property_id",
+                title:"集团账号",
+                operate: {form:'selectpage',url:'manage/property/index',labelField:'title',keyField:'id'},
+                formatter:function (data,row){
+                    return row.property?row.property.title:'';
+                }
+            },
+            {field:"contact",title:"联系人",operate:false},
+            {field:"phone",title:"联系电话",operate:false},
+            {
+                field:"area_id",
+                title:"区域",
+                operate:{
+                    form:'cascader',
+                    value:'',
+                    size:'default',
+                    url:'ajax/area',
+                    level:3,
+                    props:{
+                        expandTrigger:'click',
+                        checkStrictly:true,
+                        value:'id',
+                        label:'name',
+                        multiple:false,
+                        lazy:true
+                    },
+                    filter:false
+                },
+                formatter:function(data,row){
+                    return row.area.mergename;
+                }
+            },
+            {field:"link",title:"管理地址",operate:false,formatter:Yunqi.formatter.link},
+            {field:'status', title: '状态',width:60,searchList: {normal: '正常',hidden: '隐藏'},formatter:Yunqi.formatter.switch,operate:'select'},
+            {field:"createtime",title:"创建时间",operate:"daterange",formatter:Yunqi.formatter.datetime},
+            {field:"updatetime",title:"修改时间",visible:false,operate:false,formatter:Yunqi.formatter.datetime},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:130,
+                fixed: 'right',
+                action:{
+                    bind:{
+                        tooltip:true,
+                        icon:'fa fa-arrow-right',
+                        type:'warning',
+                        text:'进入',
+                        method:'binds'
+                    },
+                    edit:true,
+                    del:true,
+                }
+            }
+        ]
+    },
+    onLoad:function (){
+        Yunqi.ajax.get('manage/parking/queue').then(res=>{
+            this.queue=res;
+        });
+    },
+    methods: {
+        binds:function (e){
+            Yunqi.ajax.post('manage/parking/bind',{parking_id:e.id},true,false).then(res=>{
+                window.open(res);
+            });
+        },
+    }
+}
+</script>
+<style>
+</style>

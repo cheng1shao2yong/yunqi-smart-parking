@@ -1,0 +1,10 @@
+<template>
+    <el-card shadow="never">
+        <#title#>
+    </el-card>
+</template>
+<script>
+<#js#>
+</script>
+<style>
+</style>

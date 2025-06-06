@@ -1,0 +1,71 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                :common-search="false"
+                ref="yunTable"
+                toolbar="refresh,add,edit,del"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\Sentrybox','add')},
+                    edit:{:$auth->check('app\\parking\\controller\\Sentrybox','edit')},
+                    del:{:$auth->check('app\\parking\\controller\\Sentrybox','del')},
+                    multi:{:$auth->check('app\\parking\\controller\\Sentrybox','multi')},
+                }"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import {inArray} from "@util.js";
+    export default{
+        components:{
+            'YunTable':table
+        },
+        data:{
+            extend:{
+                index_url: 'sentrybox/index',
+                del_url: 'sentrybox/del',
+                add_url: 'sentrybox/add',
+                edit_url: 'sentrybox/edit',
+                multi_url: 'sentrybox/multi',
+            },
+            columns:[
+                {checkbox: true},
+                {field:"title",title:"岗亭名称"},
+                {field:"barriers",title:"包含通道",formatter: function (data){
+                    data=data.split(',').map(res=>{
+                        return parseInt(res);
+                    });
+                    let tags=Yunqi.formatter.tags;
+                    let value=[];
+                    for(let id in Yunqi.data.barrier){
+                        if(inArray(data,id)){
+                            value.push(Yunqi.data.barrier[id]);
+                        }
+                    }
+                    tags.value=value;
+                    return tags;
+                }},
+                {field:"uniqid",title:"序列号"},
+                {field:"webversion",title:"在线版本",formatter:Yunqi.formatter.link},
+                {field: 'status', title: '启用状态',width:100,searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch, operate: false},
+                {
+                    field: 'operate',
+                    title: '操作',
+                    fixed:'right',
+                    width: 130,
+                    action:{
+                        edit:true,
+                        del:true,
+                    }
+                }
+            ]
+        },
+        methods: {
+
+        }
+    }
+</script>
+<style>
+</style>

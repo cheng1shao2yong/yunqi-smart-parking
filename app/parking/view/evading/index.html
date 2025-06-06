@@ -1,0 +1,224 @@
+<template>
+    <el-card shadow="never">
+        <el-tabs type="card" v-model="tab" @tab-change="tabChange">
+            <el-tab-pane name="evading" label="逃费记录"></el-tab-pane>
+            <el-tab-pane name="recovery" label="追缴记录"></el-tab-pane>
+        </el-tabs>
+        <yun-table
+                v-if="columns"
+                :columns="columns"
+                ref="yunTable"
+                toolbar="refresh,free,check,cancel"
+                :extend="extend">
+                <template #formatter="{field,rows}">
+                    <template v-if="field=='plate_number'">
+                        <plate-type :plate_number="rows.plate_number" :plate_type="rows.plate_type"></plate-type>
+                    </template>
+                </template>
+                <template #toolbar="{tool,selections}">
+                    <el-button :disabled="selections.length===0 || tab=='recovery'" v-if="tool=='free'" @click.stop="checkFrees(selections)" type="success"><i class="fa fa-rocket"></i>&nbsp;免费出场</el-button>
+                    <el-button :disabled="selections.length===0 || tab=='recovery'" v-if="tool=='check'" @click.stop="checkRecords(selections)" type="primary"><i class="fa fa-cog"></i>&nbsp;配置追缴</el-button>
+                    <el-button :disabled="selections.length===0 || tab=='evading'" v-if="tool=='cancel'" @click.stop="cancelRecoverys(selections)" type="danger"><i class="fa fa-close"></i>&nbsp;取消追缴</el-button>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import {formatDuration,parseNumber} from "@util.js";
+    import platetype from "@components/PlateType.js";
+    export default{
+        components: {'YunTable': table,'PlateType': platetype},
+        data: {
+            tab:'evading',
+            type:Yunqi.data.type,
+            columns:'',
+            extend:{
+                index_url: ''
+            }
+        },
+        onLoad:function (){
+            this.init();
+        },
+        methods: {
+            init:function (){
+                if(this.tab=='evading'){
+                    this.columns=[
+                        {checkbox: true},
+                        {field: "plate_number", title: "车牌号",formatter:Yunqi.formatter.slot,operate:'like'},
+                        {field: "entry_time", title: "入场时间",operate:'daterange',formatter: Yunqi.formatter.datetime},
+                        {field: "exit_time", title: "出场时间",operate:'daterange',formatter:Yunqi.formatter.datetime},
+                        {field: "park_time", title: "停车时长",operate:false,formatter: function (data,row){
+                                if(!data){
+                                    return '';
+                                }
+                                return formatDuration(data,false);
+                            }},
+                        {field: "total_fee", title: "停车费用",operate:'between',formatter: function (data){
+                                if(!data){
+                                    return '';
+                                }
+                                return parseNumber(data)+'元';
+                            }},
+                        {field: "status", title: "停车状态",operate: false,searchList:Yunqi.data.status,formatter: function (data,row){
+                                let tag=Yunqi.formatter.tag;
+                                let type={'0':'','1':'','2':'danger','3':'success','4':'success','5':'warning','6':'warning','7':'danger'};
+                                tag.value=Yunqi.data.status[row.status];
+                                tag.type=type[row.status];
+                                return tag;
+                            }},
+                        {
+                            field: 'operate',
+                            title: '操作',
+                            align: 'center',
+                            width: 90,
+                            action: {
+                                free:{
+                                    tooltip:true,
+                                    icon:'fa fa-rocket',
+                                    type:'success',
+                                    text:'免费',
+                                    method:'checkFree'
+                                },
+                                check:{
+                                    tooltip:true,
+                                    icon:'fa fa-cog',
+                                    type:'primary',
+                                    text:'选择',
+                                    method:'checkRecord'
+                                },
+                                detail:{
+                                    tooltip:true,
+                                    icon:'fa fa-list',
+                                    type:'info',
+                                    text:'详情',
+                                    method:'detail'
+                                }
+                            }
+                        }
+                    ];
+                    this.extend.index_url='evading/index?type=1';
+                }
+                if(this.tab=='recovery'){
+                    this.columns=[
+                        {checkbox: true,selectable:function (row,index){
+                                if(row.recovery.pay_id){
+                                    return false;
+                                }
+                                return true;
+                            }},
+                        {field: "plate_number", title: "车牌号",formatter:Yunqi.formatter.slot,operate:'like'},
+                        {field: "recovery.total_fee", title: "停车费用",operate:'between',formatter: function (data){
+                                if(!data){
+                                    return '';
+                                }
+                                return parseNumber(data)+'元';
+                            }},
+                        {field: "recovery.recovery_type", title: "追缴方式",operate: false,searchList: Yunqi.data.recoveryType},
+                        {field: "recovery.entry_set", title: "入场设置",operate: false,searchList: {0:'不予处理',1:'付费后开闸',2:'岗亭确认开闸'}},
+                        {field: "recovery.exit_set", title: "出场设置",operate: false,searchList: {0:'不予处理',1:'付费后开闸',2:'岗亭确认开闸'}},
+                        {field: "recovery.msg", title: "发送消息",operate: false,searchList: {0:'否',1:'是'}},
+                        {field: "recovery.pay_id", title: "追缴状态",operate: false,formatter: function (data,row){
+                                let tag=Yunqi.formatter.tag;
+                                if(data){
+                                    tag.value='已追缴';
+                                    tag.type='success';
+                                }else{
+                                    tag.value='待追缴';
+                                    tag.type='info';
+                                }
+                                return tag;
+                            }},
+                        {
+                            field: 'operate',
+                            title: '操作',
+                            align: 'center',
+                            width: 90,
+                            action: {
+                                check:{
+                                    tooltip:true,
+                                    icon:'fa fa-close',
+                                    type:'danger',
+                                    text:'取消',
+                                    method:'cancelRecovery',
+                                    visible:function (row){
+                                        return !row.recovery.pay_id;
+                                    }
+                                },
+                                detail:{
+                                    tooltip:true,
+                                    icon:'fa fa-list',
+                                    type:'success',
+                                    text:'详情',
+                                    method:'detail'
+                                }
+                            }
+                        }
+                    ];
+                    this.extend.index_url='evading/index?type=2';
+                }
+            },
+            detail:function (e){
+                Yunqi.api.open({
+                    url:'records/detail?ids='+e.id,
+                    width:800,
+                    height:550,
+                    title:'详情',
+                    icon:'fa fa-list'
+                });
+            },
+            tabChange:function (e){
+                this.columns='';
+                Vue.nextTick(()=>{
+                    this.init();
+                });
+            },
+            cancelRecovery:function (rows){
+                this.cancelRecoverys([rows]);
+            },
+            cancelRecoverys:function (selections){
+                let that=this;
+                let ids=selections.map(v=>v.recovery.id).join(',');
+                Yunqi.confirm('当前'+selections.length+'条追缴记录，确认要取消吗？','操作提示').then(r=>{
+                    Yunqi.ajax.post('evading/del',{ids:ids}).then(r=>{
+                        that.$refs.yunTable.reload();
+                    });
+                });
+            },
+            checkRecord:function (rows){
+                this.checkRecords([rows]);
+            },
+            checkRecords:function (selections){
+                let that=this;
+                let ids=selections.map(v=>v.id).join(',');
+                Yunqi.api.open({
+                    url:'evading/add?ids='+ids,
+                    width:800,
+                    height:550,
+                    title:'追缴设置',
+                    icon:'fa fa-cog',
+                    close:function (r){
+                        if(r){
+                            that.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            },
+            checkFrees:function (selections){
+                let that=this;
+                let ids=selections.map(v=>v.id).join(',');
+                Yunqi.confirm('当前'+selections.length+'条逃费记录，确定设置为免费出场吗？','操作提示').then(r=>{
+                    Yunqi.ajax.post('evading/free',{ids:ids}).then(r=>{
+                        that.$refs.yunTable.reload();
+                    });
+                });
+            },
+            checkFree:function (rows){
+                this.checkFrees([rows]);
+            },
+        }
+    }
+</script>
+<style>
+
+</style>

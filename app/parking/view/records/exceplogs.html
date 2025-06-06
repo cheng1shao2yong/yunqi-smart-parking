@@ -1,0 +1,44 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh"
+                :extend="extend">
+                <template #formatter="{field,rows}">
+                    <template v-if="field=='plate_number'">
+                        <plate-type :plate_number="rows.plate_number" :plate_type="rows.plate_type"></plate-type>
+                    </template>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import platetype from "@components/PlateType.js";
+    function parseBarrier(barrier){
+        let result = {};
+        for(let k in barrier){
+            let title=barrier[k];
+            result[title] = title;
+        }
+        return result;
+    }
+    export default {
+        components: {'YunTable': table,'PlateType': platetype},
+        data: {
+            extend: {
+                index_url: 'records/exceplogs',
+            },
+            columns: [
+                {field: "createtime", width:200,title: "时间", operate: "daterange", formatter: Yunqi.formatter.datetime},
+                {field: "plate_number", width:150,title: "车牌号", operate: 'like',formatter:Yunqi.formatter.slot},
+                {field: "rules_type", width:150,title: "规则", operate: false},
+                {field: "barrier", width:250,title: "通道", operate: 'select',searchList:parseBarrier(Yunqi.data.barrier)},
+                {field: "message", title: "异常日志", operate: false},
+            ]
+        },
+        methods: {}
+    }
+</script>
+<style>
+</style>

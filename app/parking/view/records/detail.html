@@ -1,0 +1,90 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <div class="topimg">
+            <div class="item">
+                <div class="title">入场照片</div>
+                <div class="imgbox">
+                    {if $records.entry_photo}
+                    <img src="{$records.entry_photo}" style="width: 100%"/>
+                    {/if}
+                </div>
+            </div>
+            <div class="item">
+                <div class="title">出场照片</div>
+                <div class="imgbox">
+                    {if $records.exit_photo}
+                    <img src="{$records.exit_photo}" style="width: 100%"/>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </el-card>
+    <el-card shadow="never" style="border: 0;">
+        <el-table :data="parking_detail">
+            <el-table-column prop="start_time" label="开始时间" width="170"></el-table-column>
+            <el-table-column prop="end_time" label="结束时间" width="170"></el-table-column>
+            <el-table-column prop="fee" label="费用（元）" width="140"></el-table-column>
+            <el-table-column prop="mode" label="收费规则"></el-table-column>
+        </el-table>
+    </el-card>
+    <el-card shadow="never" style="border: 0;padding-bottom: 30px">
+        <el-table :data="pay_detail">
+            <el-table-column prop="unionpay.out_trade_no" label="商户单号" width="180"></el-table-column>
+            <el-table-column prop="unionpay.transaction_id" label="渠道流水号" width="160"></el-table-column>
+            <el-table-column prop="unionpay.pay_time" label="支付时间" width="170"></el-table-column>
+            <el-table-column prop="unionpay.pay_type_text" label="支付方式" width="140"></el-table-column>
+            <el-table-column prop="pay_price" label="金额（元）" width="100"></el-table-column>
+            <el-table-column prop="remark" label="备注"></el-table-column>
+        </el-table>
+    </el-card>
+    <!--
+    <div class="bottom">
+        <el-button type="danger" @click="del">删除记录</el-button>
+    </div>
+    -->
+</template>
+<script>
+    export default {
+        data: {
+            parking_detail:Yunqi.data.parking_detail,
+            pay_detail:Yunqi.data.pay_detail,
+        },
+        methods: {
+            del:function (){
+                Yunqi.confirm("确定删除该记录吗?","删除记录",{type:'warning'}).then(res=>{
+                    Yunqi.ajax.post('records/del');
+                });
+            }
+        }
+    }
+</script>
+<style>
+    .topimg{
+        display: flex;
+        justify-content: space-between;
+    }
+    .topimg .item{
+        height: 250px;
+        width: 48%;
+    }
+    .topimg .item .title{
+        text-align: center;
+        font-weight: bold;
+        margin: 5px auto;
+    }
+    .topimg .item .imgbox{
+        border: 1px solid #d1dbe5;
+        height: 200px;
+        width: 100%;
+    }
+    .bottom{
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 10px 0;
+        background: #fff;
+        z-index: 99999;
+    }
+</style>

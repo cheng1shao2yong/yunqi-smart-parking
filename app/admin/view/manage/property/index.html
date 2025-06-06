@@ -1,0 +1,62 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                search="title"
+                toolbar="refresh,add,edit,del,import,recyclebin"
+                :auth="{
+                    add:{:$auth->check('app\\admin\\controller\\manage\\Property','add')},
+                    edit:{:$auth->check('app\\admin\\controller\\manage\\Property','edit')},
+                    del:{:$auth->check('app\\admin\\controller\\manage\\Property','del')},
+                    multi:{:$auth->check('app\\admin\\controller\\manage\\Property','multi')},
+                    import:{:$auth->check('app\\admin\\controller\\manage\\Property','import')},
+                    recyclebin:{:$auth->check('app\\admin\\controller\\manage\\Property','recyclebin')},
+                }"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:{
+            index_url: 'manage/property/index',
+            add_url: 'manage/property/add',
+            edit_url: 'manage/property/edit',
+            del_url: 'manage/property/del',
+            multi_url: 'manage/property/multi',
+            import_url: 'manage/property/import',
+            recyclebin_url:'manage/property/recyclebin'
+        },
+        columns:[
+            {checkbox: true},
+            {field:"id",title:"ID",width:80,operate:false},
+            {field:"title",title:"名称",operate:"like"},
+            {field:"contact",title:"联系人",operate:false},
+            {field:"phone",title:"联系电话",operate:false},
+            {field:"address",title:"地址",visible:false,operate:false},
+            {field:"remark",title:"备注",visible:false,operate:false},
+            {field:'status', title: '状态',width:100,searchList: {normal: '正常',hidden: '隐藏'},formatter:Yunqi.formatter.switch,operate:'select'},
+            {field:"createtime",title:"创建时间",operate:"daterange",formatter:Yunqi.formatter.datetime},
+            {field:"updatetime",title:"修改时间",visible:false,operate:false,formatter:Yunqi.formatter.datetime},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:130,
+                action:{
+                    edit:true,
+                    del:true,
+                }
+            }
+        ]
+    },
+    methods: {
+    }
+}
+</script>
+<style>
+</style>

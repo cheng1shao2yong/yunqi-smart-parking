@@ -1,0 +1,193 @@
+<template>
+    <el-card shadow="never" style="border:none;">
+        <el-table :data="coupon" style="width: 100%">
+            <el-table-column prop="coupon_title" label="停车券">
+                <template #default="{row}">
+                    <el-tag>{{row.coupon_title}}</el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column prop="limit_send" label="限制发券">
+                <template #default="{row}">
+                    <el-select v-model="row.limit_send" placeholder="请选择">
+                        <el-option :key="0" label="不限制" :value="0"></el-option>
+                        <el-option :key="1" label="限制张数" :value="1"></el-option>
+                        {if $merchant['settle_type']!='time'}
+                        <el-option :key="2" label="限制金额" :value="2"></el-option>
+                        {/if}
+                        {if $merchant['settle_type']=='time'}
+                        <el-option :key="3" label="限制时长" :value="3"></el-option>
+                        {/if}
+                        <el-option :key="4" label="限制车辆" :value="4"></el-option>
+                    </el-select>
+                </template>
+            </el-table-column>
+            <el-table-column prop="limit_type" label="限制日期">
+                <template #default="{row}">
+                    <el-select style="width: 100%" v-model="row.limit_type" placeholder="请选择" v-if="row.limit_send>=1 && row.limit_send<=3">
+                        <el-option key="dayly" label="每日" value="dayly"></el-option>
+                        <el-option key="weekly" label="每周" value="weekly"></el-option>
+                        <el-option key="monthly" label="每月" value="monthly"></el-option>
+                        <el-option key="yearly" label="每年" value="yearly"></el-option>
+                    </el-select>
+                    <div v-else>-</div>
+                    <span class="error" v-if="row.limit_send>0 && !row.limit_type && row.error">不为空</span>
+                </template>
+            </el-table-column>
+            <el-table-column prop="limit_number" label="限制张数">
+                <template #default="{row}">
+                    <el-input style="width: 100%" type="number" v-model="row.limit_number" v-if="row.limit_send==1"></el-input>
+                    <div v-else>-</div>
+                    <span class="error" v-if="row.limit_send==1 && row.error">不为空</span>
+                </template>
+            </el-table-column>
+            {if $merchant['settle_type']=='time'}
+            <el-table-column prop="limit_time" label="限制时长">
+                <template #default="{row}">
+                    <el-input style="width: 100%" type="number" v-model="row.limit_time" v-if="row.limit_send==3">
+                        <template #append>分钟</template>
+                    </el-input>
+                    <div v-else>-</div>
+                    <span class="error" v-if="row.limit_send==3 && row.error">不为空</span>
+                </template>
+            </el-table-column>
+            {/if}
+            {if $merchant['settle_type']!='time'}
+            <el-table-column prop="limit_money" label="限制金额">
+                <template #default="{row}">
+                    <el-input style="width: 100%" type="number" v-model="row.limit_money" v-if="row.limit_send==2"></el-input>
+                    <div v-else>-</div>
+                    <span class="error" v-if="row.limit_send==2 && row.error">不为空</span>
+                </template>
+            </el-table-column>
+            {/if}
+            <el-table-column prop="limit_instock">
+                <template #header>
+                    <div>
+                        限制车辆
+                        <el-tooltip
+                            effect="dark"
+                            content="在场领券未使用的车辆数"
+                            placement="top">
+                            <i class="fa fa-info-circle"></i>
+                        </el-tooltip>
+                    </div>
+                </template>
+                <template #default="{row}">
+                    <el-input style="width: 100%" type="number" v-model="row.limit_instock" v-if="row.limit_send==4"></el-input>
+                    <div v-else>-</div>
+                    <span class="error" v-if="row.limit_send==4 && row.error">不为空</span>
+                </template>
+            </el-table-column>
+            {if $merchant['settle_type']!='time'}
+            <el-table-column prop="settle_type" label="商户结算">
+                <template #default="{row}">
+                    <el-select v-model="row.settle_type" placeholder="请选择">
+                        <el-option key="normal" label="按停车费结算" value="normal"></el-option>
+                        <el-option key="money" label="固定单价结算" value="money"></el-option>
+                    </el-select>
+                </template>
+            </el-table-column>
+            <el-table-column prop="settle_money" label="结算单价">
+                <template #default="{row}">
+                    <el-input style="width: 100%" type="number" v-model="row.settle_money" v-if="row.settle_type=='money'">
+                        <template #append>元/张</template>
+                    </el-input>
+                    <div v-else>-</div>
+                    <span class="error" v-if="row.settle_type=='money' && row.error">不为空</span>
+                </template>
+            </el-table-column>
+            <el-table-column prop="settle_max" label="结算上限">
+                <template #default="{row}">
+                    <el-input style="width: 100%" type="number" v-model="row.settle_max" v-if="row.settle_type=='normal'">
+                        <template #append>元</template>
+                    </el-input>
+                </template>
+            </el-table-column>
+            {/if}
+            {if $merchant['settle_type']=='time'}
+            <el-table-column prop="settle_type" label="商户结算">
+                <template #default="{row}">
+                    <el-select v-model="row.settle_type" placeholder="请选择">
+                        <el-option key="normal" label="按停车时长结算" value="normal"></el-option>
+                        <el-option key="time" label="固定时长结算" value="time"></el-option>
+                    </el-select>
+                </template>
+            </el-table-column>
+            <el-table-column prop="settle_time" label="结算单价">
+                <template #default="{row}">
+                    <el-input style="width: 100%" type="number" v-model="row.settle_time" v-if="row.settle_type=='time'">
+                        <template #append>分钟/张</template>
+                    </el-input>
+                    <div v-else>-</div>
+                    <span class="error" v-if="row.settle_type=='time' && row.error">不为空</span>
+                </template>
+            </el-table-column>
+            <el-table-column prop="settle_max" label="结算上限">
+                <template #default="{row}">
+                    <el-input style="width: 100%" type="number" v-model="row.settle_max" v-if="row.settle_type=='normal'">
+                        <template #append>分钟</template>
+                    </el-input>
+                </template>
+            </el-table-column>
+            {/if}
+        </el-table>
+        <div style="text-align: center;position: absolute;bottom: 40px;width: 100%">
+            <el-button type="info" @click="cancel">取消</el-button>
+            <el-button type="primary" @click="save" style="margin-left: 20px">保存</el-button>
+        </div>
+    </el-card>
+</template>
+<script>
+export default{
+    data:{
+        coupon:Yunqi.data.coupon
+    },
+    methods: {
+        cancel:function (){
+            let id=Yunqi.config.window.id;
+            Yunqi.api.closelayer(id);
+        },
+        save:function (){
+            let id=Yunqi.config.window.id;
+            for(let i=0;i<this.coupon.length;i++){
+                let row=this.coupon[i];
+                if(row.limit_send>=1 && row.limit_send<=3 && !row.limit_type){
+                    this.coupon[i].error='不为空';
+                    Yunqi.message.error('请选择限制日期');
+                    return;
+                }
+                if(row.limit_send==1 && !row.limit_number){
+                    this.coupon[i].error='不为空';
+                    Yunqi.message.error('请填写限制张数');
+                    return;
+                }else if(row.limit_send==2 && !row.limit_money){
+                    this.coupon[i].error='不为空';
+                    Yunqi.message.error('请填写限制张数');
+                    return;
+                }else if(row.limit_send==3 && !row.limit_time){
+                    this.coupon[i].error='不为空';
+                    Yunqi.message.error('请填写限制时长');
+                    return;
+                }else if(row.limit_send==4 && !row.limit_instock){
+                    this.coupon[i].error='不为空';
+                    Yunqi.message.error('请填写限制时长');
+                    return;
+                }else{
+                    this.coupon[i].error='';
+                }
+            }
+            Yunqi.ajax.json('merchant/setting',this.coupon,true,true).then(res=>{
+                Yunqi.api.closelayer(id);
+            });
+        }
+    }
+}
+</script>
+<style>
+.error{
+    position: absolute;
+    color:red;
+    font-size: 12px;
+    right: 40px;
+}
+</style>

@@ -1,0 +1,136 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <template #header>
+            <el-alert
+                    type="warning"
+                    show-icon>
+                    相同停车券类型限领一张券时，如果同个车牌号领取第二张券，那么第一张券自动作废。
+            </el-alert>
+        </template>
+        <yun-form
+            :data="row"
+            @submit="onSubmit"
+            ref="yunForm"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+            <template #timespan="{rows}">
+                <el-form-item label="优惠时段:">
+                    <Fieldlist :readonly="row.id?true:false" :label='["开始时间","结束时间"]' :keys='["starttime","endtime"]' @change="changeTime" :value="rows.timespan"></Fieldlist>
+                </el-form-item>
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+import form from "@components/Form.js";
+import fieldlist from "@components/Fieldlist.js";
+export default{
+    components:{
+        'YunForm':form,
+        'Fieldlist':fieldlist,
+    },
+    data:{
+        columns:[
+            {field:"title",title:"停车券名称",edit:"text",rules:"required"},
+            {field:"description",title:"简介",edit:"textarea"},
+            {field:"coupon_type",title:"优惠类型",edit:{form: 'select',disabled:Yunqi.data.row?true:false},searchList:Yunqi.data.couponType,rules:"required"},
+            {field:"time",title:"优惠时长",edit: {form:'input',type:'number',append:'分钟',readonly:Yunqi.data.row?true:false},rules:"integer,range(0~)",visible:function (row){
+                return row.coupon_type == 'time';
+            }},
+            {field:"cash",title:"优惠金额",edit: {form:'input',type:'number',append:'元',readonly:Yunqi.data.row?true:false},rules:"range(0~)",visible:function (row){
+                return row.coupon_type == 'cash';
+            }},
+            {field:"discount",title:"优惠折扣",edit: {form:'input',type:'number',append:'折',readonly:Yunqi.data.row?true:false},rules:"range(0~10)",visible:function (row){
+                return row.coupon_type == 'discount';
+            }},
+            {field:"discount_time",title:"最长优惠时间",edit:{form:'input',placeholder:'请输入最长优惠时间，输入0或不输入则不限制时间',type:'number',append:'分钟',readonly:Yunqi.data.row?true:false},rules:"integer,range(0~)",visible:function (row){
+                return row.coupon_type == 'discount';
+            }},
+            {field:"period",title:"优惠时效",edit: {form:'input',type:'number',append:'小时',readonly:Yunqi.data.row?true:false},rules:"range(0~)",visible:function (row){
+                return row.coupon_type == 'period';
+            }},
+            {field:"timespan",title:"优惠时段",edit: 'slot',visible:function (row){
+                return row.coupon_type == 'timespan';
+            }},
+            {field:"timespan_time",title:"最长优惠时间",edit:{form:'input',placeholder:'请输入最长优惠时间，输入0或不输入则不限制时间',type:'number',append:'分钟',readonly:Yunqi.data.row?true:false},rules:"integer,range(0~)",visible:function (row){
+                return row.coupon_type == 'timespan';
+            }},
+            {field:"timespan_discount",title:"时段优惠折扣",edit:{form:'input',placeholder:'请输入时段优惠折扣，输入0或不输入则不打折',type:'number',append:'折',readonly:Yunqi.data.row?true:false},rules:"range(0~10)",visible:function (row){
+                return row.coupon_type == 'timespan';
+            }},
+            {field:"before_entry",title:"进场前领券",searchList:{'allow':'允许','refuse':'不允许'},edit:{form:'radio',value:'refuse'},rules:"required"},
+            {field:"limit_one",title:"限领一张券",searchList:{'1':'是','0':'否'},edit:{form:'radio',value:'1'},rules:"required"},
+            {
+                field:"multiple_use",
+                title:"支持叠加使用",
+                searchList:{'1':'是','0':'否'},
+                edit:{form:'radio',value:'1'},
+                visible:function(row){
+                    return (row.coupon_type=='time' || row.coupon_type=='cash' || row.coupon_type=='period') && parseInt(row.limit_one)===0
+                },
+            },
+            {field:"effective",title:"有效时间",edit: {form: 'input',type:'number',append: '小时'},placeholder:'请输入优惠券的有效时长，不填或者输入0时为永久有效',rules:'range(0~)'},
+            {field:"subscribe_mpapp",title:"公众号设置",searchList:{'1':'必须先关注公众号后才能领券','0':'不用关注公众号直接领券'},edit:{form:'select',value:'1'},rules:"required"},
+        ],
+        row:Yunqi.data.row || {coupon_type:'time',effective:24,timespan:[{starttime:'08:00',endtime:'22:00'}]}
+    },
+    methods: {
+        changeTime:function (e){
+            this.$refs.yunForm.setValue('timespan',e);
+        },
+        onSubmit:function (data){
+            if(data.coupon_type=='time' && !data.time){
+                this.$refs.yunForm.setError('time','请输入优惠时长');
+                return false;
+            }
+            if(data.coupon_type=='cash' && !data.cash){
+                this.$refs.yunForm.setError('cash','请输入优惠金额');
+                return false;
+            }
+            if(data.coupon_type=='discount' && !data.discount){
+                this.$refs.yunForm.setError('discount','请输入优惠折扣');
+                return false;
+            }
+            if(data.coupon_type=='period' && !data.period){
+                this.$refs.yunForm.setError('period','请输入优惠时效');
+                return false;
+            }
+            if(data.coupon_type=='timespan'){
+                if(!data.timespan || !data.timespan.length){
+                    Yunqi.message.error('请输入有效的优惠时段');
+                    return false;
+                }
+                let timespan=this.$refs.yunForm.getValue('timespan');
+                for(let i=0;i<timespan.length;i++){
+                    //正则表达式检查时间格式
+                    let starttime=timespan[i].starttime;
+                    let endtime=timespan[i].endtime;
+                    if(!/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(starttime) || !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(endtime)){
+                        Yunqi.message.error('请输入有效的优惠时段');
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    }
+}
+</script>
+<style>
+    .timespan{
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    .timespan .span{
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        font-size: 16px;
+        color: #999;
+        margin: 0 8px;
+    }
+</style>

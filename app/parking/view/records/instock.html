@@ -1,0 +1,125 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh,addExit,addEntry,addEntryTemp"
+                ref="yunTable"
+                :extend="extend">
+                <template #formatter="{field,rows}">
+                    <template v-if="field=='plate_number'">
+                        <plate-type :plate_number="rows.plate_number" :plate_type="rows.plate_type"></plate-type>
+                    </template>
+                </template>
+                <template #toolbar="{tool,selections}">
+                    <el-button :disabled="selections.length<=0" v-if="tool=='addExit'" @click.stop="addExit(selections)" type="danger"><i class="fa fa-plus"></i>&nbsp;批量出场</el-button>
+                    <el-button v-if="tool=='addEntry'" @click.stop="addEntry" type="primary"><i class="fa fa-plus"></i>&nbsp;批量导入</el-button>
+                    <el-button v-if="tool=='addEntryTemp'" @click.stop="entryTemp" type="info"><i class="fa fa-file-excel-o"></i>&nbsp;批量导入模板</el-button>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import {formatDuration} from "@util.js";
+    import platetype from "@components/PlateType.js";
+    let tcstatus={
+        '0':'正在场内',
+        '1':'缴费未出场',
+        '6':'未缴费等待'
+    };
+    export default{
+        components: {'YunTable': table,'PlateType': platetype},
+        data: {
+            columns:[
+                {checkbox:true},
+                {field: "plate_number", title: "车牌号", width:150,formatter:Yunqi.formatter.slot,operate: {form:'input',type:'text',filter:'like'}},
+                {field: "cars_id", title: "车主",width:200,operate:{form:'selectpage',url:'cars/index?rules_type=monthly',labelField:'contact',keyField:'id'},formatter: function (data,row){
+                    if(row.cars){
+                        return row.cars.contact+' - '+row.cars.mobile;
+                    }
+                }},
+                {field: "entry_time", title: "入场时间",width:200,operate:'daterange',formatter: function (data,row){
+                    return row.entry_time_txt;
+                }},
+                {field: "rules_type", title: "停车类型", width:150,operate:'select',searchList:Yunqi.data.rules_type},
+                {field: "park_time", title: "停车时长", width:200,operate:false,formatter: function (data){
+                    if(!data){
+                        return '';
+                    }
+                    return formatDuration(data);
+                }},
+                {field: "status", title: "停车状态",operate: 'select',searchList:tcstatus,formatter: function (data,row){
+                    let tag=Yunqi.formatter.tag;
+                    let type={'0':'','1':'','2':'danger','3':'success','4':'success','5':'warning','6':'warning','7':'danger'};
+                    tag.value=tcstatus[row.status];
+                    tag.type=type[row.status];
+                    return tag;
+                }},
+                {field: "fee", title: "预估费用", width:150,operate:false,formatter: function (data){
+                   return data+'元';
+                }},
+                {
+                    field: 'operate',
+                    title: '操作',
+                    width: 130,
+                    action: {
+                        exit:{
+                            tooltip:false,
+                            icon:'fa fa-sign-out',
+                            type:'danger',
+                            text:'手动出场',
+                            method:'doexit'
+                        }
+                    }
+                }
+            ],
+            extend:{
+                index_url: 'records/instock',
+                import_url:'records/import-instock'
+            }
+        },
+        methods: {
+            addExit:function(selections){
+                let id=[];
+                selections.forEach(function (item) {
+                    id.push(item.id);
+                });
+                Yunqi.api.open({
+                    url:'records/pl-exit?ids='+id.join(','),
+                    width:800,
+                    height:550,
+                    title:'批量出场',
+                    icon:'fa fa-plus',
+                    close:(e)=>{
+                        if(e){
+                            this.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            },
+            doexit:function (e){
+                Yunqi.api.open({
+                    url:'records/add?act=exit&plate_number='+e.plate_number,
+                    width:800,
+                    height:550,
+                    title:'添加出场',
+                    icon:'fa fa-plus',
+                    close:(e)=>{
+                        if(e){
+                            this.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            },
+            addEntry:function(){
+                this.$refs.yunTable.importExcel();
+            },
+            entryTemp:function (){
+                location.href='/temp/instock.xlsx';
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

@@ -1,0 +1,90 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <el-tabs
+                v-model="current"
+                type="card"
+                editable
+                @tab-remove="handleTabsRemove"
+                @tab-add="handleTabsAdd">
+                <el-tab-pane
+                        v-for="(item,key) in tabs"
+                        :key="key"
+                        :label="`选项-${item}`"
+                        :name="key">
+                        <el-transfer @change="changeTransfer" style="width: 100%" :titles="['备选通道', '完成通道']" v-model="value[current]" :data="parseBarrier(barrier)"></el-transfer>
+                        <el-input v-model="times[current]" placeholder="请输入防异常抓拍到车尾时间" style="width: 100%;margin-top:10px;">
+                            <template #append>秒</template>
+                        </el-input>
+                </el-tab-pane>
+        </el-tabs>
+        <div style="width: 100%;margin-top: 30px;display: flex;justify-content: center;">
+            <el-button type="primary" @click="submit"><i class="fa fa-check"></i>&nbsp;提交</el-button>
+            <el-button type="info" @click="reset"><i class="fa fa-reply"></i>&nbsp;重置</el-button>
+        </div>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import {inArray} from "@util.js";
+    export default {
+        components: {
+            'YunForm': form
+        },
+        data: {
+            current:0,
+            tabs:Yunqi.data.value?Yunqi.data.value.length:1,
+            barrier:Yunqi.data.barrier,
+            value:Yunqi.data.value?Yunqi.data.value:[[]],
+            times:Yunqi.data.times?Yunqi.data.times:['']
+        },
+        methods: {
+            parseBarrier:function (barriers){
+                let r=[];
+                for(let j=0;j<barriers.length;j++){
+                    let barrier=barriers[j];
+                    barrier.disabled=false;
+                    for(let i=0;i<this.value.length;i++){
+                        if(this.current==i){
+                            continue;
+                        }
+                    }
+                    r.push(barrier);
+                }
+                return r;
+            },
+            handleTabsAdd:function (){
+                this.tabs++;
+                this.value.push([]);
+                this.times.push('');
+                this.current=this.tabs-1;
+            },
+            handleTabsRemove:function (){
+                if(this.tabs>1){
+                    this.tabs--;
+                    this.value.splice(this.current,1);
+                    this.times.splice(this.current,1);
+                    this.current=0;
+                }
+            },
+            changeTransfer:function (e){
+                let barrier_type='';
+                for(let i=0;i<this.barrier.length;i++){
+                    if(this.barrier[i].key==e[0]){
+                        barrier_type=this.barrier[i].barrier_type;
+                    }
+                }
+            },
+            submit:function (){
+                Yunqi.ajax.post('barrier/tjtc',{value:this.value,times:this.times}).then(res=>{
+                    Yunqi.api.closelayer(Yunqi.config.window.id);
+                });
+            },
+            reset:function (){
+                this.value=[[]];
+                this.current=0;
+            }
+        }
+    }
+</script>
+<style>
+</style>

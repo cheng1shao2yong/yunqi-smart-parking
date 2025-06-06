@@ -1,0 +1,119 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            :data="row"
+            :tabs="tabs"
+            ref="yunForm"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+            <template v-slot:admin.third_id="{rows}">
+                <el-form-item label="绑定微信:">
+                    <third :value="rows.admin.third_id" :selectable="true" @change="changValue"></third>
+                </el-form-item>
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+import form from "@components/Form.js";
+import third from "@components/Third.js";
+import {getUniqid} from "@util.js";
+const uniqid = getUniqid();
+export default{
+    components:{
+        'YunForm':form,
+        'Third':third
+    },
+    data:{
+        connectcust:Yunqi.config.baseUrl,
+        tabs:['基础数据','系统管理员','支付信息','场内场','ETC设置'],
+        columns:[
+            {field:"id",tab:0,title:"ID",edit:"hidden"},
+            {field:"title",tab:0,title:"名称",edit:"text",rules:"required"},
+            {field:"contact",tab:0,title:"联系人",edit:"text",rules:"required"},
+            {field:"phone",tab:0,title:"联系电话",edit:"text",rules:"required"},
+            {field:"area",tab:0,title:"区域",edit:"area",rules:"required"},
+            {field:"address",tab:0,title:"地址",edit:"text"},
+            {field:"plate_begin",tab:0,title:"车牌号前缀",edit:"text",rules:{
+                    validator:function(rule, value, callback){
+                        if(value===null || value==='' || value.trim()===''){
+                            callback();
+                        }
+                        let province=['京','津','沪','渝','冀','豫','云','辽','黑','湘','皖','鲁','新','苏','浙','赣','鄂','桂','甘','晋','蒙','陕','吉','闽','贵','粤','青','藏','川','宁','琼'];
+                        let city=['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+                        if(value.length!==2){
+                            callback(new Error('车牌号前缀必须是城市简称+大写字母'));
+                        }
+                        if(province.indexOf(value.slice(0,1))===-1){
+                            callback(new Error('车牌号前缀必须是城市简称+大写字母'));
+                        }
+                        if(city.indexOf(value.slice(1,2))===-1){
+                            callback(new Error('车牌号前缀必须是城市简称+大写字母'));
+                        }
+                        callback();
+                    },
+                    message:'车牌号前缀不能为空',
+                    trigger:'blur'
+                }
+            },
+            {field:"uniqid",tab:1,title:"ID",edit:(Yunqi.config.route[2]=='add')?'hidden':false},
+            {field:"use_property",tab:1,title:"使用集团账号",edit:{form: 'radio',value:'0',name:'use_property',change:"changeUsePropery"},searchList: {0:'否',1:'是'}},
+            {field:"property_id",tab:1,title:"集团账号",edit:{form:'selectpage',url:'manage/property/index',labelField:'title',keyField:'id',value:-1},rules:"required",visible:function(row){
+                return row.use_property==='1';
+            }},
+            {field:"admin.id",tab:1,title:"ADMINID",edit: {form:'input',type:'hidden',name:'admin[id]'},visible:function(row){
+                return row.use_property==='0';
+            }},
+            {field:"admin.username",tab:1,title:"用户名",edit:{form:'input',type:'text',name:'admin[username]',blur:'changeUsername'},rules:"required",visible:function(row){
+                return row.use_property==='0';
+            }},
+            {field:"admin.musername",tab:1,title:"手机端用户名",edit: {form:'input',type:'text',readonly:true,name:false},rules:"required",visible:function(row){
+                return row.use_property==='0';
+            }},
+            {field:'admin.password',tab:1,title: '密码',edit:{form:'input',type:'password',name:'admin[password]'},rules:(Yunqi.config.route[2]=='add')?'required':'',visible:function(row){
+                return row.use_property==='0';
+            }},
+            {field:'admin.third_id',tab:1,title: '绑定微信',edit:{form:'slot',name:'admin[third_id]'},rules:'required',visible:function(row){
+                return row.use_property==='0';
+            }},
+            {field:"pay_type_handle",tab:2,title:"支付接口",edit: {form:'select'},searchList:Yunqi.data.pay_type_handle,rules:'required'},
+            {field:"sub_merch_no",tab:2,title:"子商户编号",edit:'text',rules:"required"},
+            {field:"split_merch_no",tab:2,title:"分账商户编号",edit:'text',visible:function (row){
+                return row.pay_type_handle==='yibao';
+            }},
+            {field:"parking_records_persent",tab:2,title:"停车临停费率",edit:{form:'input',type:'text',value:6,append:'‰'},rules:`range(0~100)`},
+            {field:"parking_recharge_persent",tab:2,title:"停车充值费率",edit:{form:'input',type:'text',value:6,append:'‰'},rules:`range(0~100)`},
+            {field:"parking_merch_persent",tab:2,title:"商户充值费率",edit:{form:'input',type:'text',value:6,append:'‰'},rules:`range(0~100)`},
+            {field:"inside",tab:3,title:"设为场内场",edit:'radio',searchList:{0:'否',1:'是'}},
+            {field:"pid",tab:3,title:"外场停车场",edit: {form: 'selectpage', url: 'manage/parking/index', labelField: 'title', keyField: 'id'}},
+            {field:"etc_able",tab:4,title:"支持ETC",edit:'radio',searchList:{0:'否',1:'是'}},
+            {field:"etc_appid",tab:4,title:"车场APPID",edit:'text'},
+        ],
+        row:Yunqi.data.row || {inside:0,uniqid:uniqid,etc_able:0,split_merch_no:'20014076',plate_begin:'贵A',admin:{third_id:null,musername:uniqid+'-'}}
+    },
+    methods: {
+        changValue:function (e){
+            this.$refs.yunForm.setValue('admin.third_id',e);
+        },
+        changeUsername:function (e,row){
+            this.$refs.yunForm.setValue('admin.musername',row.uniqid+'-'+e);
+        },
+        changeUsePropery:function (e,row){
+            e=parseInt(e);
+            if(e){
+                this.$refs.yunForm.setValue('admin.username','test');
+                this.$refs.yunForm.setValue('admin.musername',row.uniqid+'-test');
+                this.$refs.yunForm.setValue('admin.password','123456');
+            }else{
+                this.$refs.yunForm.setValue('admin.username','');
+                this.$refs.yunForm.setValue('admin.musername',row.uniqid+'-');
+                this.$refs.yunForm.setValue('admin.password','');
+            }
+        }
+    }
+}
+</script>
+<style>
+</style>

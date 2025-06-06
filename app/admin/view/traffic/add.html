@@ -1,0 +1,39 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="row"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    export default{
+        components:{
+            'YunForm':form
+        },
+        data:{
+            columns:[
+                {field:"id",title:"ID",edit:"hidden"},
+                {field:"parking_id",title:"备案停车场",edit:{form:"selectpage",placeholder:"请选择停车场",url:"manage/parking/index",labelField:"title",keyField:"id",disabled:Yunqi.data.row?true:false},rules:"required"},
+                {field:"area",title:"备案区域",edit:"select",rules:"required",searchList:Yunqi.data.area},
+                {field:"rule_info",title:"收费规则",edit:"textarea",visible:function (row){
+                    return row.area=='Kunming';
+                }},
+                {field:"filings_code",title:"备案编号",edit:"text",rules:"required"},
+                {field:"total_parking_number",title:"总车位",edit:"number",rules:"required;integer(+)"},
+                {field:"open_parking_number",title:"开放车位",edit:"number",rules:"required;integer(+)"},
+                {field:"reserved_parking_number",title:"保留车位",edit:"number",rules:"required;integer(+0)"},
+                {field:"status",title:"状态",edit:'radio',searchList:{normal:"正常",hidden:"隐藏"}},
+            ],
+            row:Yunqi.data.row || {status:'normal'}
+        },
+        methods: {
+        }
+    }
+</script>
+<style>
+</style>

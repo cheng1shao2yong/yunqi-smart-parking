@@ -1,0 +1,108 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh,push,trash"
+                ref="yunTable"
+                :auth="{
+                    multi:{:$auth->check('app\\parking\\controller\\MerchantCouponList','multi')},
+                }"
+                :extend="extend">
+                <template #toolbar="{tool,selections}">
+                    <el-button v-if="tool=='trash'" :disabled="!selections.length" @click.stop="delCoupons(selections)" type="danger"><i class="fa fa-trash"></i>&nbsp;作废</el-button>
+                    <el-button v-if="tool=='push'" @click.stop="addCoupon" type="primary"><i class="fa fa-plus"></i>&nbsp;发券</el-button>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:{
+            index_url: 'merchant-coupon-list/index',
+            del_url: 'merchant-coupon-list/del',
+        },
+        columns:[
+            {checkbox: true,selectable:function (row){
+                return row.status===0 || row.status==2;
+            }},
+            {field:"id",title:"编号",operate:'='},
+            {field:"createtime",title:"领券时间",operate:'daterange'},
+            {field:"merch_id",title:"发券商户",operate:{form:'selectpage',url:'merchant/index',keyField:'id',labelField:'merch_name'},formatter: function (data,row){
+                return row.merch.merch_name;
+            }},
+            {field:"plate_number", title: "车牌号", operate:'like'},
+            {field:"coupon_id",title:"优惠券",operate:'select',searchList:Yunqi.data.coupon,formatter: function (data,row){
+                return row.coupon.title;
+            }},
+            {field:"coupon.coupon_type",operate:false,title:"优惠类型",searchList:Yunqi.data.couponType,formatter:Yunqi.formatter.tag},
+            {field:"expiretime",title:"过期时间",operate:false},
+            {field:'status',title:'状态',operate:'select',searchList:Yunqi.data.status,formatter:function (data,row){
+                let tag=Yunqi.formatter.tag;
+                if(row.coupon.status=='hidden'){
+                    tag.value='已禁用';
+                    tag.type='danger';
+                }else{
+                    let bk=['success','info','','danger','danger'];
+                    tag.value=Yunqi.data.status[row.status];
+                    tag.type=bk[row.status];
+                }
+                return tag;
+            }},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:100,
+                action:{
+                    remove: {
+                        tooltip:true,
+                        icon:'fa fa-trash',
+                        type:'danger',
+                        text:'作废',
+                        method:'delCoupon',
+                        visible:function (row){
+                            return row.status===0 || row.status===2;
+                        }
+                    }
+                }
+            }
+        ]
+    },
+    methods: {
+        addCoupon:function (){
+            Yunqi.api.open({
+                url:'merchant-coupon-list/add',
+                title:'发券',
+                icon:'fa fa-plus',
+                height:400,
+                close:()=>{
+                    this.$refs.yunTable.reload();
+                }
+            });
+        },
+        delCoupon:function (e){
+            Yunqi.confirm('确定要废除这一张券吗？','温馨提示',{type: 'warning'}).then(res=>{
+                Yunqi.ajax.post('merchant-coupon-list/del',{ids:e.id}).then(data=>{
+                    this.$refs.yunTable.reload();
+                });
+            });
+        },
+        delCoupons:function (e){
+            let ids=e.map(res=>{
+               return res.id;
+            });
+            Yunqi.confirm('确定要废除这'+ids.length+'张券吗？','温馨提示',{type: 'warning'}).then(res=>{
+                Yunqi.ajax.post('merchant-coupon-list/del',{ids:ids.join(',')}).then(data=>{
+                    this.$refs.yunTable.reload();
+                });
+            });
+        }
+    }
+}
+</script>
+<style>
+</style>

@@ -1,0 +1,645 @@
+<template>
+    <el-card shadow="never">
+        <el-tabs type="card" v-model="rules_type_value" @tab-change="tabChange">
+            <el-tab-pane v-for="(tab,key) in rules_type" :name="key" :label="tab"></el-tab-pane>
+        </el-tabs>
+        <yun-table
+                :columns="columns[rules_type_value]"
+                toolbar="refresh,add,edit,del,import,download,recyclebin"
+                ref="yunTable"
+                :auth="{
+                    add:{:$auth->check('app\\parking\\controller\\Cars','add')},
+                    edit:{:$auth->check('app\\parking\\controller\\Cars','edit')},
+                    del:{:$auth->check('app\\parking\\controller\\Cars','del')},
+                    multi:{:$auth->check('app\\parking\\controller\\Cars','multi')},
+                    download:{:$auth->check('app\\parking\\controller\\Cars','download')},
+                    import:{:$auth->check('app\\parking\\controller\\Cars','import')},
+                    recyclebin:{:$auth->check('app\\parking\\controller\\Cars','recyclebin')},
+                }"
+                :add-form="{expand:true}"
+                :edit-form="{expand:true}"
+                :extend="extend">
+                <template #formatter="{field,rows}">
+                    <template v-if="field=='plates'">
+                    <div style="cursor: pointer;" @click="editCar(rows.id)">
+                        <plate-type :plate_number="rows.plates_count>1?rows.plates[0].plate_number+'等'+rows.plates_count+'辆车..':rows.plates[0].plate_number" :plate_type="rows.plates[0].plate_type"></plate-type>
+                    </div>
+                    </template>
+                    <template v-if="field=='status'">
+                        <el-button @click="baoting(rows)" size="small" type="danger" v-if="rows.status=='normal'">报停</el-button>
+                        <el-button @click="qiyong(rows)" size="small" type="success" v-if="rows.status=='hidden'">启用</el-button>
+                    </template>
+                </template>
+                <template #header="{field}">
+                    <div v-if="field=='remark'" style="text-align: left">备注</div>
+                </template>
+        </yun-table>
+    </el-card>
+    <el-dialog
+            v-model="dialogRecharge.show"
+            :title="dialogRecharge.title"
+            width="800"
+    >
+        <template v-if="dialogRecharge.row.rules_type=='monthly'">
+        <el-form :model="dialogRecharge" label-width="100">
+            <el-form-item label="充值金额:">
+                <el-input-number @change="changeType" :min="Number(dialogRecharge.row.rules.fee)" :step="Number(dialogRecharge.row.rules.fee)" v-if="dialogRecharge.change_type!='time'" v-model="dialogRecharge.money">
+                    <template #append>元</template>
+                </el-input-number>
+                <el-input @blur="changeType" v-else v-model="dialogRecharge.money" type="number">
+                    <template #append>元</template>
+                </el-input>
+            </el-form-item>
+            <el-form-item label="充值方式:">
+                <el-radio-group v-model="dialogRecharge.change_type" @change="changeType">
+                    <el-radio label="now">从今天开始续期</el-radio>
+                    <el-radio label="end">从月租结束开始续期</el-radio>
+                    <el-radio label="time">自定义日期续期</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="开始时间:">
+                <el-date-picker
+                    :disabled="dialogRecharge.change_type!='time'"
+                    v-model="dialogRecharge.starttime"
+                    type="date"
+                    placeholder="请选择开始日期">
+                </el-date-picker>
+            </el-form-item>
+            <el-form-item label="结束时间:">
+                <el-date-picker
+                        :disabled="dialogRecharge.change_type!='time'"
+                        v-model="dialogRecharge.endtime"
+                        type="date"
+                        placeholder="请选择结束日期">
+                </el-date-picker>
+            </el-form-item>
+            <el-form-item label="备注:">
+                <el-input v-model="dialogRecharge.remark" type="textarea"></el-input>
+            </el-form-item>
+        </el-form>
+        </template>
+        <template v-if="dialogRecharge.row.rules_type=='stored'">
+            <el-form :model="dialogRecharge" label-width="100">
+                <el-form-item label="当前余额:">
+                    <el-input v-model="dialogRecharge.row.balance" type="number" readonly>
+                        <template #append>元</template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="充值方式:">
+                    <el-radio-group v-model="dialogRecharge.change_type">
+                        <el-radio label="add">增加</el-radio>
+                        <el-radio label="minus">减少</el-radio>
+                        <el-radio label="last">最终</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="变化金额:">
+                    <el-input v-model="dialogRecharge.money" type="number">
+                        <template #append>元</template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="备注:">
+                    <el-input v-model="dialogRecharge.remark" type="textarea"></el-input>
+                </el-form-item>
+            </el-form>
+        </template>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="dialogRecharge.show = false">取消</el-button>
+                <el-button type="primary" @click="confirmRecharge">
+                    确定
+                </el-button>
+            </div>
+        </template>
+    </el-dialog>
+    <el-dialog
+            v-model="dialogQiyong.show"
+            :title="dialogQiyong.row.status=='hidden'?'月卡启用':'月卡报停'"
+            width="800"
+    >
+        <el-form :model="dialogQiyong" label-width="100">
+            <el-form-item label="报停方式:">
+                <el-radio-group v-model="dialogQiyong.change_type">
+                    <el-radio label="hand">手动恢复启用</el-radio>
+                    <el-radio label="day">指定天数启用</el-radio>
+                    <el-radio label="date">指定日期启用</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="指定天数:" v-if="dialogQiyong.change_type=='day'">
+                <el-input v-model="dialogQiyong.day" type="number">
+                    <template #append>天</template>
+                </el-input>
+            </el-form-item>
+            <el-form-item label="指定天数:" v-if="dialogQiyong.change_type=='date'">
+                <el-date-picker
+                        v-model="dialogQiyong.date"
+                        type="date"
+                        placeholder="请选择结束日期">
+                </el-date-picker>
+            </el-form-item>
+        </el-form>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="dialogQiyong.show = false">取消</el-button>
+                <el-button type="primary" @click="confirmQiyong">
+                    确定
+                </el-button>
+            </div>
+        </template>
+    </el-dialog>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import {formatDate} from "@util.js";
+    import platetype from "@components/PlateType.js";
+    function formatNextMonthDate(date,num){
+        let resultDate = new Date(date.getTime());
+        resultDate.setMonth(resultDate.getMonth() + num);
+        resultDate.setDate(resultDate.getDate() -1);
+        return formatDate(resultDate);
+    }
+    export default{
+        components: {
+            'YunTable': table,
+            'PlateType': platetype,
+        },
+        data: {
+            rules_type:Yunqi.data.rules_type,
+            rules_type_value:Yunqi.data.rules_type_value,
+            plate_type:Yunqi.data.plate_type,
+            car_models:Yunqi.data.car_models,
+            extend: '',
+            columns: {
+                monthly:[
+                    {checkbox: true},
+                    {
+                        field: "plates",
+                        title: "车辆",
+                        operate: {form:'input',type:'text',filter:false},
+                        formatter:Yunqi.formatter.slot
+                    },
+                    {field: "rules_id", title: "月卡类型", operate: 'select',searchList: Yunqi.data.rules,formatter: function (data,row){
+                        return row.rules.title;
+                    }},
+                    {field: "code", title: "车位编号",operate:'like',visible: false},
+                    {field: "plates_count", title: "车辆数",operate:false,visible: false},
+                    {field: "occupat_number", title: "占位数",operate:false,visible: false},
+                    {field: "rules.fee", title: "月租金额", operate: false},
+                    {field: "contact", title: "车主姓名"},
+                    {field: "mobile", title: "手机号"},
+                    {field: "third.openname", title: "绑定微信",operate: false,visible: false},
+                    {field: "starttime", title: "开始日期",operate: false, formatter: Yunqi.formatter.datetime},
+                    {field: "endtime", title: "结束日期",operate: false, formatter: Yunqi.formatter.datetime},
+                    {field: "createtime", title: "创建时间", operate: "daterange", formatter: Yunqi.formatter.datetime,visible:false},
+                    {field: 'expire', title: '月卡状态',searchList: {'0': '正常','1': '报停','2': '快过期','3':'已过期','4':'未启用'},operate: {form:'select',filter: false},formatter:function (data,row){
+                        let tag=Yunqi.formatter.tag;
+                        if(row.status=='hidden'){
+                            tag.type='info';
+                            tag.value=row.stop;
+                            return tag;
+                        }
+                        if(row.expire=='0'){
+                            tag.type='success';
+                        }
+                        if(row.expire==2){
+                            tag.type='warning';
+                        }
+                        if(row.expire==3){
+                            tag.type='danger';
+                        }
+                        if(row.expire==4){
+                            tag.type='info';
+                        }
+                        tag.value=data;
+                        return tag;
+                    }},
+                    {field: "remark",title: "备注",operate: {form:'input',type:'text',filter: false},align:'left',formatter: function (data,row){
+                        let html=Yunqi.formatter.html;
+                        html.value='';
+                        if(row.remark){
+                            html.value='<div>'+row.remark+'</div>';
+                        }
+                        if(row.remark_line){
+                            for(let k in row.remark_line){
+                                if(row.remark_line[k]){
+                                    html.value+='<div>'+k+'：'+row.remark_line[k]+'</div>';
+                                }
+                            }
+                        }
+                        return html;
+                    }},
+                    {field: 'status', title: '启用/报停',fixed:'right',operate: false,formatter: Yunqi.formatter.slot},
+                    {
+                        field: 'operate',
+                        width: 150,
+                        title: '操作',
+                        fixed:'right',
+                        action: {
+                            occupat:{
+                                tooltip:true,
+                                icon:'fa fa-car',
+                                type:'success',
+                                text:'车位',
+                                method:'occupat',
+                                visible:function (row){
+                                    return row.plates_count>row.occupat_number;
+                                }
+                            },
+                            recharge:{
+                                tooltip:true,
+                                icon:'fa fa-plug',
+                                type:'warning',
+                                text:'充值',
+                                method:'recharge'
+                            },
+                            detail:{
+                                tooltip:true,
+                                icon:'fa fa-list',
+                                type:'info',
+                                text:'记录',
+                                method:'detail'
+                            },
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ],
+                day:[
+                    {checkbox: true},
+                    {
+                        field: "plates",
+                        title: "车辆",
+                        operate: {form:'input',type:'text',filter:false},
+                        formatter:Yunqi.formatter.slot
+                    },
+                    {field: "rules.title", title: "日租卡类型", operate: false},
+                    {field: "contact", title: "车主姓名"},
+                    {field: "mobile", title: "手机号"},
+                    {field: "third.openname", title: "绑定微信",operate: false},
+                    {field: "starttime", title: "开始日期", operate: false, formatter: Yunqi.formatter.datetime},
+                    {field: "endtime", title: "结束日期", operate: false, formatter: Yunqi.formatter.datetime},
+                    {field: "remark", title: "备注",operate: false},
+                    {field: "createtime", title: "创建时间", operate: "daterange", formatter: Yunqi.formatter.datetime,visible:false},
+                    {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch, operate: false},
+                    {field: 'expire', title: '日租卡状态',searchList: {'1': '正常','2': '快过期','3':'已过期','4':'未启用'},operate: {form:'select',filter: false},formatter:function (data,row){
+                        let tag=Yunqi.formatter.tag;
+                        if(row.expire==1){
+                            tag.type='success';
+                        }
+                        if(row.expire==2){
+                            tag.type='warning';
+                        }
+                        if(row.expire==3){
+                            tag.type='danger';
+                        }
+                        if(row.expire==4){
+                            tag.type='info';
+                        }
+                        tag.value=data;
+                        return tag;
+                    }},
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        action: {
+                            detail:{
+                                tooltip:true,
+                                icon:'fa fa-list',
+                                type:'info',
+                                text:'记录',
+                                method:'detail'
+                            },
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ],
+                member:[
+                    {checkbox: true},
+                    {
+                        field: "plates",
+                        title: "车辆",
+                        operate: {form:'input',type:'text',filter:false},
+                        formatter:Yunqi.formatter.slot
+                    },
+                    {field: "rules.title", title: "会员卡类型", operate: false},
+                    {field: "contact", title: "车主姓名"},
+                    {field: "mobile", title: "手机号"},
+                    {field: "third.openname", title: "绑定微信",operate: false},
+                    {field: "starttime", title: "开始日期", operate: false, formatter: Yunqi.formatter.datetime},
+                    {field: "endtime", title: "结束日期", operate: false, formatter: Yunqi.formatter.datetime},
+                    {field: "remark", title: "备注",operate: false},
+                    {field: "createtime", title: "创建时间", operate: "daterange", formatter: Yunqi.formatter.datetime,visible:false},
+                    {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch, operate: false},
+                    {field: 'expire', title: '会员卡状态',searchList: {'1': '正常','2': '快过期','3':'已过期','4':'未启用'},operate: {form:'select',filter: false},formatter:function (data,row){
+                        let tag=Yunqi.formatter.tag;
+                        if(row.expire==1){
+                            tag.type='success';
+                        }
+                        if(row.expire==2){
+                            tag.type='warning';
+                        }
+                        if(row.expire==3){
+                            tag.type='danger';
+                        }
+                        if(row.expire==4){
+                            tag.type='info';
+                        }
+                        tag.value=data;
+                        return tag;
+                    }},
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        action: {
+                            detail:{
+                                tooltip:true,
+                                icon:'fa fa-list',
+                                type:'info',
+                                text:'记录',
+                                method:'detail'
+                            },
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ],
+                stored:[
+                    {checkbox: true},
+                    {
+                        field: "plates",
+                        title: "车辆",
+                        operate: {form:'input',type:'text',filter:false},
+                        formatter:Yunqi.formatter.slot
+                    },
+                    {field: "rules.title", title: "储值卡类型", operate: false},
+                    {field: "balance", title: "余额", operate: false,formatter: function (data){return data+'元';}},
+                    {field: "contact", title: "车主姓名"},
+                    {field: "mobile", title: "手机号"},
+                    {field: "third.openname", title: "绑定微信",operate: false},
+                    {field: "starttime", title: "开始日期",operate: false, formatter: Yunqi.formatter.datetime},
+                    {field: "endtime", title: "结束日期",operate: false, formatter: Yunqi.formatter.datetime},
+                    {field: "remark", title: "备注",operate: false},
+                    {field: "createtime", title: "创建时间", operate: "daterange", formatter: Yunqi.formatter.datetime,visible:false},
+                    {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch, operate: false},
+                    {field: 'expire', title: '储值卡状态',searchList: {'1': '正常','2': '快过期','3':'已过期','4':'未启用'},operate: {form:'select',filter: false},formatter:function (data,row){
+                        let tag=Yunqi.formatter.tag;
+                        if(row.expire==1){
+                            tag.type='success';
+                        }
+                        if(row.expire==2){
+                            tag.type='warning';
+                        }
+                        if(row.expire==3){
+                            tag.type='danger';
+                        }
+                        if(row.expire==4){
+                            tag.type='info';
+                        }
+                        tag.value=data;
+                        return tag;
+                    }},
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        action: {
+                            recharge:{
+                                tooltip:true,
+                                icon:'fa fa-plug',
+                                type:'warning',
+                                text:'充值',
+                                method:'recharge'
+                            },
+                            detail:{
+                                tooltip:true,
+                                icon:'fa fa-list',
+                                type:'info',
+                                text:'记录',
+                                method:'detail'
+                            },
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ],
+                vip:[
+                    {checkbox: true},
+                    {
+                        field: "plates",
+                        title: "车辆",
+                        operate: {form:'input',type:'text',filter:false},
+                        formatter:Yunqi.formatter.slot
+                    },
+                    {field: "rules.title", title: "VIP卡类型", operate: false},
+                    {field: "contact", title: "车主姓名"},
+                    {field: "mobile", title: "手机号"},
+                    {field: "third.openname", title: "绑定微信",operate: false},
+                    {field: "starttime", title: "开始日期",operate: false, formatter: Yunqi.formatter.datetime},
+                    {field: "endtime", title: "结束日期",operate: false, formatter: Yunqi.formatter.datetime},
+                    {field: "remark", title: "备注",operate: false},
+                    {field: "createtime", title: "创建时间", operate: "daterange", formatter: Yunqi.formatter.datetime,visible:false},
+                    {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch, operate: false},
+                    {field: 'expire', title: 'VIP状态',searchList: {'1': '正常','2': '快过期','3':'已过期','4':'未启用'},operate: {form:'select',filter: false},formatter:function (data,row){
+                        let tag=Yunqi.formatter.tag;
+                        if(row.expire==1){
+                            tag.type='success';
+                        }
+                        if(row.expire==2){
+                            tag.type='warning';
+                        }
+                        if(row.expire==3){
+                            tag.type='danger';
+                        }
+                        if(row.expire==4){
+                            tag.type='info';
+                        }
+                        tag.value=data;
+                        return tag;
+                    }},
+                    {
+                        field: 'operate',
+                        title: '操作',
+                        action: {
+                            detail:{
+                                tooltip:true,
+                                icon:'fa fa-list',
+                                type:'info',
+                                text:'记录',
+                                method:'detail'
+                            },
+                            edit: true,
+                            del: true,
+                        }
+                    }
+                ]
+            },
+            dialogRecharge:{
+                show:false,
+                title:'',
+                row:'',
+                starttime:'',
+                endtime:'',
+                change_type:'',
+                money:0,
+                remark:''
+            },
+            dialogQiyong:{
+                show:false,
+                row:'',
+                change_type:'hand',
+                day:'',
+                date:''
+            }
+        },
+        onLoad:function (){
+            this.setExtend();
+        },
+        methods: {
+            changeType:function (){
+                this.dialogRecharge.money=Number(this.dialogRecharge.money);
+                this.formatDateStart();
+                this.formatDateEnd();
+            },
+            formatDateStart:function (){
+                let str='';
+                if(this.dialogRecharge.change_type=='now'){
+                    str=formatDate(new Date());
+                }
+                if(this.dialogRecharge.change_type=='end'){
+                    str=formatDate(new Date((this.dialogRecharge.row.endtime+1)*1000));
+                }
+                if(this.dialogRecharge.change_type=='time'){
+                    str=formatDate(new Date());
+                }
+                this.dialogRecharge.starttime=str;
+            },
+            formatDateEnd:function (){
+                let str='';
+                let num=Math.round(this.dialogRecharge.money/this.dialogRecharge.row.rules.fee);
+                if(this.dialogRecharge.change_type=='now'){
+                    str=formatNextMonthDate(new Date(),num);
+                }
+                if(this.dialogRecharge.change_type=='end'){
+                    str=formatNextMonthDate(new Date((this.dialogRecharge.row.endtime+1)*1000),num);
+                }
+                if(this.dialogRecharge.change_type=='time'){
+                    str=formatNextMonthDate(new Date(),num);
+                }
+                this.dialogRecharge.endtime=str;
+            },
+            setExtend:function (){
+                let extend={
+                    add_url: 'cars/add',
+                    edit_url: 'cars/edit',
+                    index_url: 'cars/index',
+                    del_url: 'cars/del',
+                    multi_url: 'cars/multi',
+                    download_url: 'cars/download',
+                    import_url: 'cars/import',
+                    recyclebin_url: 'cars/recyclebin'
+                };
+                for(let key in extend){
+                    extend[key]=extend[key]+'?rules_type='+this.rules_type_value;
+                }
+                this.extend=extend;
+            },
+            tabChange:function (e){
+                Vue.nextTick(()=>{
+                    this.setExtend();
+                    this.$refs.yunTable.reset();
+                });
+            },
+            detail:function (row){
+                Yunqi.api.open({
+                    url:'cars/logview?rules_type='+this.rules_type_value+'&ids='+row.id,
+                    expand:true,
+                    title:'操作记录',
+                    icon:'fa fa-list'
+                });
+            },
+            occupat:function (row){
+                Yunqi.api.open({
+                    url:'cars/occupat?ids='+row.id,
+                    expand:true,
+                    title:'车位状态',
+                    icon:'fa fa-list',
+                });
+            },
+            recharge:function (row){
+                if(row.rules_type=='monthly'){
+                    this.dialogRecharge.title=row.contact+'【'+row.mobile+'】 - '+'月卡充值';
+                    this.dialogRecharge.change_type='end';
+                    this.dialogRecharge.money=Number(row.rules.fee);
+                }
+                if(row.rules_type=='stored'){
+                    this.dialogRecharge.title=row.contact+'【'+row.mobile+'】 - '+'余额充值';
+                    this.dialogRecharge.change_type='add';
+                    this.dialogRecharge.money=Number(row.rules.min_stored);
+                }
+                this.dialogRecharge.row=row;
+                this.formatDateStart();
+                this.formatDateEnd();
+                this.dialogRecharge.show=true;
+            },
+            editCar:function (id){
+                Yunqi.api.open({
+                    url:'cars/listplate?cars_id='+id,
+                    title:'设置车牌',
+                    width:850,
+                    icon:'fa fa-edit'
+                });
+            },
+            baoting:function (row){
+                this.dialogQiyong.row=row;
+                this.dialogQiyong.show=true;
+            },
+            qiyong:function (row){
+                Yunqi.confirm('您确认要立即启用该月卡吗？','操作提示').then(r=>{
+                    Yunqi.ajax.post('cars/multi',{cars_id:row.id}).then(r=>{
+                        this.$refs.yunTable.reload();
+                    });
+                });
+            },
+            confirmQiyong:function (){
+                let cars_id=this.dialogQiyong.row.id;
+                let date=this.dialogQiyong.date;
+                if(typeof date!='string'){
+                    date=formatDate(date);
+                }
+                Yunqi.ajax.post('cars/multi', {
+                    cars_id:cars_id,
+                    change_type:this.dialogQiyong.change_type,
+                    day:this.dialogQiyong.day,
+                    date:date
+                }).then(res=>{
+                    this.dialogQiyong.show=false;
+                    this.$refs.yunTable.reload();
+                });
+            },
+            confirmRecharge:function (){
+                let starttime=this.dialogRecharge.starttime;
+                if(typeof starttime!='string'){
+                    starttime=formatDate(starttime);
+                }
+                let endtime=this.dialogRecharge.endtime;
+                if(typeof endtime!='string'){
+                    endtime=formatDate(endtime);
+                }
+                Yunqi.ajax.post('cars/recharge', {
+                    cars_id:this.dialogRecharge.row.id,
+                    money:this.dialogRecharge.money,
+                    change_type:this.dialogRecharge.change_type,
+                    starttime:starttime,
+                    endtime:endtime,
+                    remark:this.dialogRecharge.remark
+                }).then(res=>{
+                    this.dialogRecharge.show=false;
+                    this.dialogRecharge.remark='';
+                    this.$refs.yunTable.reload();
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

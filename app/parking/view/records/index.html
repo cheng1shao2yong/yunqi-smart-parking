@@ -1,0 +1,258 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                ref="yunTable"
+                toolbar="refresh,addEntry,addExit,addEntryAndExit,download"
+                :auth="{
+                    download:{:$auth->check('app\\parking\\controller\\Records','download')},
+                }"
+                :extend="extend">
+                <template #toolbar="{tool}">
+                    <el-button v-if="tool=='addEntry'" @click.stop="addEntry" type="primary"><i class="fa fa-plus"></i>&nbsp;添加入场</el-button>
+                    <el-button v-if="tool=='addExit'" @click.stop="addExit" type="danger"><i class="fa fa-plus"></i>&nbsp;添加出场</el-button>
+                    <el-button v-if="tool=='addEntryAndExit'" @click.stop="addEntryAndExit" type="warning"><i class="fa fa-plus"></i>&nbsp;添加出入场</el-button>
+                </template>
+                <template #formatter="{field,rows}">
+                    <template v-if="field=='plate_number'">
+                        <plate-type :plate_number="rows.plate_number" :plate_type="rows.plate_type"></plate-type>
+                    </template>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import {formatDuration,parseNumber} from "@util.js";
+    import platetype from "@components/PlateType.js";
+    export default{
+        components: {'YunTable': table,'PlateType': platetype},
+        data: {
+            columns:[
+                {field: "plate_number", title: "车牌号",formatter:Yunqi.formatter.slot,operate:'like'},
+                {field: "plate_type", title: "车牌颜色",visible:'none',searchList:Yunqi.data.plate_type,operate:'select'},
+                {field: "rules_type", title: "停车类型",operate:'select',searchList:Yunqi.data.rules_type},
+                {field: "entry_time", title: "入场时间",operate:{
+                    form:'date-picker',
+                    type:'daterange',
+                    value:[Yunqi.data.endtime,Yunqi.data.starttime],
+                    size:'default',
+                    filter:'between time'
+                },formatter: Yunqi.formatter.datetime},
+                {field: "entry_type", title: "入场方式",searchList:Yunqi.data.records_type,operate:'select'},
+                {field: "entry_barrier", title: "入场通道",operate:false,formatter: function (data){
+                    if(Yunqi.data.barrier[data]==undefined){
+                        return '';
+                    }
+                    return Yunqi.data.barrier[data];
+                }},
+                {field: "exit_time", title: "出场时间",operate:'daterange',formatter:Yunqi.formatter.datetime},
+                {field: "exit_type", title: "出场方式",searchList:Yunqi.data.records_type,operate:'select'},
+                {field: "exit_barrier", title: "出场通道",operate:false,formatter: function (data){
+                    if(Yunqi.data.barrier[data]==undefined){
+                        return '';
+                    }
+                    return Yunqi.data.barrier[data];
+                }},
+                {field: "park_time", title: "停车时长",operate:false,formatter: function (data,row){
+                    if(!data){
+                        return '';
+                    }
+                    return formatDuration(data);
+                }},
+                {field: "total_fee", title: "停车费用",operate:'between',formatter: function (data){
+                    if(!data){
+                        return '';
+                    }
+                    return parseNumber(data)+'元';
+                }},
+                {field: "activities_fee", title: "优惠金额",operate:false,formatter: function (data){
+                    if(!data){
+                        return '';
+                    }
+                    return parseNumber(data)+'元';
+                }},
+                {field: "pay_fee", title: "实际缴费",operate:false,formatter: function (data){
+                    if(!data){
+                        return '';
+                    }
+                    return parseNumber(data)+'元';
+                }},
+                {field: "coupon_txt", title: "停车券",operate:false},
+                {field: "status", title: "状态",operate: 'select',searchList:Yunqi.data.status,formatter: function (data,row){
+                    let tag=Yunqi.formatter.tag;
+                    let type={'0':'','1':'','2':'danger','3':'success','4':'success','5':'warning','6':'warning','7':'danger'};
+                    tag.value=Yunqi.data.status[row.status];
+                    tag.type=type[row.status];
+                    return tag;
+                }},
+                {field: "remark", title: "出入备注",operate:false,visible:false},
+                {
+                    field: 'operate',
+                    title: '操作',
+                    fixed:'right',
+                    width: 150,
+                    align: 'center',
+                    action: {
+                        detail:{
+                            tooltip:true,
+                            icon:'fa fa-list',
+                            type:'success',
+                            text:'详情',
+                            method:'detail'
+                        },
+                        edit:{
+                            tooltip:true,
+                            icon:'fa fa-edit',
+                            type:'primary',
+                            text:'修改',
+                            visible:function (row){
+                                return row.status===0 || row.status===6;
+                            },
+                            method:'doedit'
+                        },
+                        exit:{
+                            tooltip:true,
+                            icon:'fa fa-sign-out',
+                            type:'danger',
+                            text:'出场',
+                            visible:function (row){
+                                return row.status===0 || row.status===1;
+                            },
+                            method:'doexit'
+                        },
+                        pay:{
+                            tooltip:true,
+                            icon:'fa fa-paypal',
+                            type:'warning',
+                            text:'支付',
+                            visible:function (row){
+                                return row.status===0 || row.status===6;
+                            },
+                            method:'pay'
+                        },
+                        black:{
+                            tooltip:true,
+                            icon:'fa fa-trash',
+                            type:'danger',
+                            text:'拖入黑名单',
+                            visible:function (row){
+                                return row.status===2 || row.status===6 || row.status===7;
+                            },
+                            method:'black'
+                        },
+                    }
+                }
+            ],
+            extend:{
+                index_url: 'records/index',
+                download_url: 'records/download',
+            }
+        },
+        methods: {
+            doexit:function (e){
+                Yunqi.api.open({
+                    url:'records/add?act=exit&plate_number='+e.plate_number,
+                    width:800,
+                    height:550,
+                    title:'添加出场',
+                    icon:'fa fa-plus',
+                    close:(e)=>{
+                        if(e){
+                            this.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            },
+            pay:function (e){
+                Yunqi.api.open({
+                    url:'records/pay?records_id='+e.id,
+                    width:800,
+                    height:550,
+                    title:'支付费用',
+                    icon:'fa fa-paypal',
+                    close:(e)=>{
+                        if(e){
+                            this.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            },
+            black:function (e){
+                Yunqi.api.open({
+                    url:'black/add?plate_number='+e.plate_number,
+                    width:800,
+                    height:550,
+                    title:'拖入黑名单',
+                    icon:'fa fa-trash',
+                });
+            },
+            detail:function (e){
+                Yunqi.api.open({
+                    url:'records/detail?ids='+e.id,
+                    width:800,
+                    height:550,
+                    title:'详情',
+                    icon:'fa fa-list'
+                });
+            },
+            doedit:function (e){
+                Yunqi.api.open({
+                    url:'records/edit?ids='+e.id,
+                    title:'修改',
+                    icon:'fa fa-edit',
+                    close:(e)=>{
+                        if(e){
+                            this.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            },
+            addEntry:function (e){
+                Yunqi.api.open({
+                    url:'records/add?act=entry',
+                    width:800,
+                    height:550,
+                    title:'添加入场',
+                    icon:'fa fa-plus',
+                    close:(e)=>{
+                        if(e){
+                            this.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            },
+            addExit:function (e){
+                Yunqi.api.open({
+                    url:'records/add?act=exit',
+                    width:800,
+                    height:550,
+                    title:'添加出场',
+                    icon:'fa fa-plus',
+                    close:(e)=>{
+                        if(e){
+                            this.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            },
+            addEntryAndExit:function (e){
+                Yunqi.api.open({
+                    url:'records/add?act=entryexit',
+                    width:800,
+                    height:550,
+                    title:'添加出入场',
+                    icon:'fa fa-plus',
+                    close:(e)=>{
+                        if(e){
+                            this.$refs.yunTable.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

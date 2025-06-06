@@ -1,0 +1,135 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="data"
+                ref="yunform"
+                :tabs="tabs"
+                @submit="onSubmit"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+                <template #admin.third_id="{rows}">
+                    <el-form-item label="绑定微信:" required>
+                        <third :value="rows.admin.third_id" :selectable="false" placeholder="请使用微信扫码" @change="changValue"></third>
+                    </el-form-item>
+                </template>
+                <template #rules="{rows}">
+                    <el-form-item label="电脑端权限:" required>
+                        <div style="position: relative;">
+                            <el-checkbox v-model="checkAll">{:__('全部选中')}</el-checkbox>
+                            <el-checkbox v-model="expandAll">{:__('全部展开')}</el-checkbox>
+                        </div>
+                        <el-tree ref="tree" :props="{children:'childlist',label:'title'}" node-key="id" show-checkbox :default-checked-keys="checkedKey" :data="treedata" style="width: 100%;"></el-tree>
+                    </el-form-item>
+                </template>
+            <template #mobile_rules="{rows}">
+                <el-form-item label="手机端权限:" required>
+                    <div style="position: relative;">
+                        <el-checkbox v-model="checkMobileAll">{:__('全部选中')}</el-checkbox>
+                    </div>
+                    <el-checkbox-group v-model="rows.mobile_rules">
+                        <div style="width: 20%;display: inline-block;" v-for="(item,key) in mobile_auth" :key="key">
+                            <el-checkbox :label="key">{{item}}</el-checkbox>
+                        </div>
+                    </el-checkbox-group>
+                </el-form-item>
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import third from "@components/Third.js";
+    const doCheck=function (tree,checkKey){
+        tree.forEach(res=>{
+            checkKey.push(res.id);
+            if(res.children && res.children.length>0){
+                doCheck(res.children,checkKey);
+            }
+        });
+    }
+    export default{
+        components:{'YunForm':form,'Third':third},
+        data:{
+            tabs:['基础数据','操作权限'],
+            data:Yunqi.data.row || {admin:{third_id:null},mobile_rules:[]},
+            treedata:Yunqi.data.treedata,
+            checkAll:false,
+            expandAll:false,
+            checkMobileAll:false,
+            checkedKey:[],
+            mobile_auth:Yunqi.data.xauth,
+            columns:[
+                {field: 'id',tab:0,title: __('ID'),edit:'hidden'},
+                {field: 'role',tab:0,title: __('职务'),edit:'select',rules:'required',searchList: Yunqi.data.usertype},
+                {field: 'admin.id',tab:0,title: __('ADMINID'),edit: {form:'input',type:'hidden',name:'admin[id]'}},
+                {field: 'admin.username',tab:0,title: __('用户名'),edit:{form: 'input',type:'text',name:'admin[username]'},rules:'required'},
+                {field: 'admin.password', tab:0,title: __('密码'),edit:{form:'input',type:'password',name:'admin[password]'},rules:(Yunqi.config.route[2]=='add')?'required':''},
+                {field: 'admin.mobile',tab:0,title: __('手机号'),edit:{form: 'input',type:'text',name:'admin[mobile]'},rules:'required;mobile'},
+                {field: 'admin.nickname',tab:0,title: __('昵称'),edit:{form: 'input',type:'text',name:'admin[nickname]'},rules:'required'},
+                {field: 'admin.third_id',tab:0,title: '绑定微信',edit:{form:'slot',name:'admin[third_id]'},rules:'required'},
+                {field: 'admin.status',tab:0,title: __('状态'),searchList: {'normal': __('正常'),'hidden': __('隐藏')},edit:{form:'radio',value:'normal',name:'admin[status]'}},
+                {field: 'rules',tab:1,title: __('电脑端权限'),edit:'slot'},
+                {field: 'auth_rules',tab:1,edit:'hidden'},
+                {field: 'mobile_rules',tab:1,title: __('手机端权限'),edit:'slot'},
+            ]
+        },
+        watch:{
+            checkAll:function (data){
+                if (data) {
+                    let checkedKey = [];
+                    doCheck(this.treedata, checkedKey);
+                    this.checkedKey = checkedKey;
+                } else {
+                    for(let i=0;i<this.$refs.tree.store._getAllNodes().length;i++){
+                        this.$refs.tree.store._getAllNodes()[i].checked = false;
+                    }
+                }
+            },
+            expandAll:function (data) {
+                if (data) {
+                    for(let i=0;i<this.$refs.tree.store._getAllNodes().length;i++){
+                        this.$refs.tree.store._getAllNodes()[i].expanded = true;
+                    }
+                } else {
+                    for(let i=0;i<this.$refs.tree.store._getAllNodes().length;i++){
+                        this.$refs.tree.store._getAllNodes()[i].expanded = false;
+                    }
+                }
+            },
+            checkMobileAll:function (data){
+                if(data){
+                    let mobile_auth=[];
+                    for(let key in this.mobile_auth){
+                        mobile_auth.push(key);
+                    }
+                    this.$refs.yunform.setValue('mobile_rules',mobile_auth);
+                }else{
+                    this.$refs.yunform.setValue('mobile_rules',[]);
+                }
+            }
+        },
+        onShow:function (){
+            if(Yunqi.config.route[2]=='edit'){
+                this.checkedKey = Yunqi.data.row.rules.split(',');
+            }
+        },
+        methods: {
+            changValue:function (e){
+                this.$refs.yunform.setValue('admin.third_id',e);
+            },
+            onSubmit:function (){
+                let row=this.$refs.yunform.form_.data;
+                let s1=this.$refs.tree.getCheckedKeys();
+                let s2=this.$refs.tree.getHalfCheckedKeys();
+                row.rules=s1.join(',');
+                row.auth_rules=s2.concat(s1).join(',');
+                return true;
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

@@ -1,0 +1,46 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="row"
+                ref="yunForm"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+                <template #remark="{rows}">
+                    <el-form-item label="开闸理由:">
+                        <Fieldlist @change="changeRemark" :label='[]' :keys='["remark"]' :value="rows.remark || null"></Fieldlist>
+                    </el-form-item>
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import fieldlist from "@components/Fieldlist.js";
+    export default {
+        components: {
+            'YunForm': form,
+            'Fieldlist':fieldlist,
+        },
+        data: {
+            columns: [
+                {field: "id", title: "ID", edit: "hidden"},
+                {field: "title", title: "岗亭名称", edit: "text", rules: "required"},
+                {field: "password", title: "锁屏密码", edit: "text", rules: "required"},
+                {field: "barriers", title: "包含通道", edit: {form:'select',multiple:true},searchList:Yunqi.data.barrier,rules: "required"},
+                {field: "remark", title: "开闸原因", edit: "slot"},
+                {field: "hide_window", title: "窗口超时", edit: {form:'input',type:'number',append:"分钟",value:10}},
+                {field: "status", title:"启用状态",searchList:{'normal':'是','hidden':'否'},edit:{form:'radio',value:'normal'}}
+            ],
+            row: Yunqi.data.row || {}
+        },
+        methods: {
+            changeRemark:function (e){
+                this.$refs.yunForm.setValue('remark',e);
+            },
+        }
+    }
+</script>
+<style>
+</style>

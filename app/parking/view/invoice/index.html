@@ -1,0 +1,95 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                tabs="status"
+                ref="yunTable"
+                toolbar="refresh"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+import table from "@components/Table.js";
+export default{
+    components:{
+        'YunTable':table
+    },
+    data:{
+        extend:{
+            index_url: 'invoice/index',
+            del_url: 'invoice/del',
+            multi_url: 'invoice/multi',
+        },
+        columns:[
+            {checkbox: true},
+            {field:"createtime",title:"申请时间",operate:'daterange',width: 150},
+            {field:"invoice_type",title:"开票类型",operate:false,width: 100,searchList:Yunqi.data.invoiceType},
+            {field:"name",title:"发票抬头",operate:"like",width: 250},
+            {field:"code",title:"企业税号",width: 220},
+            {field:"email",title:"电子邮箱",operate:false},
+            {field:"mobile",title:"手机号码",operate:false},
+            {field:"total_price",title:"开票金额",width: 100,operate:'between'},
+            {field:"file",title:"发票文件",operate:false,formatter:Yunqi.formatter.link},
+            {field:"status",title:"状态",width: 80,operate:false,searchList:{1:"已开票",0:"未开票"},formatter:function (data,row){
+                let tag=Yunqi.formatter.tag;
+                if(row.error){
+                    tag.value='开票失败';
+                    tag.type='danger';
+                    return tag;
+                }
+                if(row.status){
+                    tag.value='已开票';
+                    tag.type='success';
+                }else{
+                    tag.value='未开票';
+                    tag.type='info';
+                }
+                return tag;
+            }},
+            {
+                field: 'operate',
+                title: __('操作'),
+                width:130,
+                action:{
+                    detail:{
+                        tooltip:true,
+                        icon:'fa fa-server',
+                        type:'success',
+                        text:'查看订单',
+                        method:'detail'
+                    },
+                    edit:{
+                        tooltip:true,
+                        icon:'fa fa-pencil',
+                        type:'primary',
+                        text:'处理发票',
+                        method:'edit'
+                    }
+                }
+            }
+        ]
+    },
+    methods: {
+        detail:function (e){
+            Yunqi.api.open({
+                url:'invoice/orders?ids='+e.id,
+                title:'订单详情',
+                icon:'fa fa-server'
+            });
+        },
+        edit:function (e){
+            Yunqi.api.open({
+                url:'invoice/edit?ids='+e.id,
+                title:'处理发票',
+                icon:'fa fa-pencil',
+                close:()=>{
+                    this.$refs.yunTable.reload();
+                }
+            });
+        }
+    }
+}
+</script>
+<style>
+</style>

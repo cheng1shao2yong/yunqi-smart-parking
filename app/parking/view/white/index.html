@@ -1,0 +1,116 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh,synch,pldel,timer"
+                ref="yuntable"
+                :extend="extend">
+                <template #formatter="{field,rows}">
+                    <template v-if="field=='plates'">
+                        <plate-type :plate_number="rows.plates_count>1?rows.plates[0].plate_number+'等'+rows.plates_count+'辆车..':rows.plates[0].plate_number" :plate_type="rows.plates[0].plate_type"></plate-type>
+                    </template>
+                </template>
+                <template #toolbar="{tool,selections}">
+                    <el-button :disabled="selections.length<=0" v-if="tool=='synch'" @click.stop="plsynch(selections)" type="success"><i class="fa fa-plus"></i>&nbsp;批量同步</el-button>
+                    <el-button :disabled="selections.length<=0" v-if="tool=='pldel'" @click.stop="pldel(selections)" type="danger"><i class="fa fa-plus"></i>&nbsp;批量删除</el-button>
+                    <el-button v-if="tool=='timer'" @click.stop="timer" type="primary"><i class="fa fa-clock-o"></i>&nbsp;定时同步</el-button>
+                </template>
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    import platetype from "@components/PlateType.js";
+    export default{
+        components: {
+            'YunTable': table,
+            'PlateType': platetype,
+        },
+        data: {
+            extend:{
+                index_url: 'white/index',
+            },
+            columns:[
+                {checkbox: true},
+                {field: "rules_type", title: "停车规则",searchList:Yunqi.data.rules_type,operate:'select'},
+                {
+                    field: "plates",
+                    title: "车牌号",
+                    operate: {form:'input',type:'text',filter:false},
+                    formatter:Yunqi.formatter.slot
+                },
+                {field: "contact", title: "车主姓名"},
+                {field: "mobile", title: "手机号",operate: false},
+                {field: "starttime", title: "开始日期",operate: false, formatter: Yunqi.formatter.datetime},
+                {field: "endtime", title: "结束日期",operate: false, formatter: Yunqi.formatter.datetime},
+                {field: "rangetime", title: "有效日期",operate: {form:'date-picker',type:'daterange',filter:false}, visible:false},
+                {field: "synch", operate: {form:'select',filter:false},searchList: {1:'已同步',2:'未同步'},title: "同步状态",formatter: function (data,row){
+                    let tag=Yunqi.formatter.tag;
+                    if(row.synch==1){
+                        tag.value='已同步';
+                        tag.type='success';
+                    }
+                    if(row.synch==2){
+                        tag.value='未同步';
+                        tag.type='danger';
+                    }
+                    return tag;
+                }},
+                {
+                    field: 'operate',
+                    width: 50,
+                    title: '操作',
+                    action: {
+                        synch:{
+                            tooltip:true,
+                            icon:'fa fa-refresh',
+                            type:'success',
+                            text:'同步',
+                            method:'synch',
+                            visible:function (row){
+                                return row.synch==2;
+                            }
+                        },
+                        del:function(row){
+                            return row.synch==1;
+                        }
+                    }
+                }
+            ]
+        },
+        methods: {
+            synch:function (e){
+                this.plsynch([e]);
+            },
+            plsynch:function (arr){
+                let ids=[];
+                for(let i=0;i<arr.length;i++){
+                    ids.push(arr[i].id);
+                }
+                Yunqi.ajax.post('white/synch',{ids:ids}).then(res=>{
+                    this.$refs.yuntable.reload();
+                });
+            },
+            pldel:function (arr){
+                let ids=[];
+                for(let i=0;i<arr.length;i++){
+                    ids.push(arr[i].id);
+                }
+                Yunqi.ajax.post('white/del',{ids:ids}).then(res=>{
+                    this.$refs.yuntable.reload();
+                });
+            },
+            timer:function (){
+                Yunqi.api.open({
+                    url:'white/timer',
+                    title:'定时同步',
+                    icon:'fa fa-clock-o',
+                    height:400,
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

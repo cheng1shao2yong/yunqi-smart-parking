@@ -1,0 +1,48 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{
+            'YunTable':table
+        },
+        data:{
+            extend:{
+                index_url: 'charge/list'
+            },
+            columns:[
+                {field:"createtime",title:"创建时间",operate:"daterange",formatter:Yunqi.formatter.datetime},
+                {field:"plate_number",title:"车牌号"},
+                {field:"time",title:"充电时间",operate:false,formatter: function (data){
+                    return parseInt(data/60)+'分钟';
+                }},
+                {field:"fee",title:"充电费用",operate:false},
+                {field:"kwh",title:"kW·h（度）",operate:false},
+                {field:"coupon.title",title:"停车券",operate:false},
+                {field:'couponlist.status',title:'停车券状态',operate:'select',searchList:Yunqi.data.status,formatter:function (data,row){
+                    let tag=Yunqi.formatter.tag;
+                    if(row.couponlist.status=='hidden'){
+                        tag.value='已禁用';
+                        tag.type='danger';
+                    }else{
+                        let bk=['success','info','','danger','danger'];
+                        tag.value=Yunqi.data.status[row.couponlist.status];
+                        tag.type=bk[row.couponlist.status];
+                    }
+                    return tag;
+                }},
+            ]
+        },
+        methods: {
+        }
+    }
+</script>
+<style>
+</style>

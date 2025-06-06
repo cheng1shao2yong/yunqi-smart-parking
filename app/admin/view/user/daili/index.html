@@ -1,0 +1,92 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                search="username"
+                toolbar="refresh,add,edit,del"
+                ref="yuntable"
+                :common-search="false"
+                :auth="{
+                    add:{:$auth->check('app\\admin\\controller\\user\\Daili','add')},
+                    edit:{:$auth->check('app\\admin\\controller\\user\\Daili','edit')},
+                    del:{:$auth->check('app\\admin\\controller\\user\\Daili','del')},
+                    multi:{:$auth->check('app\\admin\\controller\\user\\Daili','multi')},
+                }"
+                :add-form="{height:400}"
+                :edit-form="{height:400}"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{'YunTable':table},
+        data:{
+            extend:{
+                index_url: 'user/daili/index',
+                add_url: 'user/daili/add',
+                edit_url: 'user/daili/edit',
+                del_url: 'user/daili/del',
+                multi_url: 'user/daili/multi'
+            },
+            columns:[
+                {checkbox: true},
+                {field: 'id',title: __('ID'),operate: false},
+                {field: 'username',title: __('用户名'),operate:'like'},
+                {field: 'parking', title: __('停车场'),operate:false},
+                {field: 'balance', title: __('余额'),operate:false},
+                {field: 'status', title: __('状态'),searchList: {'normal': __('正常'),'hidden': __('隐藏')},formatter:Yunqi.formatter.switch,operate:false},
+                {field: 'createtime', title: __('创建时间'),formatter: Yunqi.formatter.datetime,operate:false},
+                {
+                    field: 'operate',
+                    title: __('操作'),
+                    width:180,
+                    fixed:'right',
+                    action:{
+                        parking:{
+                            tooltip:true,
+                            icon:'fa fa-product-hunt',
+                            type:'warning',
+                            text:__('停车场'),
+                            method:'parking'
+                        },
+                        detail:{
+                            tooltip:true,
+                            icon:'fa fa-list',
+                            type:'info',
+                            text:__('收支明细'),
+                            method:'detail'
+                        },
+                        edit:true,
+                        del:true
+                    }
+                }
+            ]
+        },
+        methods: {
+            parking:function (row){
+                Yunqi.api.open({
+                    url:'user/daili/parkings?ids='+row.id,
+                    title:__('停车场'),
+                    icon:'fa fa-product-hunt',
+                    expand:true,
+                    close:(e)=>{
+                        this.$refs.yuntable.reload();
+                    }
+                });
+            },
+            detail:function (row){
+                Yunqi.api.open({
+                    url:'user/daili/detail?ids='+row.id,
+                    expand:true,
+                    title:__('收支明细'),
+                    icon:'fa fa-list'
+                });
+            }
+        }
+    }
+</script>
+<style>
+
+</style>

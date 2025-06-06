@@ -1,0 +1,43 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+            :data="row"
+            ref="yunForm"
+            :columns="columns">
+            <template #default>
+                {:token_field()}
+            </template>
+            <template #third_id="{rows}">
+                <el-form-item label="绑定微信:" required>
+                    <third :value="rows.third_id" :selectable="true" @change="changValue"></third>
+                </el-form-item>
+            </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+    import form from "@components/Form.js";
+    import third from "@components/Third.js";
+    export default {
+        components: {
+            'YunForm': form,
+            'Third': third
+        },
+        data: {
+            columns: [
+                {field: "id", title: "ID", edit: "hidden"},
+                {field: "username", title: "代理商名称", edit: "text",rules:'required'},
+                {field:'third_id',title: '绑定微信',edit:'slot',rules:'required'},
+                {field:"status",title:"状态",edit:'radio',searchList:{normal:"正常",hidden:"隐藏"}},
+            ],
+            row: Yunqi.data.row || {status:'normal'}
+        },
+        methods: {
+            changValue:function (e){
+                this.$refs.yunForm.setValue('third_id',e);
+            }
+        }
+    }
+</script>
+<style>
+</style>
