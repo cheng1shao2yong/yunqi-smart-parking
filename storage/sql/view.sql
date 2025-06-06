@@ -1,0 +1,36 @@
+--收支报表视图
+CREATE VIEW parking_daily_cash_flow AS
+SELECT 
+    parking_id,
+    DATE(time) AS date,
+    SUM(pay_price) AS total_income,
+    SUM(CASE WHEN order_type = 'parking' THEN pay_price ELSE 0 END) AS parking_income,
+    SUM(CASE WHEN order_type = 'parking_monthly' THEN pay_price ELSE 0 END) AS parking_monthly_income,
+    SUM(CASE WHEN order_type = 'parking_stored' THEN pay_price ELSE 0 END) AS parking_stored_income,
+    SUM(CASE WHEN order_type = 'merch_recharge' THEN pay_price ELSE 0 END) AS merch_recharge_income,
+		round(SUM(handling_fees)/100,2) AS handling_fees,
+    COALESCE(SUM(CASE WHEN order_type = 'refund' THEN -refund_price ELSE 0 END), 0) AS total_refund,
+    ROUND((SUM(pay_price) -SUM(handling_fees)/100 - COALESCE(SUM(CASE WHEN order_type = 'refund' THEN -refund_price ELSE 0 END), 0)),2) AS net_income
+FROM
+(
+    SELECT 
+        parking_id,
+        order_type,
+        pay_price,
+		handling_fees,
+		0 as refund_price,
+		pay_time AS time
+    FROM yun_pay_union
+    WHERE pay_status = 1 AND pay_type <> 'underline' AND pay_type<>'stored' AND id NOT IN (select pay_id FROM yun_parking_records_filter where pay_id is not null)
+    UNION ALL
+    SELECT 
+        parking_id,
+        'refund' AS order_type,
+        refund_price * -1 AS pay_price, -- 将退款转换为负值
+				0 as handling_fees,
+        refund_price,
+			  refund_time AS time
+    FROM yun_pay_refund
+) AS combined_data
+GROUP BY parking_id, DATE(time)
+ORDER BY parking_id, DATE(time) DESC;
