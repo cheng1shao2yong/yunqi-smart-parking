@@ -78,7 +78,7 @@ CREATE TABLE `yun_admin` (
 -- ----------------------------
 -- Records of yun_admin
 -- ----------------------------
-INSERT INTO `yun_admin` VALUES ('1', 'admin', '超级管理员', 'b9a8432c1b201d97c144c124ec1a1dab', 'ayPb', '/assets/img/avatar.jpg', '13027867015', '1', '0', '1749178389', '111.121.75.27', '1', '{\"layout\":\"classic\",\"dark\":false,\"theme_color\":\"#0C819F\"}', 'fe35ca37-1390-4048-bb01-73dce3dfba9c', 'normal', '1696231860', '1749192822');
+INSERT INTO `yun_admin` VALUES ('1', 'admin', '超级管理员', '73a8b1a53f8d7d3fdaeecb2a880d4f55', 'vWiJ', '/assets/img/avatar.jpg', '13027867015', '1', '0', '1749178389', '111.121.75.27', '1', '{\"layout\":\"classic\",\"dark\":false,\"theme_color\":\"#0C819F\"}', 'fe35ca37-1390-4048-bb01-73dce3dfba9c', 'normal', '1696231860', '1749192822');
 
 -- ----------------------------
 -- Table structure for yun_admin_log
