@@ -74,3 +74,5 @@
 （1）商户PC管理端：https://api.test.com/h5/#/pages/merchant/index<br>
 （2）代理商：https://api.test.com/h5/#/pages/daili/index<br>
 ### 岗亭打包（岗亭PC端）
+#### 1、下载用户端源码，https://gitee.com/lcfms/yunqi-smart-parking---gangting
+#### 2、修改/RtspPlayer/Properties/Settings.settings文件的api域名为：api.test.com
