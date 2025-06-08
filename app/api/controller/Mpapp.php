@@ -122,6 +122,7 @@ class Mpapp extends Api{
     public function menu()
     {
         $menu = new \WeChat\Menu($this->config);
+        $domain=get_domain('api');
         $json=array('button'=>[
             //跳转到公众号页面
             [
@@ -165,7 +166,7 @@ class Mpapp extends Api{
                     [
                         "name"=>"代理商",
                         "type"=>"view",
-                        "url"=>"https://guiyang.1p23.com/h5/#/pages/daili/index",
+                        "url"=>$domain."/h5/#/pages/daili/index",
                     ],
                     [
                         "name"=>"平台管理员",
