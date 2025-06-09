@@ -7,7 +7,7 @@ use think\Model;
 
 class ParkingException extends Model
 {
-    public static function addException(ParkingPlate $plate,ParkingBarrier $barrier,string $message)
+    public static function addException(ParkingPlate $plate,ParkingBarrier $barrier,string $message,string $photo)
     {
         $rules_type='临时车';
         if($plate->cars){
@@ -23,6 +23,7 @@ class ParkingException extends Model
             'plate_type'=>$plate->plate_type,
             'barrier'=>$barrier->title,
             'message'=>$message,
+            'photo'=>$photo,
             'createtime'=>date('Y-m-d H:i:s',time())
         ];
         self::create($data);

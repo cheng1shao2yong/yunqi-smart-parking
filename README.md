@@ -3,8 +3,30 @@
 **技术支持与运维服务：+微信【Cheng-ShaoYong】**
 
 ## 一、功能介绍
+<iframe id="embed_dom" name="embed_dom" frameborder="0" style="display:block;margin-left:-244.5px; margin-top:-137.5px;width:489px; height:275px;" src="https://www.processon.com/embed/68464541db67fa46d0e3d5ab"></iframe>
 
-## 二、准备安装环境与账户
+## 二、产品截图
+
+## 三、商业版权使用说明
+<ul>
+    <li>
+        <p style="background-color: red;color:#fff;">本软件使用apache 2.0开源协议，无需版权声明，可以直接应用于商业用途。</p>
+    </li>
+    <li>
+        <p style="background-color: red;margin:5px 0;color:#fff;">本软件已经申请了著作权，请勿在主体架构使用本软件的情况下，二次申请软件著作权，如有著作权的授权需求，请联系作者。</p>
+    </li>
+    <li>
+        <p style="background-color: red;margin:5px 0;color:#fff;">本软件免费提供给有需求的商业用户，但禁止利用信息差，冒充作者出售，或二次开发后出售给第三方公司。</p>
+    </li>
+    <li>
+        <p style="background-color: red;margin:5px 0;color:#fff;">以上声明请自觉遵守，如有违背，公司将采取法律手段进行追究。</p>
+    </li>
+    <li>
+        <p><img src="./storage/images/6.png" style="width: 40%;"></p>
+    </li>
+</ul>
+
+## 四、准备安装环境
 * 一台Linux服务器，4核8G（本地安装mysql建议16G内存），宽带大于5mb
 * 安装Nginx 1.26
 * 安装PHP 8.2
@@ -20,7 +42,7 @@
 * 开通阿里云OSS服务
 * 开通腾讯云Orc图像识别，车辆识别增强版
 
-## 三、系统安装
+## 五、系统安装
 ### 安装服务端
 #### 1、下载服务端源码，https://gitee.com/lcfms/yunqi-smart-parking---server
 #### 2、安装数据库和视图，文件所在目录：/storage/sql

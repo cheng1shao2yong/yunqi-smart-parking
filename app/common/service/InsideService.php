@@ -716,13 +716,13 @@ class InsideService extends BaseService{
 
     private function outSideException(string $message)
     {
-        ParkingException::addException($this->outsidePlate,$this->outsideBarrier,$message);
+        ParkingException::addException($this->outsidePlate,$this->outsideBarrier,$message,$this->photo);
         throw new \Exception($message);
     }
 
     private function inSideException(string $message)
     {
-        ParkingException::addException($this->insidePlate,$this->insideBarrier,$message);
+        ParkingException::addException($this->insidePlate,$this->insideBarrier,$message,$this->photo);
         throw new \Exception($message);
     }
 

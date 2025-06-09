@@ -742,7 +742,7 @@ class ParkingService extends BaseService{
     private function throwException($message)
     {
         $plate=$this->getObj(ParkingPlate::class);
-        ParkingException::addException($plate,$this->barrier,$message);
+        ParkingException::addException($plate,$this->barrier,$message,$this->photo);
         throw new \Exception($message);
     }
 }

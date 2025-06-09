@@ -309,6 +309,10 @@ class ParkingCars extends BaseModel
     private static function occupat(ParkingCars $cars)
     {
         if($cars->plates_count>$cars->occupat_number){
+            $count=ParkingCarsOccupat::where(['parking_id'=>$cars->parking_id,'cars_id'=>$cars->id])->count();
+            if($count==$cars->occupat_number){
+                return;
+            }
             ParkingCarsOccupat::where(['parking_id'=>$cars->parking_id,'cars_id'=>$cars->id])->delete();
             $occupat=[];
             for($i=0;$i<$cars->occupat_number;$i++){
