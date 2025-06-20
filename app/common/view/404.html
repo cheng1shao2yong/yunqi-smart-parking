@@ -51,8 +51,7 @@
         <h4>抱歉，您访问的页面不存在~🤷‍♂️🤷‍♀️</h4>
         {if $modulename == 'admin'}
         <div class="button" type="primary" onclick="closePage()">关闭页面</div>
-        {/if}
-        {if $modulename == 'index'}
+        {else}
         <div class="button" type="primary" onclick="goHome()">返回首页</div>
         {/if}
     </div>
@@ -60,18 +59,16 @@
 </body>
 <script>
     function closePage(){
-        let windowId={$windowId};
-        let windowType='{$windowType}';
-        if(windowType == 'addtabs') {
-            let menu=top.Yunqi.app.tabList[top.Yunqi.app.tabList.length-2];
-            top.Yunqi.api.addtabs(menu);
-            top.Yunqi.api.closetabs(windowId);
-        }
-        if(windowType == 'layer') {
-            top.Yunqi.api.closelayer(windowId);
+        if(top!==window){
+            let menu=top.Yunqi.app.openMenu;
+            if(menu.menutype=='tab'){
+                top.Yunqi.api.closetabs(menu);
+            }
+            if(menu.menutype=='layer'){
+                top.Yunqi.api.closelayer(menu);
+            }
         }
     }
-
     function goHome(){
         window.location.href = '/';
     }

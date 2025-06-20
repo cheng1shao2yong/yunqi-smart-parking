@@ -178,13 +178,14 @@ class Index extends Api
             }
             if($plate_number){
                 $query->where('plate_number','=',$plate_number);
-                $query->whereIn('status',[0,1]);
+                $query->whereIn('status',[0,1,6,7]);
             }
             if($records_id){
                 $query->where('id','=',$records_id);
                 $query->whereIn('status',[0,1,6,7]);
             }
         })->order('id desc')->select();
+        $r=[];
         foreach ($recordslist as $key=>$records){
             $parking=Parking::cache('parking_'.$records->parking_id,24*3600)->withJoin(['setting'])->find($records->parking_id);
             $exittime=time();
@@ -200,12 +201,11 @@ class Index extends Api
             //追缴情况
             $recovery=ParkingRecovery::where('records_id',$records->id)->find();
             if($recovery){
-                 $total_fee=$recovery->total_fee;
+                $total_fee=$recovery->total_fee;
             }else{
-                 $total_fee=$service->getTotalFee($records,$exittime);
+                $total_fee=$service->getTotalFee($records,$exittime);
             }
             if($total_fee<=0){
-                unset($recordslist[$key]);
                 continue;
             }
             [$activities_fee]=$service->getActivitiesFee($records,$total_fee);
@@ -222,8 +222,9 @@ class Index extends Api
                 'phone'=>$parking->setting->phone,
                 'rules_txt'=>$parking->setting->rules_txt
             ];
+            $r[]=$records;
         }
-        $this->success('',$recordslist);
+        $this->success('',$r);
     }
 
     #[Post('parking-pay')]

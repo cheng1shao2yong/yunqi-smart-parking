@@ -98,17 +98,13 @@ class ParkingBase extends BaseController
         //加载当前控制器语言包
         LangService::newInstance()->load($elementUi['language']);
         // 配置信息
-        $route=[$modulename,$this->getShortControllerName(),$actionname];
         $version=Config::get('app.app_debug')?time():site_config("basic.version");
         $this->config = [
             'version'        => $version,
-            'route'          => $route,
+            'controller'     => $controllername,
+            'action'         => $actionname,
             'url'            => request()->url(true),
             'query'          => $this->request->get(),
-            'window'         => [
-                'id'         => Cookie::get('window-id'),
-                'type'       => Cookie::get('window-type')
-            ],
             'baseUrl'        => $this->request->domain().'/',
             'upload'         => Config::get('yunqi.upload'),
             'elementUi'      => $elementUi,

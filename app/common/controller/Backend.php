@@ -105,10 +105,8 @@ class Backend extends BaseController
             'route'          => $route,
             'url'            => request()->url(true),
             'query'          => $this->request->get(),
-            'window'         => [
-                'id'         => Cookie::get('window-id'),
-                'type'       => Cookie::get('window-type')
-            ],
+            'controller'     => $controllername,
+            'action'         => $actionname,
             'baseUrl'        => $this->request->domain().'/',
             'upload'         => Config::get('yunqi.upload'),
             'elementUi'      => $elementUi,

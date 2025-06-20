@@ -40,7 +40,6 @@ class Adminlog extends Backend
         }
         [$where, $order, $limit, $with] = $this->buildparams();
         $list = $this->model
-            ->where($where)
             ->where(function ($query){
                 if(!$this->auth->isSuperAdmin()){
                     $query->whereIn('admin_id',$this->getChildrenAdminIds());

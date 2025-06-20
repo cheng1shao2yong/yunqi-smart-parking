@@ -26,23 +26,25 @@ export default {
         }
     },
     created:function (){
+
     },
     props:{
         admin: {
             type: Object,
-            required: true,
-        },
-        url:{
-            type: String,
             required: true,
         }
     },
     template:template,
     methods:{
         userinfo:function (){
+            let url;
+            if(Yunqi.auth.admin.groupids==='2' || Yunqi.auth.admin.groupids==='3'){
+                url=Yunqi.config.baseUrl+'profile/index';
+            }else{
+                url=Yunqi.config.baseUrl+'general/profile/index';
+            }
             Yunqi.api.addtabs({
-                id:8,
-                url:Yunqi.config.baseUrl+this.url,
+                url:url,
                 title:'个人资料',
                 icon:'fa fa-user',
             });

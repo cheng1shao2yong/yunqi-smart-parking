@@ -72,5 +72,37 @@ class ParkingMonthlyRecharge extends Model
         }
         $cars->endtime=$endtime;
         $cars->save();
+        if($cars->plates_count>$cars->occupat_number){
+            $records=ParkingRecords::where(['parking_id'=>$cars->parking_id,'cars_id'=>$cars->id])->whereIn('status',[0,6])->order('id desc')->select();
+            if(count($records)===0){
+                return;
+            }
+            //获取所有在车位的记录
+            $fomateRecords=[];
+            foreach ($records as $record){
+                $fomateRecords[$record->id]=$record;
+            }
+            $occupats=ParkingCarsOccupat::where(['parking_id'=>$cars->parking_id,'cars_id'=>$cars->id])->select();
+            foreach ($occupats as $occupat){
+                //在车位上，且已经到期
+                if($occupat->records_id && $occupat->exit_time && $occupat->exit_time>$starttime){
+                    //从$recordsIds中删除当前在车位的记录
+                    unset($fomateRecords[$occupat->records_id]);
+                    $occupat->exit_time=null;
+                    $occupat->save();
+                }
+            }
+            $recordsid=array_keys($fomateRecords);
+            foreach ($occupats as $occupat){
+                //不在车位上
+                if(!$occupat->records_id && count($recordsid)>0){
+                    $records=$fomateRecords[array_shift($recordsid)];
+                    $occupat->records_id=$records->id;
+                    $occupat->plate_number=$records->plate_number;
+                    $occupat->entry_time=$records->entry_time;
+                    $occupat->save();
+                }
+            }
+        }
     }
 }

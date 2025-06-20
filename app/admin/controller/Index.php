@@ -88,7 +88,7 @@ class Index extends Backend
         if($this->auth->isLogin()){
             return redirect(request()->domain().'/index');
         }
-        $thirdLogin=addons_installed('uniapp') && site_config("addons.uniapp_scan_login");
+        $thirdLogin=addons_installed('addons') && site_config("addons.uniapp_scan_login");
         if($thirdLogin){
             $config=[
                 'appid'=>site_config("addons.uniapp_mpapp_id"),

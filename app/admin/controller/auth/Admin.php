@@ -14,6 +14,7 @@ namespace app\admin\controller\auth;
 use app\admin\traits\Actions;
 use app\common\controller\Backend;
 use app\common\model\AuthGroup;
+use app\common\model\Department;
 use think\annotation\route\Group;
 use think\annotation\route\Route;
 use think\facade\Validate;
@@ -29,6 +30,8 @@ class Admin extends Backend
 
     private $thirdLogin=false;
 
+    private $departdata=[];
+
     protected $noNeedRight='third';
 
     use Actions{
@@ -42,8 +45,10 @@ class Admin extends Backend
         parent::_initialize();
         $this->model=new AdminModel();
         $this->groups=AuthGroup::select();
-        $this->thirdLogin=addons_installed('uniapp') && site_config("addons.uniapp_scan_login");
+        $this->thirdLogin=addons_installed('addons') && site_config("addons.uniapp_scan_login");
+        $this->departdata=Department::getDepartData();
         $this->assign('thirdLogin',$this->thirdLogin);
+        $this->assign('departdata',$this->departdata);
     }
 
     #[Route("*","index")]
@@ -66,9 +71,17 @@ class Admin extends Backend
             }
             $where[]=[implode(' or ',$or)];
         }
+        $depart=(int)$this->filter('depart');
+        if($depart){
+            $departids=$this->getChildrenDepartIds($depart);
+            $departids[]=$depart;
+            $where[]=['depart_id','in',$departids];
+        }
+        $this->relationField=['depart'];
         [$where, $order, $limit, $with] = $this->buildparams($where);
         $third_ids=[];
         $list = $this->model
+            ->with($with)
             ->where($where)
             ->order($order)
             ->paginate($limit)
@@ -87,6 +100,27 @@ class Admin extends Backend
         }
         $result = ['total' => $list->total(), 'rows' => $rows];
         return json($result);
+    }
+
+    private function getChildrenDepartIds(int $pid)
+    {
+        function getChildren(array $list){
+            $r=[];
+            foreach ($list as $v){
+                $r[]=$v['id'];
+                if(!empty($v['childlist'])){
+                    $r=array_merge($r,getChildren($v['childlist']));
+                    return $r;
+                }
+            }
+            return $r;
+        };
+        foreach ($this->departdata as $v){
+            if($v['id']==$pid){
+                return getChildren($v['childlist']);
+            }
+        }
+        return [];
     }
 
     #[Route('GET,POST','edit')]
@@ -122,6 +156,9 @@ class Admin extends Backend
                 unset($params['password'], $params['salt']);
             }
             $params['groupids']=implode(',',$postgroups);
+            if(isset($params['third_id']) && !$params['third_id']){
+                $params['third_id']=null;
+            }
             $row->save($params);
             $this->success();
         }else{
@@ -154,6 +191,9 @@ class Admin extends Backend
             $params['salt'] = str_rand(4);
             $params['password'] = md5(md5($params['password']) . $params['salt']);
             $params['groupids']=implode(',',$postgroups);
+            if(isset($params['third_id']) && !$params['third_id']){
+                $params['third_id']=null;
+            }
             $this->model->save($params);
             $this->success();
         }else{
@@ -193,7 +233,7 @@ class Admin extends Backend
                 }
             }
         }
-        $groupdata=AuthGroup::getGroupListArray($groupids);
+        $groupdata=AuthGroup::getGroupListTree($groupids);
         return $groupdata;
     }
 

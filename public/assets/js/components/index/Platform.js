@@ -1,5 +1,5 @@
 const template=`
-   <el-dropdown class="toolBar-dropdown hide-800" placement="bottom" v-if="platform && platform.length>0">
+   <el-dropdown class="toolBar-dropdown hide-800" placement="bottom">
       <div class="platform">
          {{active}}&nbsp;<i class="fa fa-chevron-down"></i>
       </div> 

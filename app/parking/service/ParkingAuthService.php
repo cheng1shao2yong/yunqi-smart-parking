@@ -25,7 +25,7 @@ use think\facade\Session;
 use think\facade\Cache;
 
 class ParkingAuthService extends AuthService{
-    protected $allowFields = ['id', 'username', 'nickname', 'mobile', 'avatar', 'status'];
+    protected $allowFields = ['id', 'username', 'nickname', 'mobile', 'avatar', 'status', 'groupids', 'depart_id', 'third_id'];
     protected $userRuleList = [];
     protected $userMenuList = [];
     private $platformList=[];
@@ -349,7 +349,7 @@ class ParkingAuthService extends AuthService{
             $adminRuleList= Cache::get('admin_rule_list_'.$this->id);
             $adminMenuList= Cache::get('admin_menu_list_'.$this->id);
             $platformList=Cache::get('admin_platform_list_'.$this->id);
-            if(!$adminRuleList || !$adminMenuList || $platformList || Config::get('app.app_debug')){
+            if(!$adminRuleList || !$adminMenuList || !$platformList || Config::get('app.app_debug')){
                 $adminRuleList=[];
                 $adminMenuList=[];
                 $platformList=[];
@@ -450,6 +450,22 @@ class ParkingAuthService extends AuthService{
         }
         $platformList=$this->platformList;
         return [$platformList,$treeRuleList,$selected,$referer];
+    }
+
+    public function getBackendAuth()
+    {
+        $userlist=$this->userRuleList;
+        //如果$userlist是数组
+        if(is_array($userlist)){
+            foreach ($userlist as $key=>$value){
+                $userlist[$key]['action']=json_decode($value['action'],true);
+                $userlist[$key]['title']=json_decode($value['title'],true);
+            }
+        }
+        return [
+            'admin'=>$this->userinfo(),
+            'rules_list'=>$userlist
+        ];
     }
 
     private function getSelectAndReferer($treeRuleList,$refererUrl,&$selected,&$referer)

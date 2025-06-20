@@ -323,6 +323,8 @@ class ParkingCars extends BaseModel
                 ];
             }
             (new ParkingCarsOccupat())->saveAll($occupat);
+        }else{
+            ParkingCarsOccupat::where(['parking_id'=>$cars->parking_id,'cars_id'=>$cars->id])->delete();
         }
     }
 }

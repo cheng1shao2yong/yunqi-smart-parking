@@ -395,6 +395,9 @@ trait Functions{
                     return [$activities_fee,$usetime,ParkingMerchantCoupon::COUPON_TYPE('时段券'), [$list],$detail['title']];
             }
         }
+        if(count($rlist)===0){
+            return [0,0,'',false,'无'];
+        }
         if($coupon_type==ParkingMerchantCoupon::COUPON_TYPE('时效券')){
             $count=count($rlist);
             $lastcoupon=$rlist[$count-1];

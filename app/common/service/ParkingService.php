@@ -190,11 +190,11 @@ class ParkingService extends BaseService{
         if(!in_array($plate->plate_type,$this->barrier->plate_type)){
             $this->throwException('通道禁止该类型车辆');
         }
-        $rulesType=$this->getRulesType();
         $black=ParkingBlack::where(['plate_number'=>$plate->plate_number,'parking_id'=>$parking->id])->find();
         if($black){
             $this->throwException('黑名单禁止入场');
         }
+        $rulesType=$this->getRulesType();
         //同一个通道，15分钟内存在入场，则直接开闸
         $records=ParkingRecords::where(['parking_id'=>$parking->id,'plate_number'=>$plate->plate_number])->whereIn('status',[0,1,6])->find();
         if($records && $records->entry_time+15*60>time()){
@@ -312,6 +312,10 @@ class ParkingService extends BaseService{
         $plate=$this->getObj(ParkingPlate::class);
         if(!in_array($plate->plate_type,$this->barrier->plate_type)){
             $this->throwException('通道禁止该类型车辆');
+        }
+        $black=ParkingBlack::where(['plate_number'=>$plate->plate_number,'parking_id'=>$parking->id])->find();
+        if($black){
+            $this->throwException('黑名单禁止入场');
         }
         $records=ParkingRecords::where(['parking_id'=>$parking->id,'plate_number'=>$plate->plate_number])->whereIn('status',[0,1,6])->order('id desc')->find();
         $rulesType=$this->getRulesType();

@@ -30,12 +30,12 @@ export default{
             {field:"merch_name",tab:0,title:"商户名称",edit:"text",rules:"required"},
             {field:"phone",tab:0,title:"商户电话",edit:"text"},
             {field:"username",tab:0,title:"用户名",edit:{form:'input',type:'text',prepend:Yunqi.data.uniqid+'-'},rules:"required"},
-            {field:'password',tab:0,title:'密码',edit:{form:'input',type:'password'},rules:(Yunqi.config.route[2]=='add')?'required':''},
+            {field:'password',tab:0,title:'密码',edit:{form:'input',type:'password'},rules:(Yunqi.config.action=='add')?'required':''},
             {field:'third_id',tab:0,title:'绑定微信',edit:{form:'slot',name:'third_id'},rules:'required'},
             {field:"is_self",tab:0,title:"自营商户",searchList:{'1':'是','0':'否'},edit:{form:'radio',value:'0'}},
             {field:"status",tab:0,title:"启用状态",searchList:{'normal':'是','hidden':'否'},edit:{form:'radio',value:'normal'}},
             {field:"coupon",tab:1,title:"支持减免类型",edit:"checkbox",rules:"required",searchList:Yunqi.data.coupon},
-            {field:"settle_type",tab:1,title:"结算方式",edit:{form:'select',disabled:(Yunqi.config.route[2]=='add')?false:true},rules:"required",searchList:Yunqi.data.settleType},
+            {field:"settle_type",tab:1,title:"结算方式",edit:{form:'select',disabled:(Yunqi.config.action=='add')?false:true},rules:"required",searchList:Yunqi.data.settleType},
             {field:"price",tab:1,title:"单位价格",edit: {form:'input',type:'number',append:'元/小时'},rules:"range(0~)",visible:function (row){
                 return row.settle_type=='time';
             }},

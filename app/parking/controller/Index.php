@@ -104,7 +104,7 @@ class Index extends ParkingBase
             $this->error('未关联停车场');
         }
         cookie('parking-uniqid',$parking->uniqid);
-        $thirdLogin=addons_installed('uniapp') && site_config("addons.uniapp_scan_login");
+        $thirdLogin=addons_installed('addons') && site_config("addons.uniapp_scan_login");
         if($thirdLogin){
             $config=[
                 'appid'=>site_config("addons.uniapp_mpapp_id"),
