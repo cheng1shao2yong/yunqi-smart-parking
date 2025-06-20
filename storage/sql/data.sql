@@ -1,3 +1,7 @@
+/*
+Date: 2025-06-20 10:27:11
+*/
+
 SET FOREIGN_KEY_CHECKS=0;
 
 -- ----------------------------
@@ -18,6 +22,10 @@ CREATE TABLE `yun_accesskey` (
   `deletetime` int DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_accesskey
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_addons
@@ -61,6 +69,7 @@ CREATE TABLE `yun_admin` (
   `salt` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '密码盐',
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '/assets/img/avatar.jpg' COMMENT '头像',
   `mobile` varchar(11) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '手机号码',
+  `depart_id` int DEFAULT NULL,
   `groupids` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `loginfailure` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '失败次数',
   `logintime` int unsigned DEFAULT NULL COMMENT '登录时间',
@@ -73,12 +82,13 @@ CREATE TABLE `yun_admin` (
   `updatetime` int unsigned DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员表';
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员表';
 
 -- ----------------------------
 -- Records of yun_admin
 -- ----------------------------
-INSERT INTO `yun_admin` VALUES ('1', 'admin', '超级管理员', '73a8b1a53f8d7d3fdaeecb2a880d4f55', 'vWiJ', '/assets/img/avatar.jpg', '13027867015', '1', '0', '1749178389', '111.121.75.27', '1', '{\"layout\":\"classic\",\"dark\":false,\"theme_color\":\"#0C819F\"}', 'fe35ca37-1390-4048-bb01-73dce3dfba9c', 'normal', '1696231860', '1749192822');
+INSERT INTO `yun_admin` VALUES ('1', 'admin', '超级管理员', '73a8b1a53f8d7d3fdaeecb2a880d4f55', 'vWiJ', '/assets/img/avatar.jpg', '13027867015', null, '1', '0', '1749436422', '1.204.113.137', '1', '{\"layout\":\"classic\",\"dark\":false,\"theme_color\":\"#0C819F\"}', 'b75afb17-7514-481d-abbe-c6f4376a398d', 'normal', '1696231860', '1749436422');
+INSERT INTO `yun_admin` VALUES ('2', 'mc1h8vs9u4pi-laocheng', '张三', 'a6c3aafdc4fb4a7817ed746ee004db0e', 'peSr', '/assets/img/avatar.jpg', '13885858556', null, '3', '0', null, null, '0', null, '', 'normal', '1750222485', '1750224034');
 
 -- ----------------------------
 -- Table structure for yun_admin_log
@@ -98,7 +108,7 @@ CREATE TABLE `yun_admin_log` (
   `createtime` bigint DEFAULT NULL COMMENT '操作时间',
   PRIMARY KEY (`id`),
   KEY `name` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员日志表';
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员日志表';
 
 -- ----------------------------
 -- Table structure for yun_area
@@ -3898,9 +3908,49 @@ CREATE TABLE `yun_attachment` (
   `uploadtime` int unsigned DEFAULT NULL COMMENT '上传时间',
   `createtime` int unsigned DEFAULT NULL COMMENT '创建日期',
   `updatetime` int unsigned DEFAULT NULL COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  KEY `fullurl` (`fullurl`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='附件表';
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='附件表';
+
+-- ----------------------------
+-- Records of yun_attachment
+-- ----------------------------
+INSERT INTO `yun_attachment` VALUES ('1', 'fold-1', '1', null, 'storage/f8/bb72e2ce3e70f0a9f54e6c0b4a6c14.png', 'https://www.56q7.com/backend/ajax/readfile?sha1=63f54b1b89430f9611560d29dfa0850b61fa84b8', 'https://www.56q7.com/assets/img/fileicon/image.png', '1', 'image/png', '90', '90', 'logo.png', '20954', null, 'local_private', '63f54b1b89430f9611560d29dfa0850b61fa84b8', '0', '1696236775', '1696236775', '1696236775');
+INSERT INTO `yun_attachment` VALUES ('3', null, null, null, 'public/upload/04/006b4d962004e3fcae34a5567b81de.jpeg', 'https://www.56q7.com/upload/04/006b4d962004e3fcae34a5567b81de.jpeg', 'https://www.56q7.com/upload/04/006b4d962004e3fcae34a5567b81de.jpeg', '1', 'image/jpeg', '132', '132', 'cYxBJpOAkWGU04006b4d962004e3fcae34a5567b81de.jpeg', '4154', null, 'local_public', '3cf3bf58bf53ec35a067c3a112204c039dfb22f6', '0', '1696900198', '1696900198', '1696900198');
+INSERT INTO `yun_attachment` VALUES ('4', null, null, null, 'public/upload/74/bdfdbc00007bc5a1e3c60325aa899a.jpeg', 'https://www.56q7.com/upload/74/bdfdbc00007bc5a1e3c60325aa899a.jpeg', 'https://www.56q7.com/upload/74/bdfdbc00007bc5a1e3c60325aa899a.jpeg', '1', 'image/jpeg', '132', '132', 'rCMQcDouIhTW74bdfdbc00007bc5a1e3c60325aa899a.jpeg', '4154', null, 'local_public', 'b9e6c398d90d95ac19117589213ca6bea57d5e92', '0', '1696901417', '1696901417', '1696901417');
+INSERT INTO `yun_attachment` VALUES ('5', null, null, null, 'public/upload/f3/129ad53952e705bdb9a14913ed012e.jpeg', 'https://www.56q7.com/upload/f3/129ad53952e705bdb9a14913ed012e.jpeg', 'https://www.56q7.com/upload/f3/129ad53952e705bdb9a14913ed012e.jpeg', '1', 'image/jpeg', '132', '132', 'clYDc9TNjucxf3129ad53952e705bdb9a14913ed012e.jpeg', '4154', null, 'local_public', 'c4c4d856f95b8fa1b229b88e601c87c94677b83b', '0', '1696903598', '1696903598', '1696903598');
+INSERT INTO `yun_attachment` VALUES ('6', null, null, null, 'public/upload/69/ef04d7ed35b59cc0aff59a1020547f.jpeg', 'https://www.56q7.com/upload/69/ef04d7ed35b59cc0aff59a1020547f.jpeg', 'https://www.56q7.com/upload/69/ef04d7ed35b59cc0aff59a1020547f.jpeg', '1', 'image/jpeg', '132', '132', 'zhMVAGJnhI2G69ef04d7ed35b59cc0aff59a1020547f.jpeg', '4154', null, 'local_public', '03152273519d425bc3b59dc1263bcdaa9ac8a570', '0', '1696903896', '1696903896', '1696903896');
+INSERT INTO `yun_attachment` VALUES ('7', null, null, null, 'public/upload/be/0847a1fffd1300bddf157d00369f50.jpeg', 'https://www.56q7.com/upload/be/0847a1fffd1300bddf157d00369f50.jpeg', 'https://www.56q7.com/upload/be/0847a1fffd1300bddf157d00369f50.jpeg', '1', 'image/jpeg', '132', '132', 'jFbIvGpdkxAPbe0847a1fffd1300bddf157d00369f50.jpeg', '4154', null, 'local_public', '218c8bae78b8ec267552d265846f93db4f7025ed', '0', '1696904124', '1696904124', '1696904124');
+INSERT INTO `yun_attachment` VALUES ('8', null, null, null, 'public/upload/3e/23462d0bf2ebdb4565ebb6906f920f.jpeg', 'https://www.56q7.com/upload/3e/23462d0bf2ebdb4565ebb6906f920f.jpeg', 'https://www.56q7.com/upload/3e/23462d0bf2ebdb4565ebb6906f920f.jpeg', '1', 'image/jpeg', '132', '132', 'LPtNAIibERjB3e23462d0bf2ebdb4565ebb6906f920f.jpeg', '4154', null, 'local_public', '79afd52a24df85f8c47e0b7ed7018c0fd6e58def', '0', '1696904307', '1696904307', '1696904307');
+INSERT INTO `yun_attachment` VALUES ('9', null, null, '5', 'public/upload/c2/0346b33a04a2a809a9054b99dda66d.jpeg', 'https://www.56q7.com/upload/c2/0346b33a04a2a809a9054b99dda66d.jpeg', 'https://www.56q7.com/upload/c2/0346b33a04a2a809a9054b99dda66d.jpeg', '1', 'image/jpeg', '132', '132', 'Mn1GSOnn2vfJc20346b33a04a2a809a9054b99dda66d.jpeg', '4154', null, 'local_public', 'd97bde8128c8d2b8ed5aea76d2f226e06db29152', '0', '1696907512', '1696907512', '1696907512');
+INSERT INTO `yun_attachment` VALUES ('10', null, null, null, 'public/upload/b2/0afd30f7ae5dbfbfae134beed838d2.jpeg', 'https://www.56q7.com/upload/b2/0afd30f7ae5dbfbfae134beed838d2.jpeg', 'https://www.56q7.com/upload/b2/0afd30f7ae5dbfbfae134beed838d2.jpeg', '1', 'image/jpeg', '132', '132', 'hEScQAU9dUa2b20afd30f7ae5dbfbfae134beed838d2.jpeg', '4154', null, 'local_public', 'cb65bd3d0fbe8c5b9b0b40bbc56fddd9f58ead14', '0', '1696909495', '1696909495', '1696909495');
+INSERT INTO `yun_attachment` VALUES ('11', null, null, '6', 'public/upload/20/326a5ed4f88223b8537c50e3661393.png', 'https://www.56q7.com/upload/20/326a5ed4f88223b8537c50e3661393.png', 'https://www.56q7.com/upload/20/326a5ed4f88223b8537c50e3661393.png', '1', 'image/png', '100', '100', 'SssXNXolb9ya20326a5ed4f88223b8537c50e3661393.png', '1939', null, 'local_public', '8e390cffbaf0be79f7c35e4bfb992db48bc9c0f6', '1', '1696918781', '1696918781', '1696918781');
+INSERT INTO `yun_attachment` VALUES ('12', 'fold-2', null, '6', 'public/upload/b6/4c7d2972c1f6ba320d6afcf9090040.jpg', 'https://www.56q7.com/upload/b6/4c7d2972c1f6ba320d6afcf9090040.jpg', 'https://www.56q7.com/upload/b6/4c7d2972c1f6ba320d6afcf9090040_thumb.jpg', '1', 'image/jpeg', '309', '550', 'QQP3cYHRBwIpb64c7d2972c1f6ba320d6afcf9090040.jpg', '22897', null, 'local_public', '8b5d038cd1e305be79569d5fcd5450aa3487a602', '4', '1696922441', '1696922441', '1696922441');
+INSERT INTO `yun_attachment` VALUES ('13', null, null, '6', 'public/upload/aa/4cb957e36333d260619841228a2b9a.txt', 'https://www.56q7.com/upload/aa/4cb957e36333d260619841228a2b9a.txt', 'https://www.56q7.com/assets/img/fileicon/txt.png', '0', null, null, null, 'J6zmVZwyiliuaa4cb957e36333d260619841228a2b9a.txt', '1774', null, 'local_public', '895e53e1ca66e5a25fe9789337712887f89c2fea', '1', '1696922506', '1696922506', '1696922506');
+INSERT INTO `yun_attachment` VALUES ('14', null, null, null, 'public/upload/cc/8cc8aa633328cdb72971b38ba30108.jpeg', 'https://www.56q7.com/upload/cc/8cc8aa633328cdb72971b38ba30108.jpeg', 'https://www.56q7.com/upload/cc/8cc8aa633328cdb72971b38ba30108.jpeg', '1', 'image/jpeg', '132', '132', 'FHhV1DQJ88o7cc8cc8aa633328cdb72971b38ba30108.jpeg', '4152', null, 'local_public', '98624a8a86829e37ab592fb3b6c5772794552c74', '1', '1696925246', '1696925246', '1696925246');
+INSERT INTO `yun_attachment` VALUES ('15', null, null, null, 'public/upload/78/776f966126bb6f704b16137335892c.jpeg', 'https://www.56q7.com/upload/78/776f966126bb6f704b16137335892c.jpeg', 'https://www.56q7.com/upload/78/776f966126bb6f704b16137335892c.jpeg', '1', 'image/jpeg', '132', '132', 'qkDuxKw57wP878776f966126bb6f704b16137335892c.jpeg', '4153', null, 'local_public', 'e03a6e98908ce5261f360e8fa45ebec7a9dd5bbf', '1', '1696925260', '1696925260', '1696925260');
+INSERT INTO `yun_attachment` VALUES ('16', null, null, null, 'public/upload/e2/0b11f4a676df094c490a172d54eb4e.jpeg', 'https://www.56q7.com/upload/e2/0b11f4a676df094c490a172d54eb4e.jpeg', 'https://www.56q7.com/upload/e2/0b11f4a676df094c490a172d54eb4e.jpeg', '1', 'image/jpeg', '132', '132', 'pmpZWSmAOJT2e20b11f4a676df094c490a172d54eb4e.jpeg', '4152', null, 'local_public', '9fe9ff518ee2fff178281dc96241ea2c4c6bb2a7', '1', '1696925340', '1696925340', '1696925340');
+INSERT INTO `yun_attachment` VALUES ('17', 'fold-2', '1', null, 'storage/b6/4c7d2972c1f6ba320d6afcf9090040.jpg', 'https://www.56q7.com/laocheng/ajax/readfile?sha1=8b5d038cd1e305be79569d5fcd5450aa3487a602', 'https://www.56q7.com/assets/img/fileicon/image.png', '1', 'image/jpeg', '309', '550', '550.jpg', '22897', null, 'local_private', '8b5d038cd1e305be79569d5fcd5450aa3487a602', '1', '1697444393', '1697444393', '1697444393');
+INSERT INTO `yun_attachment` VALUES ('18', 'fold-2', '1', null, 'public/upload/02/1ebdf062f0f388bbcbd005bd5f5eea.jpg', 'https://www.56q7.com/upload/02/1ebdf062f0f388bbcbd005bd5f5eea.jpg', 'https://www.56q7.com/upload/02/1ebdf062f0f388bbcbd005bd5f5eea.jpg', '1', 'image/jpeg', '258', '258', 'qrcode_for_gh_2be9c9913e74_258.jpg', '27912', null, 'local_public', 'b8336394a806358bcc9d858811e1ca50136b71a1', '4', '1697445975', '1697445975', '1697445975');
+INSERT INTO `yun_attachment` VALUES ('19', 'fold-2', '1', null, 'public/upload/cd/92eeb55ac45ae814c4dffdf293e839.jpg', 'https://www.56q7.com/upload/cd/92eeb55ac45ae814c4dffdf293e839.jpg', 'https://www.56q7.com/upload/cd/92eeb55ac45ae814c4dffdf293e839_thumb.jpg', '1', 'image/jpeg', '1080', '2376', '微信图片_20220726114807.jpg', '629854', null, 'local_public', '4e8b95ce81de53f91a45411d9cdee0875f294b10', '4', '1697446078', '1697446078', '1697446078');
+INSERT INTO `yun_attachment` VALUES ('20', null, null, null, 'public/upload/28/7aa90bec66e0ab6f08c79486b90f8d.jpeg', 'https://www.56q7.com/upload/28/7aa90bec66e0ab6f08c79486b90f8d.jpeg', 'https://www.56q7.com/upload/28/7aa90bec66e0ab6f08c79486b90f8d.jpeg', '1', 'image/jpeg', '132', '132', 'XqpzOZia1rMy287aa90bec66e0ab6f08c79486b90f8d.jpeg', '4153', null, 'local_public', 'c86863dd885ace8de21398c803cf4684fa418a84', '4', '1697597889', '1697597889', '1697597889');
+INSERT INTO `yun_attachment` VALUES ('21', null, null, null, 'public/upload/c4/b6093254d07f6487edf3a7ed45f713.jpg', 'https://www.56q7.com/upload/c4/b6093254d07f6487edf3a7ed45f713.jpg', 'https://www.56q7.com/upload/c4/b6093254d07f6487edf3a7ed45f713_thumb.jpg', '1', 'image/jpeg', '325', '572', '微信截图_20231211124448.jpg', '108328', null, 'local_public', '5c2b21b1f0150fa1252b9f9b22192a6dd4652956', '5', '1711426305', '1711426305', '1711426305');
+INSERT INTO `yun_attachment` VALUES ('22', null, null, null, 'public/upload/21/c4ea94eed9f4056dcc54fd52413bdd.jpg', 'https://www.56q7.com/upload/21/c4ea94eed9f4056dcc54fd52413bdd.jpg', 'https://www.56q7.com/upload/21/c4ea94eed9f4056dcc54fd52413bdd_thumb.jpg', '1', 'image/jpeg', '477', '460', '微信截图_20231211124422.jpg', '24472', null, 'local_public', 'e291088613692e512e9d0debf0227b1a2788fad5', '5', '1711427324', '1711427324', '1711427324');
+INSERT INTO `yun_attachment` VALUES ('76', '', '1', null, 'public/upload/20241102/544c719370f31b1a9a6e418b43888c58.jpg', 'https://www.56q7.com/upload/20241102/544c719370f31b1a9a6e418b43888c58.jpg', 'https://www.56q7.com/upload/20241102/544c719370f31b1a9a6e418b43888c58_thumb.jpg', '1', 'image/jpeg', '731', '1350', '71424962e8f697f2afe11ad6eed443.jpg', '69148', null, 'local_public', 'c7c4aeb4b478a909787ccf8689e7e2893c39d649', '5', '1730532731', '1730532731', '1730532731');
+INSERT INTO `yun_attachment` VALUES ('77', '', '1', null, 'public/upload/20241102/f3ec1087ed836c5d0c55be4e39d3a41d.png', 'https://www.56q7.com/upload/20241102/f3ec1087ed836c5d0c55be4e39d3a41d.png', 'https://www.56q7.com/upload/20241102/f3ec1087ed836c5d0c55be4e39d3a41d.png', '1', 'image/png', '128', '128', 'c0a4d4d2adf5c5fb252bc4c36000ab.png', '4952', null, 'local_public', 'f1fa5221eacdfff1c7871ed7a6d0691d1b9540c0', '5', '1730532735', '1730532735', '1730532735');
+INSERT INTO `yun_attachment` VALUES ('79', '', '1', null, 'public/upload/20241104/d72396f9d8cd25b64cf6a79db2fb8772.jpg', 'https://www.56q7.com/upload/20241104/d72396f9d8cd25b64cf6a79db2fb8772.jpg', 'https://www.56q7.com/upload/20241104/d72396f9d8cd25b64cf6a79db2fb8772_thumb.jpg', '1', 'image/jpeg', '1920', '1080', '微信图片_20241104091729.jpg', '225385', null, 'local_public', '95d779f811de9030687a3d100e2a61f163594ae5', '5', '1730683232', '1730683232', '1730683232');
+INSERT INTO `yun_attachment` VALUES ('80', '', '1', null, 'public/upload/20241104/b30a88d1c699b70a5d3b744e992782b1.jpg', 'https://www.56q7.com/upload/20241104/b30a88d1c699b70a5d3b744e992782b1.jpg', 'https://www.56q7.com/upload/20241104/b30a88d1c699b70a5d3b744e992782b1_thumb.jpg', '1', 'image/jpeg', '800', '600', '15654061163872480.jpg', '129475', null, 'local_public', '4fd3134065119ea12337e1a148d3dc8c6c721947', '5', '1730683242', '1730683242', '1730683242');
+INSERT INTO `yun_attachment` VALUES ('81', null, null, null, 'public/upload/20241104/3ae6c2adc98f2c37ed24c3e42a09a2a6.jpeg', 'https://www.56q7.com/upload/20241104/3ae6c2adc98f2c37ed24c3e42a09a2a6.jpeg', 'https://www.56q7.com/upload/20241104/3ae6c2adc98f2c37ed24c3e42a09a2a6.jpeg', '1', 'image/jpeg', '132', '132', 'aaWOeQVthPXhf90151ed86f2f9f634a30623ccd50b70.jpeg', '4154', null, 'local_public', '15d66342bfc1b8f46b0d03e7207f1527c1bbcc00', '5', '1730705295', '1730705295', '1730705295');
+INSERT INTO `yun_attachment` VALUES ('82', null, null, null, 'public/upload/20241104/80e0c0a0e6b1814cbab4f47fe5cfc059.jpeg', 'https://www.56q7.com/upload/20241104/80e0c0a0e6b1814cbab4f47fe5cfc059.jpeg', 'https://www.56q7.com/upload/20241104/80e0c0a0e6b1814cbab4f47fe5cfc059.jpeg', '1', 'image/jpeg', '132', '132', '423EQz6R0Z1sbbea6582b502839d28926b86e3f4cd74.jpeg', '4153', null, 'local_public', '10aa9b4086fd86cef81ead7d327c6e211307ce35', '5', '1730706229', '1730706229', '1730706229');
+INSERT INTO `yun_attachment` VALUES ('83', null, null, null, 'public/upload/20241104/c68d73e651707dbe668f7bd42dcc28ba.jpeg', 'https://www.56q7.com/upload/20241104/c68d73e651707dbe668f7bd42dcc28ba.jpeg', 'https://www.56q7.com/upload/20241104/c68d73e651707dbe668f7bd42dcc28ba.jpeg', '1', 'image/jpeg', '132', '132', 'zj2jAljPmU85f3f1cdece3d2a892a0acf2819def3e7a.jpeg', '4154', null, 'local_public', '3b0341ab61a9a46795d9768e7f6dafaab57ed5df', '5', '1730706323', '1730706323', '1730706323');
+INSERT INTO `yun_attachment` VALUES ('84', null, null, '10', 'public/upload/20241105/ef32523302664e691a0010d79060a295.png', 'https://www.56q7.com/upload/20241105/ef32523302664e691a0010d79060a295.png', 'https://www.56q7.com/upload/20241105/ef32523302664e691a0010d79060a295_thumb.png', '1', 'image/png', '1920', '1080', 'aajw05ol4Jq5e2cce60ff8decc2eddcb14805cd9d1f8.png', '114727', null, 'local_public', '2b86f35e5ce117cb53da4984fc652e211afcbb7b', '5', '1730776155', '1730776155', '1730776155');
+INSERT INTO `yun_attachment` VALUES ('85', null, null, null, 'public/upload/20241107/2d633dfac598f6db49c1f9ef30d18981.jpeg', 'https://www.56q7.com/upload/20241107/2d633dfac598f6db49c1f9ef30d18981.jpeg', 'https://www.56q7.com/upload/20241107/2d633dfac598f6db49c1f9ef30d18981.jpeg', '1', 'image/jpeg', '132', '132', 'dZMJDHBpb5Tp1c099217229e0c7b536d32d60e3a76d2.jpeg', '4154', null, 'local_public', 'c977d47f8714a6286c7f5f20e2469de3bfa55ab2', '5', '1730947179', '1730947179', '1730947179');
+INSERT INTO `yun_attachment` VALUES ('86', null, null, '10', 'public/upload/20241107/eccd9001c64e328c0997c6ea901fafa2.jpg', 'https://www.56q7.com/upload/20241107/eccd9001c64e328c0997c6ea901fafa2.jpg', 'https://www.56q7.com/upload/20241107/eccd9001c64e328c0997c6ea901fafa2.jpg', '1', 'image/jpeg', '132', '74', 'ntbMcc4dM4hX10debbb631dc30e0d259206ac0ed30f8.jpg', '4244', null, 'local_public', '2dbb4f38641e32e1d723d5c52e42daf8597bb81e', '5', '1730950883', '1730950883', '1730950883');
+INSERT INTO `yun_attachment` VALUES ('87', null, null, '10', 'public/upload/20241107/82771c4630a0a4b538b17efb8a27e75e.jpeg', 'https://www.56q7.com/upload/20241107/82771c4630a0a4b538b17efb8a27e75e.jpeg', 'https://www.56q7.com/upload/20241107/82771c4630a0a4b538b17efb8a27e75e.jpeg', '1', 'image/jpeg', '132', '132', '4RJlNBQ07pJQe5e634a88d3b7348b7415b1eab2c8d23.jpeg', '4154', null, 'local_public', '94d6c2c25323dc03c8e0c87c9fc02f2abf67f556', '5', '1730952242', '1730952242', '1730952242');
+INSERT INTO `yun_attachment` VALUES ('88', null, null, '10', 'public/upload/20241107/7179a34d66b72190ab91da57bedf47cd.jpeg', 'https://www.56q7.com/upload/20241107/7179a34d66b72190ab91da57bedf47cd.jpeg', 'https://www.56q7.com/upload/20241107/7179a34d66b72190ab91da57bedf47cd.jpeg', '1', 'image/jpeg', '132', '132', '9g924zsPPnHCf914214735b237fdb49cb3811959b95f.jpeg', '4154', null, 'local_public', 'dcd486d0f1dee2e203cbd3537f52e79b9284d2da', '5', '1730952322', '1730952322', '1730952322');
+INSERT INTO `yun_attachment` VALUES ('89', null, null, '10', 'public/upload/20241107/1602e7c5928bb77ec33ff7a1e2f9aad7.png', 'https://www.56q7.com/upload/20241107/1602e7c5928bb77ec33ff7a1e2f9aad7.png', 'https://www.56q7.com/upload/20241107/1602e7c5928bb77ec33ff7a1e2f9aad7_thumb.png', '1', 'image/png', '1344', '756', 'GdxrXofAV2Sr288c9ad29e514112374e3ec65a451033.png', '1093704', null, 'local_public', '854217abc815cda59b84db0ca1c601a904691aa7', '5', '1730961278', '1730961278', '1730961278');
+INSERT INTO `yun_attachment` VALUES ('90', null, null, '10', 'public/upload/20241107/963d10d702162aadaf1e4feab2a55f39.jpg', 'https://www.56q7.com/upload/20241107/963d10d702162aadaf1e4feab2a55f39.jpg', 'https://www.56q7.com/upload/20241107/963d10d702162aadaf1e4feab2a55f39_thumb.jpg', '1', 'image/jpeg', '2048', '1536', 'ualT9fPc4wzW79a453990e50cbfb0956d2bf634a97f7.jpg', '408038', null, 'local_public', '3757de76ff5eb0e3f29aa3e67f3c544130db9ac6', '5', '1730961788', '1730961788', '1730961788');
+INSERT INTO `yun_attachment` VALUES ('91', null, null, null, 'public/upload/20241108/ebbf11b235916f3fe29704eef1f6c52a.png', 'https://www.56q7.com/upload/20241108/ebbf11b235916f3fe29704eef1f6c52a.png', 'https://www.56q7.com/upload/20241108/ebbf11b235916f3fe29704eef1f6c52a_thumb.png', '1', 'image/png', '400', '400', 'th0OH1S3APHg9c878cda1e31a5b1e2c8daaeb6195f46.png', '33357', null, 'local_public', 'cc7f4942e907b1014582127a44994daa5c75136c', '5', '1731036667', '1731036667', '1731036667');
+INSERT INTO `yun_attachment` VALUES ('92', null, null, null, 'public/upload/20241108/b901b75c7c9c6b750f1f8041872ea3bc.jpeg', 'https://www.56q7.com/upload/20241108/b901b75c7c9c6b750f1f8041872ea3bc.jpeg', 'https://www.56q7.com/upload/20241108/b901b75c7c9c6b750f1f8041872ea3bc.jpeg', '1', 'image/jpeg', '132', '132', 'mhdmxOXUXw7eac8884524dabeef475fac98b437ff740.jpeg', '4153', null, 'local_public', '0fd48468ea70421b36049f67b4215954e233d62c', '5', '1731038327', '1731038327', '1731038327');
 
 -- ----------------------------
 -- Table structure for yun_auth_group
@@ -3937,7 +3987,7 @@ CREATE TABLE `yun_auth_rule` (
   `action` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '规则名称',
   `icon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '图标',
-  `menutype` enum('addtabs','blank','dialog') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '菜单类型',
+  `menutype` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '菜单类型',
   `ismenu` tinyint unsigned DEFAULT '0' COMMENT '是否为菜单',
   `isplatform` tinyint(1) DEFAULT '0',
   `extend` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '扩展属性',
@@ -3954,19 +4004,19 @@ CREATE TABLE `yun_auth_rule` (
 -- ----------------------------
 -- Records of yun_auth_rule
 -- ----------------------------
-INSERT INTO `yun_auth_rule` VALUES ('1', '0', 'app\\admin\\controller\\Dashboard', 'index', '控制台', 'fa fa-dashboard', 'addtabs', '1', '0', null, '999', null, 'normal', '1491635035', '1710065106');
-INSERT INTO `yun_auth_rule` VALUES ('2', '0', null, null, '常规管理', 'fa fa-cogs', 'addtabs', '1', '0', null, '997', null, 'normal', '1491635035', '1491635035');
-INSERT INTO `yun_auth_rule` VALUES ('3', '2', 'app\\admin\\controller\\general\\Config', 'index', '系统配置', 'fa fa-cog', 'addtabs', '1', '0', null, '996', null, 'normal', '1491635035', '1491635035');
-INSERT INTO `yun_auth_rule` VALUES ('4', '2', 'app\\admin\\controller\\general\\Category', 'index', '分类管理', 'fa fa-leaf', 'addtabs', '1', '0', null, '995', null, 'normal', '1491635035', '1491635035');
-INSERT INTO `yun_auth_rule` VALUES ('5', '2', 'app\\admin\\controller\\general\\Attachment', 'index', '附件管理', 'fa fa-file-image-o', 'addtabs', '1', '0', null, '994', null, 'normal', '1491635035', '1491635035');
-INSERT INTO `yun_auth_rule` VALUES ('6', '2', 'app\\admin\\controller\\general\\Profile', 'index', '个人资料', 'fa fa-user', 'addtabs', '1', '0', null, '993', null, 'normal', '1491635035', '1491635035');
-INSERT INTO `yun_auth_rule` VALUES ('7', '0', null, null, '权限管理', 'fa fa-group', 'addtabs', '1', '0', null, '992', null, 'normal', '1491635035', '1491635035');
-INSERT INTO `yun_auth_rule` VALUES ('8', '7', 'app\\admin\\controller\\auth\\Rule', 'index', '菜单规则', 'fa fa-bars', 'addtabs', '1', '0', null, '998', null, 'normal', '1491635035', '1491635035');
-INSERT INTO `yun_auth_rule` VALUES ('9', '7', 'app\\admin\\controller\\auth\\Group', 'index', '角色组', 'fa fa-th-large', 'addtabs', '1', '0', null, '990', null, 'normal', '1491635035', '1491635035');
-INSERT INTO `yun_auth_rule` VALUES ('10', '7', 'app\\admin\\controller\\auth\\Admin', 'index', '管理员管理', 'fa fa-user', 'addtabs', '1', '0', null, '989', null, 'normal', '1491635035', '1491635035');
-INSERT INTO `yun_auth_rule` VALUES ('11', '7', 'app\\admin\\controller\\auth\\Adminlog', 'index', '管理员日志', 'fa fa-list-alt', 'addtabs', '1', '0', null, '988', null, 'normal', '1491635035', '1690879080');
-INSERT INTO `yun_auth_rule` VALUES ('12', '0', null, null, '账户管理', 'fa fa-user', 'addtabs', '1', '0', null, '980', null, 'normal', '1491634980', '1740473766');
-INSERT INTO `yun_auth_rule` VALUES ('13', '12', 'app\\admin\\controller\\user\\Index', 'index', '会员列表', 'fa fa-address-card', 'addtabs', '1', '0', null, '906', null, 'normal', '1491635035', '1491635035');
+INSERT INTO `yun_auth_rule` VALUES ('1', '0', 'app\\admin\\controller\\Dashboard', 'index', '控制台', 'fa fa-dashboard', 'tab', '1', '0', null, '999', null, 'normal', '1491635035', '1710065106');
+INSERT INTO `yun_auth_rule` VALUES ('2', '0', null, null, '常规管理', 'fa fa-cogs', 'tab', '1', '0', null, '997', null, 'normal', '1491635035', '1491635035');
+INSERT INTO `yun_auth_rule` VALUES ('3', '2', 'app\\admin\\controller\\general\\Config', 'index', '系统配置', 'fa fa-cog', 'tab', '1', '0', null, '996', null, 'normal', '1491635035', '1491635035');
+INSERT INTO `yun_auth_rule` VALUES ('4', '2', 'app\\admin\\controller\\general\\Category', 'index', '分类管理', 'fa fa-leaf', 'tab', '1', '0', null, '995', null, 'normal', '1491635035', '1491635035');
+INSERT INTO `yun_auth_rule` VALUES ('5', '2', 'app\\admin\\controller\\general\\Attachment', 'index', '附件管理', 'fa fa-file-image-o', 'tab', '1', '0', null, '994', null, 'normal', '1491635035', '1491635035');
+INSERT INTO `yun_auth_rule` VALUES ('6', '2', 'app\\admin\\controller\\general\\Profile', 'index', '个人资料', 'fa fa-user', 'tab', '1', '0', null, '993', null, 'normal', '1491635035', '1491635035');
+INSERT INTO `yun_auth_rule` VALUES ('7', '0', null, null, '权限管理', 'fa fa-group', 'tab', '1', '0', null, '992', null, 'normal', '1491635035', '1491635035');
+INSERT INTO `yun_auth_rule` VALUES ('8', '7', 'app\\admin\\controller\\auth\\Rule', 'index', '菜单规则', 'fa fa-bars', 'tab', '1', '0', null, '998', null, 'normal', '1491635035', '1491635035');
+INSERT INTO `yun_auth_rule` VALUES ('9', '7', 'app\\admin\\controller\\auth\\Group', 'index', '角色组', 'fa fa-th-large', 'tab', '1', '0', null, '990', null, 'normal', '1491635035', '1491635035');
+INSERT INTO `yun_auth_rule` VALUES ('10', '7', 'app\\admin\\controller\\auth\\Admin', 'index', '管理员管理', 'fa fa-user', 'tab', '1', '0', null, '989', null, 'normal', '1491635035', '1491635035');
+INSERT INTO `yun_auth_rule` VALUES ('11', '7', 'app\\admin\\controller\\auth\\Adminlog', 'index', '管理员日志', 'fa fa-list-alt', 'tab', '1', '0', null, '988', null, 'normal', '1491635035', '1690879080');
+INSERT INTO `yun_auth_rule` VALUES ('12', '0', null, null, '账户管理', 'fa fa-user', 'tab', '1', '0', null, '980', null, 'normal', '1491634980', '1740473766');
+INSERT INTO `yun_auth_rule` VALUES ('13', '12', 'app\\admin\\controller\\user\\Index', 'index', '会员列表', 'fa fa-address-card', 'tab', '1', '0', null, '906', null, 'normal', '1491635035', '1491635035');
 INSERT INTO `yun_auth_rule` VALUES ('14', '3', 'app\\admin\\controller\\general\\Config', '[\"index\",\"add\",\"edit\",\"del\"]', '[\"查看\",\"添加\",\"编辑\",\"删除\"]', null, null, '0', '0', null, '979', null, null, '1491635035', '1491635035');
 INSERT INTO `yun_auth_rule` VALUES ('15', '5', 'app\\admin\\controller\\general\\Attachment', '[\"index\",\"add\",\"multi\",\"del\",\"setcate\"]', '[\"查看\",\"添加\",\"更新\",\"删除\",\"设置分类\"]', null, null, '0', '0', null, '978', null, null, '1491635035', '1491635035');
 INSERT INTO `yun_auth_rule` VALUES ('16', '8', 'app\\admin\\controller\\auth\\Rule', '[\"index\",\"add\",\"edit\",\"multi\",\"del\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\"]', null, null, '0', '0', null, '977', null, null, '1491635035', '1491635035');
@@ -3977,46 +4027,46 @@ INSERT INTO `yun_auth_rule` VALUES ('20', '4', 'app\\admin\\controller\\general\
 INSERT INTO `yun_auth_rule` VALUES ('21', '6', 'app\\admin\\controller\\general\\Profile', '[\"index\",\"update\"]', '[\"查看\",\"更新\"]', null, null, '0', '0', null, '972', null, null, '1491635035', '1491635035');
 INSERT INTO `yun_auth_rule` VALUES ('22', '11', 'app\\admin\\controller\\auth\\Adminlog', '[\"index\",\"del\",\"detail\"]', '[\"查看\",\"删除\",\"详情\"]', null, null, '0', '0', null, '970', null, null, '1690883964', '1690885832');
 INSERT INTO `yun_auth_rule` VALUES ('23', '13', 'app\\admin\\controller\\user\\Index', '[\"index\",\"multi\"]', '[\"查看\",\"编辑\"]', null, null, '0', '0', null, '905', null, null, '1690948968', '1737547214');
-INSERT INTO `yun_auth_rule` VALUES ('24', '0', null, null, '开发管理', 'fa fa-bug', 'addtabs', '1', '0', null, '987', null, 'normal', '1691023857', '1691023857');
-INSERT INTO `yun_auth_rule` VALUES ('25', '24', 'app\\admin\\controller\\Develop', 'crud', '一键crud', 'fa fa-codepen', 'addtabs', '1', '0', null, '967', null, 'normal', '1691025627', '1718157428');
-INSERT INTO `yun_auth_rule` VALUES ('26', '24', 'app\\admin\\controller\\Develop', 'queue', '任务队列', 'fa fa-list-ol', 'addtabs', '1', '0', null, '892', null, 'normal', '1692589366', '1692612046');
+INSERT INTO `yun_auth_rule` VALUES ('24', '0', null, null, '开发管理', 'fa fa-bug', 'tab', '1', '0', null, '987', null, 'normal', '1691023857', '1691023857');
+INSERT INTO `yun_auth_rule` VALUES ('25', '24', 'app\\admin\\controller\\Develop', 'crud', '一键crud', 'fa fa-codepen', 'tab', '1', '0', null, '967', null, 'normal', '1691025627', '1718157428');
+INSERT INTO `yun_auth_rule` VALUES ('26', '24', 'app\\admin\\controller\\Develop', 'queue', '任务队列', 'fa fa-list-ol', 'tab', '1', '0', null, '892', null, 'normal', '1692589366', '1692612046');
 INSERT INTO `yun_auth_rule` VALUES ('27', '25', 'app\\admin\\controller\\Develop', '[\"crud\",\"clear\"]', '[\"生成\",\"清除\"]', null, null, '0', '0', null, '891', null, null, '1694399955', '1694400040');
 INSERT INTO `yun_auth_rule` VALUES ('28', '26', 'app\\admin\\controller\\Develop', '[\"delQueue\",\"addQueue\",\"queueStatus\"]', '[\"删除任务\",\"添加任务\",\"修改状态\"]', null, null, '0', '0', null, '891', null, null, '1694400178', '1694400208');
-INSERT INTO `yun_auth_rule` VALUES ('29', '24', 'app\\admin\\controller\\Addons', 'index', '应用扩展', 'fa fa-puzzle-piece', 'addtabs', '1', '0', null, '890', null, 'normal', '1694508078', '1694592851');
-INSERT INTO `yun_auth_rule` VALUES ('30', '0', null, null, '集团平台', 'fa fa-home', 'addtabs', '1', '1', null, '969', null, 'normal', '1710127075', '1733294211');
-INSERT INTO `yun_auth_rule` VALUES ('31', '0', null, null, '泊车平台', 'fa fa-product-hunt', 'addtabs', '1', '1', null, '968', null, 'normal', '1710127123', '1710127123');
-INSERT INTO `yun_auth_rule` VALUES ('32', '12', 'app\\admin\\controller\\manage\\Property', 'index', '集团账号', 'fa fa-h-square', 'addtabs', '1', '0', null, '968', null, 'normal', '1710129599', '1733294228');
+INSERT INTO `yun_auth_rule` VALUES ('29', '24', 'app\\admin\\controller\\Addons', 'index', '应用扩展', 'fa fa-puzzle-piece', 'tab', '1', '0', null, '890', null, 'normal', '1694508078', '1694592851');
+INSERT INTO `yun_auth_rule` VALUES ('30', '0', null, null, '集团平台', 'fa fa-home', 'tab', '1', '1', null, '969', null, 'normal', '1710127075', '1733294211');
+INSERT INTO `yun_auth_rule` VALUES ('31', '0', null, null, '泊车平台', 'fa fa-product-hunt', 'tab', '1', '1', null, '968', null, 'normal', '1710127123', '1710127123');
+INSERT INTO `yun_auth_rule` VALUES ('32', '12', 'app\\admin\\controller\\manage\\Property', 'index', '集团账号', 'fa fa-h-square', 'tab', '1', '0', null, '968', null, 'normal', '1710129599', '1733294228');
 INSERT INTO `yun_auth_rule` VALUES ('33', '32', 'app\\admin\\controller\\manage\\Property', '[\"index\",\"add\",\"edit\",\"multi\",\"del\",\"recyclebin\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\",\"回收站\"]', null, null, '0', '0', null, '967', null, null, '1710129711', '1710129711');
-INSERT INTO `yun_auth_rule` VALUES ('34', '12', 'app\\admin\\controller\\manage\\Parking', 'index', '停车场信息', 'fa fa-vimeo', 'addtabs', '1', '0', null, '966', null, 'normal', '1710134609', '1710134609');
+INSERT INTO `yun_auth_rule` VALUES ('34', '12', 'app\\admin\\controller\\manage\\Parking', 'index', '停车场信息', 'fa fa-vimeo', 'tab', '1', '0', null, '966', null, 'normal', '1710134609', '1710134609');
 INSERT INTO `yun_auth_rule` VALUES ('35', '34', 'app\\admin\\controller\\manage\\Parking', '[\"index\",\"add\",\"edit\",\"multi\",\"del\",\"bind\",\"recyclebin\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\",\"进入\",\"回收站\"]', null, null, '0', '0', null, '965', null, null, '1710134648', '1720164427');
-INSERT INTO `yun_auth_rule` VALUES ('36', '31', 'app\\parking\\controller\\Dashboard', 'index', '车场首页', 'fa fa-home', 'addtabs', '1', '0', null, '965', null, 'normal', '1710233549', '1720850732');
-INSERT INTO `yun_auth_rule` VALUES ('37', '31', null, null, '车辆管理', 'fa fa-car', 'addtabs', '1', '0', null, '963', null, 'normal', '1710233585', '1724896972');
-INSERT INTO `yun_auth_rule` VALUES ('38', '30', 'app\\admin\\controller\\property\\Index', 'index', '首页', 'fa fa-home', 'addtabs', '1', '0', null, '962', null, 'normal', '1710290978', '1710290978');
-INSERT INTO `yun_auth_rule` VALUES ('39', '46', 'app\\parking\\controller\\Rules', 'index', '停车规则设置', 'fa fa-envira', 'addtabs', '1', '0', null, '961', null, 'normal', '1710291110', '1710825822');
-INSERT INTO `yun_auth_rule` VALUES ('40', '37', 'app\\parking\\controller\\Cars', 'index', '车辆管理', 'fa fa-list', 'addtabs', '1', '0', null, '960', null, 'normal', '1710291145', '1710469329');
-INSERT INTO `yun_auth_rule` VALUES ('41', '46', 'app\\parking\\controller\\Mode', 'index', '收费规则设置', 'fa fa-cog', 'addtabs', '1', '0', null, '962', null, 'normal', '1710291204', '1710825815');
-INSERT INTO `yun_auth_rule` VALUES ('42', '45', 'app\\parking\\controller\\Records', 'instock', '在库车辆', 'fa fa-universal-access', 'addtabs', '1', '0', null, '958', null, 'normal', '1710291378', '1711097463');
-INSERT INTO `yun_auth_rule` VALUES ('44', '37', 'app\\parking\\controller\\Black', 'index', '黑名单管理', 'fa fa-github-alt', 'addtabs', '1', '0', null, '934', null, 'normal', '1710292003', '1717725083');
-INSERT INTO `yun_auth_rule` VALUES ('45', '31', null, null, '停车记录', 'fa fa-camera', 'addtabs', '1', '0', null, '964', null, 'normal', '1710293091', '1710902551');
-INSERT INTO `yun_auth_rule` VALUES ('46', '31', null, null, '系统管理', 'fa fa-cogs', 'addtabs', '1', '0', null, '936', null, 'normal', '1710293143', '1717571000');
-INSERT INTO `yun_auth_rule` VALUES ('47', '46', 'app\\parking\\controller\\Setting', 'index', '停车场设置', 'fa fa-address-book-o', 'addtabs', '1', '0', null, '963', null, 'normal', '1710293184', '1710825802');
-INSERT INTO `yun_auth_rule` VALUES ('48', '46', 'app\\parking\\controller\\Admin', 'index', '人员设置', 'fa fa-user', 'addtabs', '1', '0', null, '952', null, 'normal', '1710293925', '1727072596');
-INSERT INTO `yun_auth_rule` VALUES ('49', '45', 'app\\parking\\controller\\Records', 'index', '出入记录', 'fa fa-map-signs', 'addtabs', '1', '0', null, '951', null, 'normal', '1710902637', '1710903529');
-INSERT INTO `yun_auth_rule` VALUES ('50', '46', 'app\\parking\\controller\\Barrier', 'index', '通道设置', 'fa fa-share-alt-square', 'addtabs', '1', '0', null, '960', null, 'normal', '1710927288', '1721012617');
-INSERT INTO `yun_auth_rule` VALUES ('51', '45', 'app\\parking\\controller\\Records', 'exceplogs', '限行记录', 'fa fa-exclamation-circle', 'addtabs', '1', '0', null, '949', null, 'normal', '1710989161', '1722054008');
+INSERT INTO `yun_auth_rule` VALUES ('36', '31', 'app\\parking\\controller\\Dashboard', 'index', '车场首页', 'fa fa-home', 'tab', '1', '0', null, '965', null, 'normal', '1710233549', '1720850732');
+INSERT INTO `yun_auth_rule` VALUES ('37', '31', null, null, '车辆管理', 'fa fa-car', 'tab', '1', '0', null, '963', null, 'normal', '1710233585', '1724896972');
+INSERT INTO `yun_auth_rule` VALUES ('38', '30', 'app\\admin\\controller\\property\\Index', 'index', '首页', 'fa fa-home', 'tab', '1', '0', null, '962', null, 'normal', '1710290978', '1710290978');
+INSERT INTO `yun_auth_rule` VALUES ('39', '46', 'app\\parking\\controller\\Rules', 'index', '停车规则设置', 'fa fa-envira', 'tab', '1', '0', null, '961', null, 'normal', '1710291110', '1710825822');
+INSERT INTO `yun_auth_rule` VALUES ('40', '37', 'app\\parking\\controller\\Cars', 'index', '车辆管理', 'fa fa-list', 'tab', '1', '0', null, '960', null, 'normal', '1710291145', '1710469329');
+INSERT INTO `yun_auth_rule` VALUES ('41', '46', 'app\\parking\\controller\\Mode', 'index', '收费规则设置', 'fa fa-cog', 'tab', '1', '0', null, '962', null, 'normal', '1710291204', '1710825815');
+INSERT INTO `yun_auth_rule` VALUES ('42', '45', 'app\\parking\\controller\\Records', 'instock', '在库车辆', 'fa fa-universal-access', 'tab', '1', '0', null, '958', null, 'normal', '1710291378', '1711097463');
+INSERT INTO `yun_auth_rule` VALUES ('44', '37', 'app\\parking\\controller\\Black', 'index', '黑名单管理', 'fa fa-github-alt', 'tab', '1', '0', null, '934', null, 'normal', '1710292003', '1717725083');
+INSERT INTO `yun_auth_rule` VALUES ('45', '31', null, null, '停车记录', 'fa fa-camera', 'tab', '1', '0', null, '964', null, 'normal', '1710293091', '1710902551');
+INSERT INTO `yun_auth_rule` VALUES ('46', '31', null, null, '系统管理', 'fa fa-cogs', 'tab', '1', '0', null, '936', null, 'normal', '1710293143', '1717571000');
+INSERT INTO `yun_auth_rule` VALUES ('47', '46', 'app\\parking\\controller\\Setting', 'index', '停车场设置', 'fa fa-address-book-o', 'tab', '1', '0', null, '963', null, 'normal', '1710293184', '1710825802');
+INSERT INTO `yun_auth_rule` VALUES ('48', '46', 'app\\parking\\controller\\Admin', 'index', '人员设置', 'fa fa-user', 'tab', '1', '0', null, '952', null, 'normal', '1710293925', '1727072596');
+INSERT INTO `yun_auth_rule` VALUES ('49', '45', 'app\\parking\\controller\\Records', 'index', '出入记录', 'fa fa-map-signs', 'tab', '1', '0', null, '951', null, 'normal', '1710902637', '1710903529');
+INSERT INTO `yun_auth_rule` VALUES ('50', '46', 'app\\parking\\controller\\Barrier', 'index', '通道设置', 'fa fa-share-alt-square', 'tab', '1', '0', null, '960', null, 'normal', '1710927288', '1721012617');
+INSERT INTO `yun_auth_rule` VALUES ('51', '45', 'app\\parking\\controller\\Records', 'exceplogs', '限行记录', 'fa fa-exclamation-circle', 'tab', '1', '0', null, '949', null, 'normal', '1710989161', '1722054008');
 INSERT INTO `yun_auth_rule` VALUES ('52', '42', 'app\\parking\\controller\\Records', '[\"instock\",\"add\",\"plExit\",\"importInstock\"]', '[\"查看\",\"出场\",\"批量出场\",\"批量导入\"]', null, null, '0', '0', null, '948', null, null, '1713316431', '1735358372');
 INSERT INTO `yun_auth_rule` VALUES ('53', '49', 'app\\parking\\controller\\Records', '[\"index\",\"add\",\"detail\",\"download\",\"pay\",\"edit\"]', '[\"查看\",\"出入场\",\"明细\",\"导出\",\"支付\",\"修改\"]', null, null, '0', '0', null, '947', null, null, '1713316667', '1723522379');
-INSERT INTO `yun_auth_rule` VALUES ('55', '31', null, null, '商家管理', 'fa fa-beer', 'addtabs', '1', '0', null, '955', null, 'normal', '1713318864', '1713344492');
-INSERT INTO `yun_auth_rule` VALUES ('56', '55', 'app\\parking\\controller\\Merchant', 'index', '商户列表', 'fa fa-list', 'addtabs', '1', '0', null, '944', null, 'normal', '1713319030', '1713319030');
-INSERT INTO `yun_auth_rule` VALUES ('57', '55', 'app\\parking\\controller\\MerchantCoupon', 'index', '停车券设置', 'fa fa-american-sign-language-interpreting', 'addtabs', '1', '0', null, '940', null, 'normal', '1713320869', '1722407464');
-INSERT INTO `yun_auth_rule` VALUES ('59', '55', 'app\\parking\\controller\\MerchantCouponList', 'index', '停车券', 'fa fa-cc', 'addtabs', '1', '0', null, '941', null, 'normal', '1713427498', '1722407451');
-INSERT INTO `yun_auth_rule` VALUES ('60', '37', 'app\\parking\\controller\\Apply', 'index', '车辆申请', 'fa fa-h-square', 'addtabs', '1', '0', null, '957', null, 'normal', '1716536391', '1724897011');
-INSERT INTO `yun_auth_rule` VALUES ('61', '0', 'app\\admin\\controller\\Plate', 'index', '车牌认证', 'fa fa-address-card-o', 'addtabs', '1', '0', null, '905', null, 'normal', '1717470297', '1740474337');
+INSERT INTO `yun_auth_rule` VALUES ('55', '31', null, null, '商家管理', 'fa fa-beer', 'tab', '1', '0', null, '955', null, 'normal', '1713318864', '1713344492');
+INSERT INTO `yun_auth_rule` VALUES ('56', '55', 'app\\parking\\controller\\Merchant', 'index', '商户列表', 'fa fa-list', 'tab', '1', '0', null, '944', null, 'normal', '1713319030', '1713319030');
+INSERT INTO `yun_auth_rule` VALUES ('57', '55', 'app\\parking\\controller\\MerchantCoupon', 'index', '停车券设置', 'fa fa-american-sign-language-interpreting', 'tab', '1', '0', null, '940', null, 'normal', '1713320869', '1722407464');
+INSERT INTO `yun_auth_rule` VALUES ('59', '55', 'app\\parking\\controller\\MerchantCouponList', 'index', '停车券', 'fa fa-cc', 'tab', '1', '0', null, '941', null, 'normal', '1713427498', '1722407451');
+INSERT INTO `yun_auth_rule` VALUES ('60', '37', 'app\\parking\\controller\\Apply', 'index', '车辆申请', 'fa fa-h-square', 'tab', '1', '0', null, '957', null, 'normal', '1716536391', '1724897011');
+INSERT INTO `yun_auth_rule` VALUES ('61', '0', 'app\\admin\\controller\\Plate', 'index', '车牌认证', 'fa fa-address-card-o', 'tab', '1', '0', null, '905', null, 'normal', '1717470297', '1740474337');
 INSERT INTO `yun_auth_rule` VALUES ('62', '61', 'app\\admin\\controller\\Plate', '[\"index\",\"auth\"]', '[\"查看\",\"认证\"]', null, null, '0', '0', null, '938', null, null, '1717470469', '1740547530');
-INSERT INTO `yun_auth_rule` VALUES ('63', '31', null, null, '财务管理', 'fa fa-shopping-bag', 'addtabs', '1', '0', null, '937', null, 'normal', '1717568891', '1717568891');
-INSERT INTO `yun_auth_rule` VALUES ('64', '63', 'app\\parking\\controller\\Invoice', 'index', '发票申领', 'fa fa-leaf', 'addtabs', '1', '0', null, '936', null, 'normal', '1717569034', '1717569701');
-INSERT INTO `yun_auth_rule` VALUES ('65', '37', 'app\\parking\\controller\\Qrcode', 'index', '二维码管理', 'fa fa-qrcode', 'addtabs', '1', '0', null, '935', null, 'normal', '1717725071', '1717725311');
-INSERT INTO `yun_auth_rule` VALUES ('66', '63', 'app\\parking\\controller\\Pay', 'index', '收入流水', 'fa fa-send', 'addtabs', '1', '0', null, '934', null, 'normal', '1719219177', '1719219223');
+INSERT INTO `yun_auth_rule` VALUES ('63', '31', null, null, '财务管理', 'fa fa-shopping-bag', 'tab', '1', '0', null, '937', null, 'normal', '1717568891', '1717568891');
+INSERT INTO `yun_auth_rule` VALUES ('64', '63', 'app\\parking\\controller\\Invoice', 'index', '发票申领', 'fa fa-leaf', 'tab', '1', '0', null, '936', null, 'normal', '1717569034', '1717569701');
+INSERT INTO `yun_auth_rule` VALUES ('65', '37', 'app\\parking\\controller\\Qrcode', 'index', '二维码管理', 'fa fa-qrcode', 'tab', '1', '0', null, '935', null, 'normal', '1717725071', '1717725311');
+INSERT INTO `yun_auth_rule` VALUES ('66', '63', 'app\\parking\\controller\\Pay', 'index', '收入流水', 'fa fa-send', 'tab', '1', '0', null, '934', null, 'normal', '1719219177', '1719219223');
 INSERT INTO `yun_auth_rule` VALUES ('67', '36', 'app\\parking\\controller\\Dashboard', '[\"index\",\"getQrcode\",\"pie\",\"bar\",\"line\",\"month\",\"merch\"]', '[\"查看\",\"二维码\",\"收益\",\"出入\",\"停车\",\"月租\",\"商户\"]', null, null, '0', '0', null, '933', null, null, '1719467779', '1748334580');
 INSERT INTO `yun_auth_rule` VALUES ('68', '51', 'app\\parking\\controller\\Records', '[\"exceplogs\"]', '[\"查看\"]', null, null, '0', '0', null, '932', null, null, '1719468452', '1719468452');
 INSERT INTO `yun_auth_rule` VALUES ('69', '40', 'app\\parking\\controller\\Cars', '[\"index\",\"add\",\"edit\",\"multi\",\"del\",\"occupat\",\"import\",\"download\",\"recyclebin\"]', '[\"查看\",\"添加\",\"编辑\",\"启禁\",\"删除\",\"多位多车\",\"导入\",\"下载\",\"回收站\"]', null, null, '0', '0', null, '897', null, null, '1733124070', '1749010580');
@@ -4033,38 +4083,40 @@ INSERT INTO `yun_auth_rule` VALUES ('79', '41', 'app\\parking\\controller\\Rules
 INSERT INTO `yun_auth_rule` VALUES ('80', '39', 'app\\parking\\controller\\Mode', '[\"index\",\"add\",\"edit\",\"multi\",\"del\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\"]', null, null, '0', '0', null, '920', null, null, '1719470605', '1719470605');
 INSERT INTO `yun_auth_rule` VALUES ('81', '50', 'app\\parking\\controller\\Barrier', '[\"index\",\"add\",\"edit\",\"multi\",\"del\",\"getControl\",\"online\",\"screen\",\"tjtc\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\",\"访问\",\"在线\",\"广告\",\"防拍车尾\"]', null, null, '0', '0', null, '919', null, null, '1719470746', '1724811304');
 INSERT INTO `yun_auth_rule` VALUES ('82', '48', 'app\\parking\\controller\\Admin', '[\"index\",\"add\",\"edit\",\"multi\",\"del\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\"]', null, null, '0', '0', null, '918', null, null, '1719470834', '1719470834');
-INSERT INTO `yun_auth_rule` VALUES ('83', '63', 'app\\parking\\controller\\Pay', 'settle', '结算账单', 'fa fa-calendar', 'addtabs', '1', '0', null, '917', null, 'normal', '1719542143', '1719542143');
+INSERT INTO `yun_auth_rule` VALUES ('83', '63', 'app\\parking\\controller\\Pay', 'settle', '结算账单', 'fa fa-calendar', 'tab', '1', '0', null, '917', null, 'normal', '1719542143', '1719542143');
 INSERT INTO `yun_auth_rule` VALUES ('84', '83', 'app\\parking\\controller\\Pay', '[\"settle\",\"downsettle\"]', '[\"查看\",\"下载\"]', null, null, '0', '0', null, '916', null, null, '1719542171', '1728375575');
-INSERT INTO `yun_auth_rule` VALUES ('85', '45', 'app\\parking\\controller\\Screen', 'index', '通道监控', 'fa fa-dashboard', 'addtabs', '1', '0', null, '915', null, 'normal', '1720748340', '1720748340');
+INSERT INTO `yun_auth_rule` VALUES ('85', '45', 'app\\parking\\controller\\Screen', 'index', '通道监控', 'fa fa-dashboard', 'tab', '1', '0', null, '915', null, 'normal', '1720748340', '1720748340');
 INSERT INTO `yun_auth_rule` VALUES ('86', '85', 'app\\parking\\controller\\Screen', '[\"index\",\"add\",\"open\",\"close\",\"photo\",\"trigger\"]', '[\"查看\",\"添加\",\"开闸\",\"关闸\",\"删除\",\"识别\"]', null, null, '0', '0', null, '914', null, null, '1720748406', '1749010537');
-INSERT INTO `yun_auth_rule` VALUES ('87', '46', 'app\\parking\\controller\\Sentrybox', 'index', '岗亭设置', 'fa fa-trello', 'addtabs', '1', '0', null, '959', null, 'normal', '1721012408', '1721012607');
+INSERT INTO `yun_auth_rule` VALUES ('87', '46', 'app\\parking\\controller\\Sentrybox', 'index', '岗亭设置', 'fa fa-trello', 'tab', '1', '0', null, '959', null, 'normal', '1721012408', '1721012607');
 INSERT INTO `yun_auth_rule` VALUES ('88', '87', 'app\\parking\\controller\\Sentrybox', '[\"index\",\"add\",\"edit\",\"multi\",\"del\",\"downurl\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\",\"下载\"]', null, null, '0', '0', null, '912', null, null, '1721012475', '1726639564');
-INSERT INTO `yun_auth_rule` VALUES ('89', '101', 'app\\admin\\controller\\finance\\Invoice', 'index', '发票申领', 'fa fa-leaf', 'addtabs', '1', '0', null, '936', null, 'normal', '1717569034', '1740474356');
+INSERT INTO `yun_auth_rule` VALUES ('89', '101', 'app\\admin\\controller\\finance\\Invoice', 'index', '发票申领', 'fa fa-leaf', 'tab', '1', '0', null, '936', null, 'normal', '1717569034', '1740474356');
 INSERT INTO `yun_auth_rule` VALUES ('90', '89', 'app\\admin\\controller\\finance\\Invoice', '[\"index\",\"edit\",\"orders\"]', '[\"查看\",\"开票\",\"订单\"]', null, null, '0', '0', null, '910', null, null, '1721615841', '1740547554');
-INSERT INTO `yun_auth_rule` VALUES ('91', '12', 'app\\admin\\controller\\user\\AccessKey', 'index', '接口用户', 'fa fa-link', 'addtabs', '1', '0', null, '909', null, 'normal', '1723186599', '1723186655');
-INSERT INTO `yun_auth_rule` VALUES ('92', '37', 'app\\parking\\controller\\Cars', 'rechargeLog', '充值记录', 'fa fa-battery-three-quarters', 'addtabs', '1', '0', null, '956', null, 'normal', '1724897063', '1724897216');
+INSERT INTO `yun_auth_rule` VALUES ('91', '12', 'app\\admin\\controller\\user\\AccessKey', 'index', '接口用户', 'fa fa-link', 'tab', '1', '0', null, '909', null, 'normal', '1723186599', '1723186655');
+INSERT INTO `yun_auth_rule` VALUES ('92', '37', 'app\\parking\\controller\\Cars', 'rechargeLog', '充值记录', 'fa fa-battery-three-quarters', 'tab', '1', '0', null, '956', null, 'normal', '1724897063', '1724897216');
 INSERT INTO `yun_auth_rule` VALUES ('93', '92', 'app\\parking\\controller\\Cars', '[\"rechargeLog\",\"downloadRecharge\"]', '[\"查看\",\"下载\"]', null, null, '0', '0', null, '907', null, null, '1724897261', '1724897332');
-INSERT INTO `yun_auth_rule` VALUES ('94', '46', 'app\\parking\\controller\\Infield', 'index', '内场设置', 'fa fa-podcast', 'addtabs', '1', '0', null, '958', null, 'normal', '1727072416', '1727072919');
+INSERT INTO `yun_auth_rule` VALUES ('94', '46', 'app\\parking\\controller\\Infield', 'index', '内场设置', 'fa fa-podcast', 'tab', '1', '0', null, '958', null, 'normal', '1727072416', '1727072919');
 INSERT INTO `yun_auth_rule` VALUES ('95', '94', 'app\\parking\\controller\\Infield', '[\"index\",\"add\",\"edit\",\"del\"]', '[\"查看\",\"添加\",\"编辑\",\"删除\"]', null, null, '0', '0', null, '905', null, null, '1727072988', '1727072988');
-INSERT INTO `yun_auth_rule` VALUES ('96', '0', 'app\\admin\\controller\\Traffic', 'index', '交管平台', 'fa fa-safari', 'addtabs', '1', '0', null, '904', null, 'normal', '1727141664', '1740474343');
+INSERT INTO `yun_auth_rule` VALUES ('96', '0', 'app\\admin\\controller\\Traffic', 'index', '交管平台', 'fa fa-safari', 'tab', '1', '0', null, '904', null, 'normal', '1727141664', '1740474343');
 INSERT INTO `yun_auth_rule` VALUES ('97', '91', 'app\\admin\\controller\\user\\AccessKey', '[\"index\",\"add\",\"edit\",\"multi\",\"del\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\"]', null, null, '0', '0', null, '903', null, null, '1727141831', '1727141831');
 INSERT INTO `yun_auth_rule` VALUES ('98', '96', 'app\\admin\\controller\\Traffic', '[\"index\",\"add\",\"edit\",\"multi\",\"del\",\"orders\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\",\"订单\"]', null, null, '0', '0', null, '902', null, null, '1727143324', '1740547521');
-INSERT INTO `yun_auth_rule` VALUES ('99', '45', 'app\\parking\\controller\\Evading', 'index', '逃费追缴', 'fa fa-legal', 'addtabs', '1', '0', null, '948', null, 'normal', '1729147626', '1729147797');
+INSERT INTO `yun_auth_rule` VALUES ('99', '45', 'app\\parking\\controller\\Evading', 'index', '逃费追缴', 'fa fa-legal', 'tab', '1', '0', null, '948', null, 'normal', '1729147626', '1729147797');
 INSERT INTO `yun_auth_rule` VALUES ('100', '99', 'app\\parking\\controller\\Evading', '[\"index\",\"add\",\"free\",\"del\"]', '[\"查看记录\",\"添加记录\",\"设为免费\",\"删除追缴\"]', null, null, '0', '0', null, '900', null, null, '1729232843', '1729232843');
-INSERT INTO `yun_auth_rule` VALUES ('101', '0', null, null, '订单管理', 'fa fa-list-ul', 'addtabs', '1', '0', null, '967', null, 'normal', '1730881168', '1740473993');
-INSERT INTO `yun_auth_rule` VALUES ('102', '101', 'app\\admin\\controller\\finance\\Pay', 'index', '收入流水', 'fa fa-rmb', 'addtabs', '1', '0', null, '898', null, 'normal', '1730881272', '1730881366');
+INSERT INTO `yun_auth_rule` VALUES ('101', '0', null, null, '订单管理', 'fa fa-list-ul', 'tab', '1', '0', null, '967', null, 'normal', '1730881168', '1740473993');
+INSERT INTO `yun_auth_rule` VALUES ('102', '101', 'app\\admin\\controller\\finance\\Pay', 'index', '收入流水', 'fa fa-rmb', 'tab', '1', '0', null, '898', null, 'normal', '1730881272', '1730881366');
 INSERT INTO `yun_auth_rule` VALUES ('103', '40', 'app\\parking\\controller\\Cars', '[\"recharge\",\"logview\",\"importplate\",\"listplate\",\"delplate\",\"addplate\"]', '[\"充值\",\"记录\",\"导车牌\",\"看车牌\",\"删车牌\",\"加车牌\"]', null, null, '0', '0', null, '69', null, null, '1719468569', '1733124088');
-INSERT INTO `yun_auth_rule` VALUES ('104', '37', 'app\\parking\\controller\\White', 'index', '离线白名单', 'fa fa-snowflake-o', 'addtabs', '1', '0', null, '896', null, 'normal', '1734410163', '1734410163');
+INSERT INTO `yun_auth_rule` VALUES ('104', '37', 'app\\parking\\controller\\White', 'index', '离线白名单', 'fa fa-snowflake-o', 'tab', '1', '0', null, '896', null, 'normal', '1734410163', '1734410163');
 INSERT INTO `yun_auth_rule` VALUES ('105', '104', 'app\\parking\\controller\\White', '[\"index\",\"synch\",\"timer\",\"del\"]', '[\"查看\",\"同步\",\"定时设置\",\"删除\"]', null, null, '0', '0', null, '895', null, null, '1734410439', '1734584055');
-INSERT INTO `yun_auth_rule` VALUES ('106', '55', 'app\\parking\\controller\\Charge', 'setting', '充电减免', 'fa fa-plug', 'addtabs', '1', '0', null, '894', null, 'normal', '1735534192', '1735534192');
-INSERT INTO `yun_auth_rule` VALUES ('107', '55', 'app\\parking\\controller\\Charge', 'list', '充电记录', 'fa fa-th-list', 'addtabs', '1', '0', null, '893', null, 'normal', '1735534240', '1735534240');
+INSERT INTO `yun_auth_rule` VALUES ('106', '55', 'app\\parking\\controller\\Charge', 'setting', '充电减免', 'fa fa-plug', 'tab', '1', '0', null, '894', null, 'normal', '1735534192', '1735534192');
+INSERT INTO `yun_auth_rule` VALUES ('107', '55', 'app\\parking\\controller\\Charge', 'list', '充电记录', 'fa fa-th-list', 'tab', '1', '0', null, '893', null, 'normal', '1735534240', '1735534240');
 INSERT INTO `yun_auth_rule` VALUES ('108', '106', 'app\\parking\\controller\\Charge', '[\"setting\"]', '[\"设置\"]', null, null, '0', '0', null, '892', null, null, '1735534279', '1735534279');
 INSERT INTO `yun_auth_rule` VALUES ('109', '107', 'app\\parking\\controller\\Charge', '[\"list\"]', '[\"查看\"]', null, null, '0', '0', null, '891', null, null, '1735534298', '1735534298');
 INSERT INTO `yun_auth_rule` VALUES ('111', '102', 'app\\admin\\controller\\finance\\Pay', '[\"index\",\"detail\",\"download\",\"refund\"]', '[\"查看\",\"详情\",\"下载\",\"退款\"]', null, null, '0', '0', null, '889', null, null, '1739776991', '1739776991');
-INSERT INTO `yun_auth_rule` VALUES ('112', '63', 'app\\parking\\controller\\Pay', 'refundList', '退款记录', 'fa fa-exclamation-circle', 'addtabs', '1', '0', null, '888', null, 'normal', '1739778030', '1739778030');
+INSERT INTO `yun_auth_rule` VALUES ('112', '63', 'app\\parking\\controller\\Pay', 'refundList', '退款记录', 'fa fa-exclamation-circle', 'tab', '1', '0', null, '888', null, 'normal', '1739778030', '1739778030');
 INSERT INTO `yun_auth_rule` VALUES ('113', '112', 'app\\parking\\controller\\Pay', '[\"refundList\"]', '[\"查看\"]', null, null, '0', '0', null, '887', null, null, '1739778086', '1739778086');
-INSERT INTO `yun_auth_rule` VALUES ('114', '12', 'app\\admin\\controller\\user\\Daili', 'index', '代理商', 'fa fa-github-alt', 'addtabs', '1', '0', null, '886', null, 'normal', '1740474704', '1740474717');
+INSERT INTO `yun_auth_rule` VALUES ('114', '12', 'app\\admin\\controller\\user\\Daili', 'index', '代理商', 'fa fa-github-alt', 'tab', '1', '0', null, '886', null, 'normal', '1740474704', '1740474717');
 INSERT INTO `yun_auth_rule` VALUES ('115', '114', 'app\\admin\\controller\\user\\Daili', '[\"index\",\"add\",\"edit\",\"multi\",\"del\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\"]', null, null, '0', '0', null, '885', null, null, '1740474742', '1740474742');
+INSERT INTO `yun_auth_rule` VALUES ('116', '7', 'app\\admin\\controller\\auth\\Depart', 'index', '部门管理', 'fa fa-address-book', 'tab', '1', '0', null, '989', null, 'normal', '1749700647', '1749700850');
+INSERT INTO `yun_auth_rule` VALUES ('117', '116', 'app\\admin\\controller\\auth\\Depart', '[\"index\",\"add\",\"del\",\"multi\",\"edit\"]', '[\"查看\",\"添加\",\"删除\",\"更新\",\"编辑\"]', null, null, '0', '0', null, '955', null, null, '1749712222', '1749962509');
 
 -- ----------------------------
 -- Table structure for yun_category
@@ -4133,7 +4185,7 @@ INSERT INTO `yun_config` VALUES ('19', 'uniapp_mpapp_secret', 'addons', 'uniapp'
 INSERT INTO `yun_config` VALUES ('22', 'uniapp_mpapp_token', 'addons', 'uniapp', '公众号token', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('23', 'uniapp_mpapp_aeskey', 'addons', 'uniapp', '公众号aeskey', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('24', 'uniapp_alimini_id', 'addons', 'uniapp', '支付宝小程序appid', '', 'text', '', '', '1', '');
-INSERT INTO `yun_config` VALUES ('25', 'uniapp_scan_login', 'addons', 'uniapp', '后台扫码登陆', '', 'switch', '1', '', '1', '');
+INSERT INTO `yun_config` VALUES ('25', 'uniapp_scan_login', 'addons', 'uniapp', '后台扫码登陆', '', 'switch', '0', '', '1', '');
 INSERT INTO `yun_config` VALUES ('28', 'mqtt_host', 'mqtt', '', 'Mqtt服务器地址', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('29', 'mqtt_port', 'mqtt', '', 'Mqtt服务器端口', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('30', 'mqtt_web_port', 'mqtt', '', 'Mqtt webSocket端口', '', 'text', '', '', '1', '');
@@ -4143,7 +4195,7 @@ INSERT INTO `yun_config` VALUES ('40', 'smtp_host', 'email', '', 'SMTP服务器'
 INSERT INTO `yun_config` VALUES ('41', 'smtp_port', 'email', '', 'SMTP端口', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('42', 'smtp_user', 'email', '', 'SMTP用户名', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('43', 'smtp_pass', 'email', '', 'SMTP密码', '', 'text', '', '', '1', '');
-INSERT INTO `yun_config` VALUES ('44', 'verify_type', 'email', '', 'SMTP验证方式', '', 'select', '', '', '1', '{\"ssl\":\"SSL\",\"tsl\":\"TSL\"}');
+INSERT INTO `yun_config` VALUES ('44', 'verify_type', 'email', '', 'SMTP验证方式', '', 'select', 'ssl', '', '1', '{\"ssl\":\"SSL\",\"tsl\":\"TSL\"}');
 INSERT INTO `yun_config` VALUES ('45', 'send_user', 'email', '', '发件人邮箱', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('47', 'zhenshi_access_key', 'camera', '', '臻识key', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('48', 'zhenshi_access_secret', 'camera', '', '臻识Secret', '', 'text', '', '', '1', '');
@@ -4172,6 +4224,10 @@ CREATE TABLE `yun_daili` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_daili
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_daili_log
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_daili_log`;
@@ -4189,6 +4245,10 @@ CREATE TABLE `yun_daili_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='代理余额变动表';
 
 -- ----------------------------
+-- Records of yun_daili_log
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_daili_parking
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_daili_parking`;
@@ -4199,6 +4259,38 @@ CREATE TABLE `yun_daili_parking` (
   `persent` tinyint DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_daili_parking
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for yun_department
+-- ----------------------------
+DROP TABLE IF EXISTS `yun_department`;
+CREATE TABLE `yun_department` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `pid` int DEFAULT NULL,
+  `name` varchar(30) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `create_admin` int DEFAULT NULL COMMENT '创建人',
+  `weigh` int DEFAULT NULL COMMENT '权重',
+  `status` varchar(30) DEFAULT NULL,
+  `createtime` int unsigned DEFAULT NULL,
+  `updatetime` int unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_department
+-- ----------------------------
+INSERT INTO `yun_department` VALUES ('1', '0', '贵阳云起信息科技有限公司', '初始公司名称', '1', '1', 'normal', null, null);
+INSERT INTO `yun_department` VALUES ('2', '1', '技术部', null, null, null, 'normal', '1749965101', '1749965101');
+INSERT INTO `yun_department` VALUES ('3', '1', '市场部', null, null, null, 'normal', '1749965109', '1749965109');
+INSERT INTO `yun_department` VALUES ('4', '1', '工程部', null, null, null, 'normal', '1749965116', '1749965116');
+INSERT INTO `yun_department` VALUES ('5', '4', '工程1部', null, null, null, 'normal', '1749965125', '1749965125');
+INSERT INTO `yun_department` VALUES ('6', '4', '工程2部', null, null, null, 'normal', '1749965133', '1749965133');
+INSERT INTO `yun_department` VALUES ('11', '4', '工程3部', null, null, null, 'normal', '1750048263', '1750048263');
 
 -- ----------------------------
 -- Table structure for yun_minigames
@@ -4212,6 +4304,10 @@ CREATE TABLE `yun_minigames` (
   `unit` varchar(30) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_minigames
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_minigames_log
@@ -4231,6 +4327,10 @@ CREATE TABLE `yun_minigames_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_minigames_log
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_minigames_score
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_minigames_score`;
@@ -4246,6 +4346,10 @@ CREATE TABLE `yun_minigames_score` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_minigames_score
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_mp_subscribe
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_mp_subscribe`;
@@ -4256,7 +4360,12 @@ CREATE TABLE `yun_mp_subscribe` (
   PRIMARY KEY (`id`),
   KEY `openid` (`openid`),
   KEY `unionid` (`unionid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_mp_subscribe
+-- ----------------------------
+INSERT INTO `yun_mp_subscribe` VALUES ('1', 'oZ9f57NR5tM1hBqfcYQxzVgDBnKA', 'ooiUB1V_yyw7bjIRZvUVzEREbw3c');
 
 -- ----------------------------
 -- Table structure for yun_msg
@@ -4275,6 +4384,10 @@ CREATE TABLE `yun_msg` (
   `deletetime` int DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- ----------------------------
+-- Records of yun_msg
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking
@@ -4310,7 +4423,12 @@ CREATE TABLE `yun_parking` (
   `deletetime` int unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `uniqid` (`uniqid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking
+-- ----------------------------
+INSERT INTO `yun_parking` VALUES ('1', null, '华科小区停车场', null, '2323', '2324', '2325', '贵A', null, null, null, '张三', '13885858556', 'mc1h8vs9u4pi', 'yibao', '20014075', '20014076', '0', null, '6', '6', '6', '0', 'normal', '1750222485', '1750222485', null);
 
 -- ----------------------------
 -- Table structure for yun_parking_admin
@@ -4326,7 +4444,12 @@ CREATE TABLE `yun_parking_admin` (
   `mobile_rules` varchar(1200) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `admin_id` (`admin_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_admin
+-- ----------------------------
+INSERT INTO `yun_parking_admin` VALUES ('1', '1', '2', 'admin', '*', '*', '*');
 
 -- ----------------------------
 -- Table structure for yun_parking_barrier
@@ -4362,6 +4485,10 @@ CREATE TABLE `yun_parking_barrier` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_barrier
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_barrier_tjtc
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_barrier_tjtc`;
@@ -4372,6 +4499,10 @@ CREATE TABLE `yun_parking_barrier_tjtc` (
   `times` int DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_barrier_tjtc
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_black
@@ -4386,6 +4517,10 @@ CREATE TABLE `yun_parking_black` (
   `createtime` int unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_black
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_cars
@@ -4417,6 +4552,10 @@ CREATE TABLE `yun_parking_cars` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_cars
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_cars_apply
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_cars_apply`;
@@ -4444,6 +4583,10 @@ CREATE TABLE `yun_parking_cars_apply` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_cars_apply
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_cars_logs
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_cars_logs`;
@@ -4457,6 +4600,10 @@ CREATE TABLE `yun_parking_cars_logs` (
   `createtime` int unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_cars_logs
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_cars_occupat
@@ -4476,6 +4623,10 @@ CREATE TABLE `yun_parking_cars_occupat` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_cars_occupat
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_cars_stop
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_cars_stop`;
@@ -4491,6 +4642,10 @@ CREATE TABLE `yun_parking_cars_stop` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_cars_stop
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_charge
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_charge`;
@@ -4504,6 +4659,10 @@ CREATE TABLE `yun_parking_charge` (
   `rules_value` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_charge
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_charge_list
@@ -4525,6 +4684,10 @@ CREATE TABLE `yun_parking_charge_list` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_charge_list
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_daily_cash_flow
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_daily_cash_flow`;
@@ -4543,6 +4706,10 @@ CREATE TABLE `yun_parking_daily_cash_flow` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_daily_cash_flow
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_download
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_download`;
@@ -4556,6 +4723,10 @@ CREATE TABLE `yun_parking_download` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_download
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_exception
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_exception`;
@@ -4566,10 +4737,15 @@ CREATE TABLE `yun_parking_exception` (
   `plate_number` varchar(30) DEFAULT NULL,
   `plate_type` varchar(30) DEFAULT NULL,
   `barrier` varchar(30) DEFAULT NULL,
+  `photo` varchar(255) DEFAULT NULL,
   `message` varchar(255) DEFAULT NULL,
   `createtime` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_exception
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_holiday
@@ -4582,6 +4758,10 @@ CREATE TABLE `yun_parking_holiday` (
   `remark` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_holiday
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_infield
@@ -4597,6 +4777,10 @@ CREATE TABLE `yun_parking_infield` (
   `mode` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_infield
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_infield_records
@@ -4615,6 +4799,10 @@ CREATE TABLE `yun_parking_infield_records` (
   KEY `parking_id` (`parking_id`),
   KEY `records_id` (`records_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_infield_records
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_invoice
@@ -4646,6 +4834,10 @@ CREATE TABLE `yun_parking_invoice` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_invoice
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_log
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_log`;
@@ -4662,6 +4854,10 @@ CREATE TABLE `yun_parking_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_log
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_manual_open
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_manual_open`;
@@ -4676,6 +4872,10 @@ CREATE TABLE `yun_parking_manual_open` (
   `createtime` int unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_manual_open
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_merchant
@@ -4711,7 +4911,12 @@ CREATE TABLE `yun_parking_merchant` (
   `deletetime` int unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_merchant
+-- ----------------------------
+INSERT INTO `yun_parking_merchant` VALUES ('1', '1', '测试商户', '13888888888', '1', 'mc1h8vs9u4pi-test', 'Ygzh', '65e2ac4910614add9d85476c8d04b331', 'before', '4.00', '30', '0', '0.00', '0', '0', '7', '0', null, null, null, null, '1', null, 'normal', '1750222978', '1750223131', null);
 
 -- ----------------------------
 -- Table structure for yun_parking_merchant_coupon
@@ -4742,7 +4947,12 @@ CREATE TABLE `yun_parking_merchant_coupon` (
   `updatetime` int unsigned DEFAULT NULL,
   `deletetime` int unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_merchant_coupon
+-- ----------------------------
+INSERT INTO `yun_parking_merchant_coupon` VALUES ('1', '1', '测试停车券', null, 'time', '30', null, null, null, null, null, null, null, 'refuse', '1', '1', '24', '1', '1', 'normal', '1750222960', '1750222960', null);
 
 -- ----------------------------
 -- Table structure for yun_parking_merchant_coupon_list
@@ -4766,6 +4976,10 @@ CREATE TABLE `yun_parking_merchant_coupon_list` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_merchant_coupon_list
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_merchant_log
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_merchant_log`;
@@ -4785,6 +4999,10 @@ CREATE TABLE `yun_parking_merchant_log` (
   KEY `pay_id` (`pay_id`) USING BTREE,
   KEY `parking_id` (`parking_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_merchant_log
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_merchant_setting
@@ -4808,7 +5026,12 @@ CREATE TABLE `yun_parking_merchant_setting` (
   `settle_max` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `coupon` (`parking_id`,`merch_id`,`coupon_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_merchant_setting
+-- ----------------------------
+INSERT INTO `yun_parking_merchant_setting` VALUES ('2', '1', '1', '1', '测试停车券', '0', null, null, null, null, null, 'normal', null, null, null);
 
 -- ----------------------------
 -- Table structure for yun_parking_merchant_user
@@ -4823,6 +5046,10 @@ CREATE TABLE `yun_parking_merchant_user` (
   KEY `third_id` (`third_id`),
   KEY `merch_id` (`merch_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_merchant_user
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_mode
@@ -4850,6 +5077,10 @@ CREATE TABLE `yun_parking_mode` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_mode
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_monthly_recharge
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_monthly_recharge`;
@@ -4869,6 +5100,10 @@ CREATE TABLE `yun_parking_monthly_recharge` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_monthly_recharge
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_plate
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_plate`;
@@ -4885,6 +5120,10 @@ CREATE TABLE `yun_parking_plate` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_plate
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_qrcode
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_qrcode`;
@@ -4899,6 +5138,10 @@ CREATE TABLE `yun_parking_qrcode` (
   `text` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_qrcode
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_records
@@ -4947,6 +5190,10 @@ CREATE TABLE `yun_parking_records` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_records
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_records_coupon
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_records_coupon`;
@@ -4967,6 +5214,10 @@ CREATE TABLE `yun_parking_records_coupon` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_records_coupon
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_records_detail
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_records_detail`;
@@ -4984,6 +5235,10 @@ CREATE TABLE `yun_parking_records_detail` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_records_detail
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_records_filter
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_records_filter`;
@@ -4997,6 +5252,10 @@ CREATE TABLE `yun_parking_records_filter` (
   `status` tinyint DEFAULT '0',
   KEY `pay_id` (`records_pay_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_records_filter
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_records_pay
@@ -5019,6 +5278,10 @@ CREATE TABLE `yun_parking_records_pay` (
   KEY `parking_id` (`parking_id`),
   KEY `pay_id` (`pay_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_records_pay
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_recovery
@@ -5044,6 +5307,10 @@ CREATE TABLE `yun_parking_recovery` (
   KEY `plate_number` (`plate_number`),
   KEY `records_id` (`records_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_recovery
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_rules
@@ -5084,6 +5351,10 @@ CREATE TABLE `yun_parking_rules` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_rules
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_screen
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_screen`;
@@ -5094,6 +5365,10 @@ CREATE TABLE `yun_parking_screen` (
   `admin_id` int DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_screen
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_sentrybox
@@ -5114,6 +5389,10 @@ CREATE TABLE `yun_parking_sentrybox` (
   UNIQUE KEY `uniqid` (`uniqid`),
   KEY `token` (`token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_sentrybox
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_setting
@@ -5156,7 +5435,12 @@ CREATE TABLE `yun_parking_setting` (
   `monthly_voice` tinyint DEFAULT '39',
   PRIMARY KEY (`id`),
   KEY `parking_id` (`parking_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_setting
+-- ----------------------------
+INSERT INTO `yun_parking_setting` VALUES ('1', '1', null, '1', '1', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '1', '100', '1', '0', '1', null, 'handle', null, null, '0', null, '0', '1', '39');
 
 -- ----------------------------
 -- Table structure for yun_parking_stored_log
@@ -5181,6 +5465,10 @@ CREATE TABLE `yun_parking_stored_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='储值卡余额变动表';
 
 -- ----------------------------
+-- Records of yun_parking_stored_log
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_temporary
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_temporary`;
@@ -5192,6 +5480,10 @@ CREATE TABLE `yun_parking_temporary` (
   `createtime` int unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_temporary
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_traffic
@@ -5212,6 +5504,10 @@ CREATE TABLE `yun_parking_traffic` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_traffic
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_traffic_records
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_traffic_records`;
@@ -5226,6 +5522,10 @@ CREATE TABLE `yun_parking_traffic_records` (
   `updatetime` int unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_parking_traffic_records
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_parking_trigger
@@ -5250,6 +5550,10 @@ CREATE TABLE `yun_parking_trigger` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_trigger
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_parking_white
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_white`;
@@ -5266,6 +5570,10 @@ CREATE TABLE `yun_parking_white` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_parking_white
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_pay_refund
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_pay_refund`;
@@ -5278,6 +5586,10 @@ CREATE TABLE `yun_pay_refund` (
   `refund_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_pay_refund
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_pay_union
@@ -5312,6 +5624,10 @@ CREATE TABLE `yun_pay_union` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_pay_union
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_plate_binding
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_plate_binding`;
@@ -5326,6 +5642,10 @@ CREATE TABLE `yun_plate_binding` (
   KEY `user_id` (`user_id`),
   KEY `plate_number` (`plate_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_plate_binding
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_property
@@ -5346,6 +5666,10 @@ CREATE TABLE `yun_property` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_property
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_property_admin
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_property_admin`;
@@ -5362,6 +5686,10 @@ CREATE TABLE `yun_property_admin` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Records of yun_property_admin
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_qrcode
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_qrcode`;
@@ -5374,7 +5702,8 @@ CREATE TABLE `yun_qrcode` (
   `expiretime` int unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key` (`key`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='二维码展示表';
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3 COMMENT='二维码展示表';
+
 
 -- ----------------------------
 -- Table structure for yun_qrcode_scan
@@ -5391,6 +5720,10 @@ CREATE TABLE `yun_qrcode_scan` (
   PRIMARY KEY (`id`),
   KEY `qrcode_id` (`qrcode_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='二维码扫码记录表';
+
+-- ----------------------------
+-- Records of yun_qrcode_scan
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for yun_queue
@@ -5456,7 +5789,8 @@ CREATE TABLE `yun_third` (
   UNIQUE KEY `platform` (`platform`,`openid`),
   KEY `user_id` (`user_id`,`platform`),
   KEY `unionid` (`platform`,`unionid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='第三方登录表';
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='第三方登录表';
+
 
 -- ----------------------------
 -- Table structure for yun_user
@@ -5492,7 +5826,8 @@ CREATE TABLE `yun_user` (
   KEY `username` (`username`),
   KEY `email` (`email`),
   KEY `mobile` (`mobile`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会员表';
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会员表';
+
 
 -- ----------------------------
 -- Table structure for yun_user_log
@@ -5513,6 +5848,10 @@ CREATE TABLE `yun_user_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会员余额变动表';
 
 -- ----------------------------
+-- Records of yun_user_log
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for yun_user_notice
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_user_notice`;
@@ -5526,7 +5865,14 @@ CREATE TABLE `yun_user_notice` (
   `coupon` tinyint DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of yun_user_notice
+-- ----------------------------
+INSERT INTO `yun_user_notice` VALUES ('1', '2', '1', '1', '1', '0', '0');
+INSERT INTO `yun_user_notice` VALUES ('2', '3', '1', '1', '1', '0', '0');
+INSERT INTO `yun_user_notice` VALUES ('3', '4', '1', '1', '1', '0', '0');
 
 -- ----------------------------
 -- Table structure for yun_user_token
@@ -5545,4 +5891,5 @@ CREATE TABLE `yun_user_token` (
   PRIMARY KEY (`id`),
   KEY `token` (`token`),
   KEY `user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
