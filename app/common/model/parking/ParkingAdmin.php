@@ -6,7 +6,6 @@ namespace app\common\model\parking;
 use app\common\model\Admin;
 use app\common\model\manage\Parking;
 use app\common\model\UserToken;
-use think\facade\Cache;
 use think\facade\Validate;
 use think\Model;
 
@@ -197,13 +196,6 @@ class ParkingAdmin Extends Model
             'menus'=>'parking/merch/list'
         ],
         [
-            'id'=>'merchant-ziying',
-            'name'=>'自营商户',
-            'controller'=>\app\api\controller\parking\Merch::class,
-            'action'=>'list,edit,info,detail,rechargeDetail,recharge,log,del',
-            'menus'=>'parking/merch/list?ziying=1'
-        ],
-        [
             'id'=>'merchant-send',
             'name'=>'发停车券',
             'controller'=>\app\api\controller\parking\Merch::class,
@@ -223,13 +215,6 @@ class ParkingAdmin Extends Model
             'controller'=>\app\api\controller\parking\Merch::class,
             'action'=>'couponList,couponDetail,couponTrush',
             'menus'=>'parking/merch/coupon'
-        ],
-        [
-            'id'=>'merchant-setting',
-            'name'=>'停车券设置',
-            'controller'=>\app\api\controller\parking\Merch::class,
-            'action'=>'couponSettingList,changeCouponStatus,couponSettingDetail,couponSetting,delCoupon',
-            'menus'=>'parking/merch/coupon-setting-list'
         ],
         [
             'id'=>'finance-list',
@@ -397,16 +382,9 @@ class ParkingAdmin Extends Model
                 'icon' => 'add.png'
             ],
             [
-                'title' => '普通商户',
+                'title' => '商户管理',
                 'page' => 'parking/merch/list',
                 'icon' => 'merch.png',
-                'width' => 56,
-                'height' => 56
-            ],
-            [
-                'title' => '自营商户',
-                'page' => 'parking/merch/list?ziying=1',
-                'icon' => 'zmerch.png',
                 'width' => 56,
                 'height' => 56
             ],
@@ -428,12 +406,7 @@ class ParkingAdmin Extends Model
                 'title' => '停车券查看',
                 'page' => 'parking/merch/coupon',
                 'icon' => 'list.png'
-            ],
-            [
-                'title' => '停车券设置',
-                'page' => 'parking/merch/coupon-setting-list',
-                'icon' => 'set.png'
-            ],
+            ]
         ],
         'finance' => [
             [
@@ -543,7 +516,7 @@ class ParkingAdmin Extends Model
         $tokens=UserToken::where('parking_admin','<>',null)->where('expire','>',time())->select();
         foreach ($tokens as $token){
             $parking_admin=json_decode($token->parking_admin,true);
-            if($parking_admin['parking_id']==$parking->id && $parking_admin['id']==$parkadmin->admin_id){
+            if(isset($parking_admin['parking_id']) && $parking_admin['parking_id']==$parking->id && $parking_admin['id']==$parkadmin->admin_id){
                 $token->parking_admin=null;
                 $token->save();
             }
