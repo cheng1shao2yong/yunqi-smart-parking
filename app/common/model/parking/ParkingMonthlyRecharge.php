@@ -91,6 +91,9 @@ class ParkingMonthlyRecharge extends Model
                     $occupat->exit_time=null;
                     $occupat->save();
                 }
+                if($occupat->records_id && !$occupat->exit_time){
+                    unset($fomateRecords[$occupat->records_id]);
+                }
             }
             $recordsid=array_keys($fomateRecords);
             foreach ($occupats as $occupat){

@@ -73,7 +73,7 @@ class ParkingMerchantCouponList extends BaseModel
         (new ParkingRecordsCoupon())->saveAll($coupon);
     }
 
-    public static function given(ParkingMerchant $merchant,ParkingMerchantCoupon $coupon,string $plate_number)
+    public static function given(ParkingMerchant $merchant,ParkingMerchantCoupon $coupon,string $plate_number,string $remark='')
     {
         self::checkMerchantSendCoupon($merchant,$coupon);
         $plate_number=strtoupper(trim($plate_number));
@@ -91,6 +91,7 @@ class ParkingMerchantCouponList extends BaseModel
             $list->coupon_id=$coupon->id;
             $list->plate_number=$plate_number;
             $list->expiretime=$expiretime;
+            $list->remark=$remark;
             $list->save();
             $couponType='';
             if($records){

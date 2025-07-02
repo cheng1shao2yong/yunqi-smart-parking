@@ -100,6 +100,7 @@ class Merch extends Base
         $plate_number=$this->request->post('plate_number');
         $merch_id=$this->request->post('merch_id');
         $coupon_id=$this->request->post('coupon_id');
+        $remark=$this->request->post('remark');
         $merchant=ParkingMerchant::where(['parking_id'=>$this->parking_id,'id'=>$merch_id])->find();
         if(!$merchant){
             $this->error('商户不存在');
@@ -109,7 +110,7 @@ class Merch extends Base
             $this->error('优惠券不存在或者被禁用');
         }
         try{
-            ParkingMerchantCouponList::given($merchant,$coupon,$plate_number);
+            ParkingMerchantCouponList::given($merchant,$coupon,$plate_number,$remark);
         }catch (\Exception $e){
             $this->error($e->getMessage());
         }

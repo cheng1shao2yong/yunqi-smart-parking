@@ -67,9 +67,16 @@ class Api extends BaseController
     {
         if($token){
             $minit=date('Y-m-d H:i',time());
-            $vistmd5=md5($token.$minit.$controller.$actionname);
-            $vistnum=Cache::get($vistmd5,0);
-            if($vistnum>60){
+            $vistmd5=md5($token.$controller.$actionname);
+            $visit=Cache::get($vistmd5);
+            if(!$visit){
+                $visit=[];
+                $visit[$minit]=0;
+            }
+            if($visit && !isset($visit[$minit])){
+                $visit[$minit]=0;
+            }
+            if($visit[$minit]>60){
                 $class=Config::get('site.auth.adapter');
                 $this->auth=ApiAuthService::newInstance(['adapter'=>new $class($token)]);
                 if($this->auth->isLogin()){
@@ -79,8 +86,8 @@ class Api extends BaseController
                 $response = Response::create('访问次数过多，系统已经保存了你的微信ID与攻击记录，公司会根据攻击情况考虑报警处理，请自重!', 'html', 403);
                 throw new HttpResponseException($response);
             }
-            $vistnum++;
-            Cache::set($vistmd5, $vistnum, 60);
+            $visit[$minit]++;
+            Cache::set($vistmd5, $visit, 24*3600);
         }
     }
 }

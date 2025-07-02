@@ -85,6 +85,7 @@ class MerchantCouponList extends ParkingBase
         if ($this->request->isPost()) {
             $plate_number=trim(strtoupper($this->request->post('row.plate_number')));
             $merch_id=$this->request->post('row.merch_id');
+            $remark=$this->request->post('row.remark');
             $merchant=ParkingMerchant::find($merch_id);
             if(!is_car_license($plate_number)){
                 $this->error('车牌号格式错误');
@@ -95,7 +96,7 @@ class MerchantCouponList extends ParkingBase
                 $this->error('优惠券不存在或者被禁用');
             }
             try{
-                ParkingMerchantCouponList::given($merchant,$coupon,$plate_number);
+                ParkingMerchantCouponList::given($merchant,$coupon,$plate_number,$remark);
             }catch (\Exception $e){
                 $this->error($e->getMessage());
             }

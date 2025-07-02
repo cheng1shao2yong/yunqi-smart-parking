@@ -37,7 +37,8 @@
         "hyperf/pimple": "~2.2.0",
         "simps/mqtt": "^2.0",
         "aliyuncs/oss-sdk-php": "^2.7",
-        "tencentcloud/tiia": "^3.0"
+        "tencentcloud/tiia": "^3.0",
+        "ext-openssl": "*"
     },
     "require-dev": {
         "symfony/var-dumper": ">=4.2"

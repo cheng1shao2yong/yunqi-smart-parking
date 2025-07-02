@@ -68,6 +68,7 @@ class Common extends Base
     {
         $plate_number=$this->request->post('plate_number');
         $scan_id=$this->request->post('scan_id');
+        $remark=$this->request->post('remark');
         $scan=QrcodeScan::withJoin(['qrcode'],'inner')->find($scan_id);
         if($scan->type!='merchant-static-qrcode' && $scan->type!='merchant-dynamic-qrcode'){
             $this->error('二维码类型错误');
@@ -86,7 +87,7 @@ class Common extends Base
             $this->error('优惠券类型不存在或者被禁用');
         }
         try{
-            [$records,$couponlist]=ParkingMerchantCouponList::given($merchant,$coupon,$plate_number);
+            [$records,$couponlist]=ParkingMerchantCouponList::given($merchant,$coupon,$plate_number,$remark);
             $couponlist->coupon=$coupon;
         }catch (\Exception $e){
             $this->error($e->getMessage());

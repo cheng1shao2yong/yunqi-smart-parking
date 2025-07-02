@@ -100,7 +100,7 @@ class ParkingMerchantLog extends Model
         $log->merch_id=$merch->id;
         $log->log_type=$log_type;
         $log->before=$before;
-        $log->change=$change;
+        $log['change']=$change;
         $log->after=$after;
         $log->pay_id=$pay_id;
         $log->records_id=$records_id;

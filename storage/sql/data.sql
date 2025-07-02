@@ -4966,6 +4966,7 @@ CREATE TABLE `yun_parking_merchant_coupon_list` (
   `user_id` int DEFAULT NULL,
   `coupon_id` int DEFAULT NULL,
   `plate_number` varchar(30) DEFAULT NULL,
+  `remark` varchar(255) DEFAULT NULL,
   `status` tinyint DEFAULT '0',
   `starttime` int unsigned DEFAULT NULL COMMENT '时效券入场时间',
   `expiretime` int unsigned DEFAULT NULL,

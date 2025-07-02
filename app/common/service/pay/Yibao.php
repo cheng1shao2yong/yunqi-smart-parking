@@ -6,6 +6,8 @@ use app\common\library\Http;
 use app\common\model\PayUnion;
 use app\common\model\Third;
 use app\common\service\PayService;
+use think\facade\Env;
+
 /**
  * 易宝支付
  */
@@ -20,15 +22,15 @@ class Yibao extends PayService {
         $this->pay_type_handle='易宝支付';
         $this->config=[
             //服务商标识
-            'mer_account'=>'',
+            'mer_account'=>Env::get('YIBAO_MER_ACCOUNT'),
             //服务商编号
-            'mer_no'=>'',
+            'mer_no'=>Env::get('YIBAO_MER_NO'),
             //私钥
-            'private_key'=>'',
+            'private_key'=>Env::get('YIBAO_PRIVATE_KEY'),
             //公钥
-            'public_key'=>'',
+            'public_key'=>Env::get('YIBAO_PUBLIC_KEY'),
             //最低费率
-            'min_rate'=>0.28,
+            'min_rate'=>(float)Env::get('YIBAO_MIN_RAGE')
         ];
     }
 

@@ -626,7 +626,6 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
 
         // 写入回调
         $this->trigger('AfterWrite');
-
         if (!empty($this->change)) {
             // 处理递增递减数据
             foreach ($this->change as $field => $val) {
