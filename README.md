@@ -97,11 +97,19 @@
     'www.test.com'=>'index'
 ],
 ```
-#### 5、配置Nginx，除了screen.test.com，让访问的域名都支持SSL
+#### 5、配置Nginx，除了screen.test.com，让访问的域名都支持SSL，设置根目录为public，开启thinkphp伪静态
 #### 6、配置Mysql，拷贝.example.env的内容生成.env，修改配置信息
 #### 7、访问系统管理端https://admin.test.com/index，默认的用户名：admin，密码：admin123
 #### 8、完善系统配置
 <img src="./storage/images/1.png" style="width: 60%;">
+
+#### 9、在命令行窗口启动队列任务
+<img src="./storage/images/1-1.png" style="width: 60%;">
+
+#### 10、在命令行窗口启动相机监听
+（1）启动监听相机接收消息：php think Mqtt receive<br>
+（2）启动监听相机发送消息：php think Mqtt publish<br>
+（3）启动监听相机在线状态：php think Mqtt keepalive<br>
 
 ### 公众号配置
 #### 1、完成公众号接口配置
