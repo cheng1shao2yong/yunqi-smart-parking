@@ -62,9 +62,9 @@ class Index extends Base
     public function records()
     {
         $parking_space_total=ParkingSetting::where('parking_id',$this->parking_id)->value('parking_space_total');
-        $parking_space_active=ParkingRecords::where('parking_id',$this->parking_id)->whereIn('status',[0,1,6])->count();
+        $parking_space_active=ParkingRecords::where('parking_id',$this->parking_id)->whereIn('status',[0,1])->count();
         $parking_space_last=($parking_space_total-$parking_space_active>0)?$parking_space_total-$parking_space_active:0;
-        $provisional=ParkingRecords::where(['parking_id'=>$this->parking_id,'rules_type'=>'provisional'])->whereIn('status',[0,1,6])->count();
+        $provisional=ParkingRecords::where(['parking_id'=>$this->parking_id,'rules_type'=>'provisional'])->whereIn('status',[0,1])->count();
         $monthly=ParkingCars::where(['parking_id'=>$this->parking_id,'rules_type'=>'monthly','status'=>'normal'])->count();
         $stored=ParkingCars::where(['parking_id'=>$this->parking_id,'rules_type'=>'stored','status'=>'normal'])->count();
         $vip=ParkingCars::where(['parking_id'=>$this->parking_id,'rules_type'=>'vip','status'=>'normal'])->count();

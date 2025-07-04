@@ -239,7 +239,7 @@ class Barrier extends ParkingBase
                 if(count($text)!=4){
                     $this->error('广告内容必须有4行');
                 }
-                $barrier=ParkingBarrier::find($postdata['id']);
+                $barrier=ParkingBarrier::where(['id'=>$postdata['id'],'parking_id'=>$this->parking->id])->find();
                 $show_last_space=false;
                 foreach ($text as $k=>$t){
                     if(strpos($t,'{剩余车位}')!==false){
@@ -267,7 +267,7 @@ class Barrier extends ParkingBase
             }
             if($postdata['type']=='voice'){
                 $voice=$postdata['voice'];
-                $barrier=ParkingBarrier::find($postdata['id']);
+                $barrier=ParkingBarrier::where(['id'=>$postdata['id'],'parking_id'=>$this->parking->id])->find();
                 Utils::send($barrier,'设置音量',[
                     'voice'=>$voice,
                     'step'=>1
@@ -277,7 +277,7 @@ class Barrier extends ParkingBase
                 ]);
             }
             if($postdata['type']=='time'){
-                $barrier=ParkingBarrier::find($postdata['id']);
+                $barrier=ParkingBarrier::where(['id'=>$postdata['id'],'parking_id'=>$this->parking->id])->find();
                 $time=time();
                 Utils::send($barrier,'设置时间',[
                     'time'=>[
@@ -303,7 +303,7 @@ class Barrier extends ParkingBase
     {
         $ids=$this->request->get('ids');
         $ids=explode(',',$ids);
-        $barrierList=ParkingBarrier::whereIn('id',$ids)->where('status','normal')->select();
+        $barrierList=ParkingBarrier::whereIn('id',$ids)->where(['status'=>'normal','parking_id'=>$this->parking->id])->select();
         $r=[];
         foreach ($barrierList as $barrier){
             $r[$barrier->serialno]['online']=$barrier->isOnline()?1:0;

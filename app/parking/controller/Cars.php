@@ -376,7 +376,7 @@ class Cars extends ParkingBase
         $endtime=$this->request->post('endtime');
         $change_type=$this->request->post('change_type');
         $remark=$this->request->post('remark');
-        $cars=ParkingCars::with(['rules','plates'])->find($cars_id);
+        $cars=ParkingCars::with(['rules','plates'])->where(['id'=>$cars_id,'parking_id'=>$this->parking->id])->find();
         if(!$cars || $cars->parking_id!=$this->parking->id){
             $this->error('车辆不存在');
         }

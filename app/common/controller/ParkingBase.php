@@ -71,6 +71,9 @@ class ParkingBase extends BaseController
             if ($this->auth->isLogin()) {
                 $elementUi=$this->auth->getElementUi($elementUi);
                 $this->parking=$this->auth->getParking();
+                if(isset($this->volidateFields)){
+                    $this->volidateFields=['parking_id'=>$this->parking->id];
+                }
                 event('write_log','管理员访问-ID:'.$this->auth->id.',昵称:'.$this->auth->nickname);
                 $noNeedRight=in_array('*',$noNeed['right']) || in_array($actionname,$noNeed['right']);
                 if(!$noNeedRight && !$this->auth->check($controllername,$actionname)){
@@ -97,10 +100,12 @@ class ParkingBase extends BaseController
         event('write_log',WriteLog::ADMIN);
         //加载当前控制器语言包
         LangService::newInstance()->load($elementUi['language']);
+        $route=[$modulename,$this->getShortControllerName(),$actionname];
         // 配置信息
         $version=Config::get('app.app_debug')?time():site_config("basic.version");
         $this->config = [
             'version'        => $version,
+            'route'          => $route,
             'controller'     => $controllername,
             'action'         => $actionname,
             'url'            => request()->url(true),

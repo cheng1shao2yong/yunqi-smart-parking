@@ -58,16 +58,11 @@
         {/if}
         <!--如果你希望返回json，请在请求头设置{'x-requested-with':'XMLHttpRequest'}-->
         <h4>{$result.msg}</h4>
-        {if $result.modulename == 'admin'}
-        <div class="button" type="primary" onclick="closePage()">关闭页面</div>
-        {else}
-        <div class="button" type="primary" onclick="goHome()">返回首页</div>
-        {/if}
+        <div id="closePage" style="display: none;" class="button" type="primary" onclick="closePage()">关闭页面</div>
     </div>
 </div>
 </body>
 <script>
-    {if $result.modulename == 'admin'}
     function closePage(){
         if(top!==window){
             let menu=top.Yunqi.app.openMenu;
@@ -79,10 +74,8 @@
             }
         }
     }
-    {/if}
-
-    function goHome(){
-        window.location.href = '/';
+    if(top!==window){
+        document.getElementById('closePage').style.display = 'block';
     }
 </script>
 </html>

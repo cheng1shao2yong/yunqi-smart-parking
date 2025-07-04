@@ -15,9 +15,6 @@ use think\Response;
 
 //后台首页
 Route::get('/',function(){
-    View::assign('windowId',0);
-    View::assign('windowType','');
-    View::assign('modulename','');
     $result=View::fetch('common@/404');
     $response = Response::create($result, 'html', 404);
     return $response;

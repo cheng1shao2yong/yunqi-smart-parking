@@ -64,6 +64,9 @@ class Apply extends ParkingBase
         if (false === $this->request->isPost()) {
             $id=$this->request->get('ids');
             $apply=ParkingCarsApply::with(['cars','pay','rules'])->where(['parking_id'=>$this->parking->id,'id'=>$id])->find();
+            if(!$apply || $apply->status!==0){
+                $this->error('申请不存在或者已经被审核，请刷新后再试');
+            }
             $plates=array([
                 'plate_number'=>$apply->plate_number,
                 'plate_type'=>$apply->plate_type,

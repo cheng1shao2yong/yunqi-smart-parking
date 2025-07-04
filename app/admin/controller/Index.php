@@ -88,17 +88,21 @@ class Index extends Backend
         if($this->auth->isLogin()){
             return redirect(request()->domain().'/index');
         }
-        $thirdLogin=addons_installed('addons') && site_config("addons.uniapp_scan_login");
+        $thirdLogin=site_config("addons.uniapp_scan_login");
         if($thirdLogin){
             $config=[
                 'appid'=>site_config("addons.uniapp_mpapp_id"),
                 'appsecret'=>site_config("addons.uniapp_mpapp_secret"),
             ];
-            $qrcode=Qrcode::createQrcode(Qrcode::TYPE('管理员扫码登录'),token(),5*60);
-            $wechat=new \WeChat\Qrcode($config);
-            $ticket = $wechat->create($qrcode->id)['ticket'];
-            $url=$wechat->url($ticket);
-            $this->assign('qrcode',$url);
+            if($config['appid'] && $config['appsecret']){
+                $qrcode=Qrcode::createQrcode(Qrcode::TYPE('管理员扫码登录'),token(),5*60);
+                $wechat=new \WeChat\Qrcode($config);
+                $ticket = $wechat->create($qrcode->id)['ticket'];
+                $url=$wechat->url($ticket);
+                $this->assign('qrcode',$url);
+            }else{
+                $thirdLogin=false;
+            }
         }
         $this->assign('thirdLogin',$thirdLogin);
         $this->assign('logo',site_config("basic.logo"));

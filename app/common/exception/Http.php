@@ -26,12 +26,6 @@ class Http extends Handle
         if($e instanceof HttpException && $e->getStatusCode() == 404){
             if(!$request->isAjax()) {
                 View::engine()->layout(false);
-                $modulename=app('http')->getName();
-                View::assign('modulename',$modulename);
-                $windowId=Cookie::get('window-id');
-                $windowType=Cookie::get('window-type');
-                View::assign('windowId',$windowId??0);
-                View::assign('windowType',$windowType??'');
                 $result=View::fetch('common@/404');
                 $response = Response::create($result, 'html', 404);
                 return $response;

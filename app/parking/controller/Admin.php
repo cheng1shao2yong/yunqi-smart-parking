@@ -148,7 +148,10 @@ class Admin extends ParkingBase
             $this->assign('usertype',$usertype);
             $this->assign('treedata',$groupdata);
             $ids=$this->request->get('ids');
-            $parkingadmin=ParkingAdmin::with(['admin'])->where('id',$ids)->find();
+            $parkingadmin=ParkingAdmin::with(['admin'])->where(['id'=>$ids,'parking_id'=>$this->parking->id])->find();
+            if(!$parkingadmin){
+                $this->error('数据不存在');
+            }
             $parkingadmin->admin->username=str_replace($this->parking->uniqid.'-','',$parkingadmin->admin->username);
             $parkingadmin->mobile_rules=explode(',',$parkingadmin->mobile_rules);
             $parkingadmin->rules=$this->parseRules($groupdata,$parkingadmin->auth_rules);
@@ -162,9 +165,12 @@ class Admin extends ParkingBase
         if(!$row['auth_rules']){
             $this->error('请选择电脑端权限');
         }
+        $parkadmin=ParkingAdmin::find($row['id']);
+        if(!$parkadmin || $parkadmin->parking_id!=$this->parking->id){
+            $this->error('数据不存在');
+        }
         Db::startTrans();
         try{
-            $parkadmin=ParkingAdmin::find($row['id']);
             $parkadmin->role=$row['role'];
             $parkadmin->rules=$row['rules'];
             $parkadmin->auth_rules=$row['auth_rules'];
@@ -184,6 +190,9 @@ class Admin extends ParkingBase
         $ids=$this->request->post('ids');
         $parkingadmin=ParkingAdmin::whereIn('id',$ids)->select();
         foreach ($parkingadmin as $value){
+            if($value->parking_id!=$this->parking->id){
+                continue;
+            }
             \app\common\model\Admin::where('id',$value->admin_id)->delete();
             $value->delete();
         }

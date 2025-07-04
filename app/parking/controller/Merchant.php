@@ -187,7 +187,7 @@ class Merchant extends ParkingBase
             return $this->_edit();
         }else{
             $ids=$this->request->get('ids');
-            $mer=ParkingMerchant::with(['user'])->where('id',$ids)->find();
+            $mer=ParkingMerchant::with(['user'])->where(['id'=>$ids,'parking_id'=>$this->parking->id])->find();
             $third=[];
             if(count($mer['user'])>0){
                 foreach ($mer['user'] as $v){

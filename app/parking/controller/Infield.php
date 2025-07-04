@@ -99,7 +99,7 @@ class Infield extends ParkingBase
                 $this->callback();
             };
         }
-        $row=$this->model->find($this->request->param('ids'));
+        $row=$this->model->where(['id'=>$this->request->param('ids'),'parking_id'=>$this->parking->id])->find();
         if($row->mode){
             $row->mode=json_decode($row->mode);
         }

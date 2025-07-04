@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace app\parking\traits;
 
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
 use think\annotation\route\Route;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;

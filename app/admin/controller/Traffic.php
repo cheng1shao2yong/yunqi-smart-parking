@@ -40,13 +40,14 @@ class Traffic extends Backend
         }
         $where=[];
         [$where, $order, $limit, $with] = $this->buildparams($where);
+        $apihost=get_domain('api');
         $list = $this->model
             ->withJoin($with)
             ->where($where)
             ->order('status asc,id desc')
             ->paginate($limit)
-            ->each(function ($item){
-                 $item->link=$this->request->domain().'/traffic/show?uniqid='.$item->parking->uniqid;
+            ->each(function ($item) use ($apihost){
+                 $item->link=$apihost.'/traffic/show?uniqid='.$item->parking->uniqid;
             });
         $result = ['total' => $list->total(), 'rows' => $list->items()];
         return json($result);

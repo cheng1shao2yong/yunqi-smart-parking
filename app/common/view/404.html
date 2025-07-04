@@ -49,11 +49,7 @@
     <div class="not-detail">
         <h2>404</h2>
         <h4>抱歉，您访问的页面不存在~🤷‍♂️🤷‍♀️</h4>
-        {if $modulename == 'admin'}
-        <div class="button" type="primary" onclick="closePage()">关闭页面</div>
-        {else}
-        <div class="button" type="primary" onclick="goHome()">返回首页</div>
-        {/if}
+        <div id="closePage" style="display: none;" class="button" type="primary" onclick="closePage()">关闭页面</div>
     </div>
 </div>
 </body>
@@ -69,8 +65,8 @@
             }
         }
     }
-    function goHome(){
-        window.location.href = '/';
+    if(top!==window){
+        document.getElementById('closePage').style.display = 'block';
     }
 </script>
 </html>
