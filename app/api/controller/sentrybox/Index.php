@@ -21,30 +21,40 @@ use think\annotation\route\Post;
 use think\exception\HttpResponseException;
 use think\Response;
 
+function getParkingIds(int $parking_id){
+    $r=[$parking_id];
+    $parking=Parking::cache('parking_'.$parking_id,24*3600)->withJoin(['setting'])->find($parking_id);
+    if($parking->property_id){
+        return Parking::where('property_id',$parking->property_id)->column('id');
+    }else{
+        return $r;
+    }
+}
+
 #[Group("sentrybox/index")]
 class Index extends BaseController
 {
 
-   private $sentrybox;
+    private $sentrybox;
 
-   public function _initialize()
-   {
-       parent::_initialize();
-       if($this->request->action()=='login' || $this->request->action()=='download'){
-           return;
-       }
-       $token=$this->request->header('token');
-       if(!$token){
-           $response = Response::create('没有操作权限!','html', 401);
-           throw new HttpResponseException($response);
-       }
-       $sentrybox=ParkingSentrybox::where('token',$token)->find();
-       if(!$sentrybox){
-           $response = Response::create('没有操作权限!','html', 401);
-           throw new HttpResponseException($response);
-       }
-       $this->sentrybox=$sentrybox;
-   }
+    public function _initialize()
+    {
+        parent::_initialize();
+        if($this->request->action()=='login' || $this->request->action()=='download'){
+            return;
+        }
+        $token=$this->request->header('token');
+        if(!$token){
+            $response = Response::create('没有操作权限!','html', 401);
+            throw new HttpResponseException($response);
+        }
+        $sentrybox=ParkingSentrybox::where('token',$token)->find();
+        if(!$sentrybox){
+            $response = Response::create('没有操作权限!','html', 401);
+            throw new HttpResponseException($response);
+        }
+        $this->sentrybox=$sentrybox;
+    }
 
     #[Post('login')]
     public function login()
@@ -64,42 +74,47 @@ class Index extends BaseController
         $this->success('',['token'=>$token]);
     }
 
-   #[Get('config')]
-   public function config()
-   {
-       $screen=ParkingBarrier::with(['fuji'=>function ($query) {
-           $query->where('status','normal');
-       }])->whereIn('id',$this->sentrybox->barriers)->where('status','normal')->select();
-       foreach ($screen as &$item){
-           if($item->local_ip){
-               $item->url='ws://'.$item->local_ip.':9080/ws.flv?channel=0';
-           }else{
-               $item->url='';
-           }
-           foreach ($item->fuji as &$fuji){
-               if($fuji->local_ip){
-                   $fuji->url='ws://'.$fuji->local_ip.':9080/ws.flv?channel=0';
-               }else{
-                   $fuji->url='';
-               }
-           }
-       }
-       $mqttConfig=site_config('mqtt');
-       $clientId='mqtt-receive-sentrybox-'.$this->sentrybox->parking_id.'-'.$this->sentrybox->id.'-'.rand(0,100);
-       $tips=$this->sentrybox->remark;
-       $parking=Parking::cache('parking_'.$this->sentrybox->parking_id,24*3600)->withJoin(['setting'])->find($this->sentrybox->parking_id);
-       $parking->sentrybox=$this->sentrybox->title;
-       $this->success('',compact('parking','screen','mqttConfig','clientId','tips'));
-   }
+    #[Get('config')]
+    public function config()
+    {
+        $screen=ParkingBarrier::with(['fuji'=>function ($query) {
+            $query->where('status','normal');
+        }])->whereIn('id',$this->sentrybox->barriers)->where('status','normal')->select();
+        foreach ($screen as &$item){
+            if($item->local_ip){
+                $item->url='ws://'.$item->local_ip.':9080/ws.flv?channel=0';
+            }else{
+                $item->url='';
+            }
+            foreach ($item->fuji as &$fuji){
+                if($fuji->local_ip){
+                    $fuji->url='ws://'.$fuji->local_ip.':9080/ws.flv?channel=0';
+                }else{
+                    $fuji->url='';
+                }
+            }
+        }
+        $mqttConfig=site_config('mqtt');
+        $clientId='mqtt-receive-sentrybox-'.$this->sentrybox->parking_id.'-'.$this->sentrybox->id;
+        $tips=$this->sentrybox->remark;
+        $parking=Parking::cache('parking_'.$this->sentrybox->parking_id,24*3600)->withJoin(['setting'])->find($this->sentrybox->parking_id);
+        $parking->sentrybox=$this->sentrybox->title;
+        $this->success('',compact('parking','screen','mqttConfig','clientId','tips'));
+    }
     #[Get('client')]
     public function client()
     {
         $update=[
-            'v1.0.0'=>false
+            'v1.0.0'=>false,
+            'v1.0.1'=>false,
+            'v1.0.2'=>false
         ];
         $screen=ParkingBarrier::with(['fuji'=>function ($query) {
             $query->where('status','normal');
-        }])->whereIn('id',$this->sentrybox->barriers)->where('status','normal')->select();
+        }])->whereIn('id',$this->sentrybox->barriers)
+            ->where('status','normal')
+            ->field('id,pid,parking_id,title,barrier_type,local_ip,serialno,camera')
+            ->select();
         foreach ($screen as &$item){
             if($item->local_ip){
                 $item->url='rtsp://'.$item->local_ip.':8557/h264';
@@ -115,128 +130,133 @@ class Index extends BaseController
             }
         }
         $mqttConfig=site_config('mqtt');
-        $mqttConfig['mqtt_client_id']='mqtt-receive-sentrybox-'.$this->sentrybox->parking_id.'-'.$this->sentrybox->id.'-'.rand(0,100);
+        $md5=md5($this->sentrybox->parking_id.'-'.$this->sentrybox->id.'-'.rand(0,100));
+        $mqttConfig['mqtt_client_id']='mqtt-receive-sentrybox-'.$md5;
         $tips=$this->sentrybox->remark;
+        $hide_window=$this->sentrybox->hide_window;
         $title=Parking::where('id',$this->sentrybox->parking_id)->value("title")." - ".$this->sentrybox->title;
-        $this->success('',compact('title','screen','mqttConfig','tips','update'));
+        $this->success('',compact('title','screen','mqttConfig','tips','update','hide_window'));
     }
 
-   #[Post('open')]
-   public function open()
-   {
-       $barrier_id=$this->request->post('barrier_id');
-       $trigger_id=$this->request->post('trigger_id');
-       $recovery_id=$this->request->post('recovery_id');
-       $records_id=$this->request->post('records_id');
-       $remark=$this->request->post('remark');
-       $diy_remark=$this->request->post('diy_remark');
-       if($remark=='填写原因'){
-           $remark=$diy_remark;
-       }
-       $barrier=ParkingBarrier::where(['parking_id'=>$this->sentrybox->parking_id,'id'=>$barrier_id])->find();
-       if(!$barrier){
-           $this->error('通道不存在');
-       }
-       if($barrier->status!='normal'){
-           $this->error('通道已经被禁用');
-       }
-       if($trigger_id){
-           $trigger=ParkingTrigger::find($trigger_id);
-           if(!$trigger || $trigger->createtime < time()-5*60){
-               $this->error('时间超过5分钟，请重新识别');
-           }
-       }
-       if($recovery_id){
-           $recovery=ParkingRecovery::find($recovery_id);
-           $trigger=ParkingTrigger::where('plate_number',$recovery->plate_number)->order('id desc')->find();
-       }
-       if($trigger_id || $recovery_id){
-           $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
-           $theadkey=md5($barrier->parking_id.$barrier->id.$trigger->plate_number);
-           $service=false;
-           try{
-               $service = ParkingService::newInstance([
-                   'parking' => $parking,
-                   'barrier'=> $barrier,
-                   'plate_number' => $trigger->plate_number,
-                   'plate_type' => $trigger->plate_type,
-                   'photo' => $trigger->image,
-                   'records_type'=>ParkingRecords::RECORDSTYPE('人工确认'),
-                   'entry_time' =>($barrier->barrier_type=='entry')?time():null,
-                   'exit_time' =>($barrier->barrier_type=='exit')?time():null,
-                   'remark'=>$remark??null
-               ],$theadkey);
-               //外场入场
-               if($barrier->barrier_type=='entry' && $barrier->trigger_type=='outfield'){
-                   $isopen=$service->entry();
-                   if($isopen){
-                       WechatMsg::entry($parking,$trigger->plate_number);
-                   }
-               }
-               //内场入场
-               if($barrier->barrier_type=='entry' && $barrier->trigger_type=='infield'){
-                   $service->infieldEntry();
-               }
-               //外场出场
-               if($barrier->barrier_type=='exit' && $barrier->trigger_type=='outfield'){
-                   $isopen=$service->exit();
-                   //微信出场通知
-                   if($isopen){
-                       WechatMsg::exit($parking,$trigger->plate_number);
-                   }
-               }
-               //内场出场
-               if($barrier->barrier_type=='exit' && $barrier->trigger_type=='infield'){
-                   $service->infieldExit();
-               }
-               $service->destroy();
-               ParkingScreen::sendBlackMessage($barrier,'岗亭-'.$this->sentrybox->title.'，人工确认开闸');
-           }catch (\Exception $e){
-               if($service){
-                   $service->destroy();
-               }
-               $message=$e->getMessage();
-               Utils::send($barrier,'开闸异常显示',['message'=>$message]);
-               Utils::send($barrier,'禁止通行语音');
-           }
-       }else{
-           try{
-               $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
-               ParkingScreen::open($parking,$barrier,$records_id,'岗亭-'.$this->sentrybox->title,$remark);
-               ParkingScreen::sendBlackMessage($barrier,'岗亭-'.$this->sentrybox->title.'，手动开闸');
-           }catch (\Exception $e){
-               $this->error($e->getMessage());
-           }
-       }
-       $this->success('开闸成功');
-   }
+    #[Post('open')]
+    public function open()
+    {
+        $barrier_id=$this->request->post('barrier_id');
+        $trigger_id=$this->request->post('trigger_id');
+        $recovery_id=$this->request->post('recovery_id');
+        $records_id=$this->request->post('records_id');
+        $remark=$this->request->post('remark');
+        $diy_remark=$this->request->post('diy_remark');
+        if($remark=='填写原因'){
+            $remark=$diy_remark;
+        }
+        $parking_ids=getParkingIds($this->sentrybox->parking_id);
+        $barrier=ParkingBarrier::where(['id'=>$barrier_id])->whereIn('parking_id',$parking_ids)->find();
+        if(!$barrier){
+            $this->error('通道不存在');
+        }
+        if($barrier->status!='normal'){
+            $this->error('通道已经被禁用');
+        }
+        if($trigger_id){
+            $trigger=ParkingTrigger::find($trigger_id);
+            if(!$trigger || $trigger->createtime < time()-5*60){
+                $this->error('时间超过5分钟，请重新识别');
+            }
+        }
+        if($recovery_id){
+            $recovery=ParkingRecovery::find($recovery_id);
+            $trigger=ParkingTrigger::where('plate_number',$recovery->plate_number)->order('id desc')->find();
+        }
+        if($trigger_id || $recovery_id){
+            $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
+            $theadkey=md5($barrier->parking_id.$barrier->id.$trigger->plate_number);
+            $service=false;
+            try{
+                $service = ParkingService::newInstance([
+                    'parking' => $parking,
+                    'barrier'=> $barrier,
+                    'plate_number' => $trigger->plate_number,
+                    'plate_type' => $trigger->plate_type,
+                    'photo' => $trigger->image,
+                    'records_type'=>ParkingRecords::RECORDSTYPE('人工确认'),
+                    'entry_time' =>($barrier->barrier_type=='entry')?time():null,
+                    'exit_time' =>($barrier->barrier_type=='exit')?time():null,
+                    'remark'=>$remark??null
+                ],$theadkey);
+                //外场入场
+                if($barrier->barrier_type=='entry' && $barrier->trigger_type=='outfield'){
+                    $isopen=$service->entry();
+                    if($isopen){
+                        WechatMsg::entry($parking,$trigger->plate_number);
+                    }
+                }
+                //内场入场
+                if($barrier->barrier_type=='entry' && $barrier->trigger_type=='infield'){
+                    $service->infieldEntry();
+                }
+                //外场出场
+                if($barrier->barrier_type=='exit' && $barrier->trigger_type=='outfield'){
+                    $isopen=$service->exit();
+                    //微信出场通知
+                    if($isopen){
+                        WechatMsg::exit($parking,$trigger->plate_number);
+                    }
+                }
+                //内场出场
+                if($barrier->barrier_type=='exit' && $barrier->trigger_type=='infield'){
+                    $service->infieldExit();
+                }
+                $service->destroy();
+                ParkingScreen::sendBlackMessage($barrier,'岗亭-'.$this->sentrybox->title.'，人工确认开闸');
+            }catch (\Exception $e){
+                if($service){
+                    $service->destroy();
+                }
+                $message=$e->getMessage();
+                Utils::send($barrier,'开闸异常显示',['message'=>$message]);
+                Utils::send($barrier,'禁止通行语音');
+            }
+        }else{
+            try{
+                $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
+                ParkingScreen::open($parking,$barrier,$records_id,'岗亭-'.$this->sentrybox->title,$remark);
+                ParkingScreen::sendBlackMessage($barrier,'岗亭-'.$this->sentrybox->title.'，手动开闸');
+            }catch (\Exception $e){
+                $this->error($e->getMessage());
+            }
+        }
+        $this->success('开闸成功');
+    }
 
-   #[Post('close')]
-   public function close()
-   {
-       $barrier_id=$this->request->post('barrier_id');
-       $barrier=ParkingBarrier::where(['parking_id'=>$this->sentrybox->parking_id,'id'=>$barrier_id])->find();
-       if(!$barrier){
-           $this->error('通道不存在');
-       }
-       if($barrier->status!='normal'){
-           $this->error('通道已经被禁用');
-       }
-       Utils::send($barrier,'关闸',[],function ($res) use ($barrier){
-           if($res){
-               ParkingScreen::sendBlackMessage($barrier,'岗亭-'.$this->sentrybox->title.'手动关闸');
-               $this->success('关闸成功');
-           }else{
-               $this->error('关闸失败');
-           }
-       });
-   }
+    #[Post('close')]
+    public function close()
+    {
+        $barrier_id=$this->request->post('barrier_id');
+        $parking_ids=getParkingIds($this->sentrybox->parking_id);
+        $barrier=ParkingBarrier::where(['id'=>$barrier_id])->whereIn('parking_id',$parking_ids)->find();
+        if(!$barrier){
+            $this->error('通道不存在');
+        }
+        if($barrier->status!='normal'){
+            $this->error('通道已经被禁用');
+        }
+        Utils::send($barrier,'关闸',[],function ($res) use ($barrier){
+            if($res){
+                ParkingScreen::sendBlackMessage($barrier,'岗亭-'.$this->sentrybox->title.'手动关闸');
+                $this->success('关闸成功');
+            }else{
+                $this->error('关闸失败');
+            }
+        });
+    }
 
     #[Post('trigger')]
     public function trigger()
     {
         $barrier_id=$this->request->post('barrier_id');
-        $barrier=ParkingBarrier::where(['parking_id'=>$this->sentrybox->parking_id,'id'=>$barrier_id])->find();
+        $parking_ids=getParkingIds($this->sentrybox->parking_id);
+        $barrier=ParkingBarrier::where(['id'=>$barrier_id])->whereIn('parking_id',$parking_ids)->find();
         if(!$barrier){
             $this->error('通道不存在');
         }
@@ -256,33 +276,41 @@ class Index extends BaseController
         $this->success('识别成功',$photo);
     }
 
-   #[Post('photo')]
-   public function photo()
-   {
-       $barrier_id=$this->request->post('barrier_id');
-       $barrier=ParkingBarrier::where(['parking_id'=>$this->sentrybox->parking_id,'id'=>$barrier_id])->find();
-       if(!$barrier){
-           $this->error('通道不存在');
-       }
-       if($barrier->status!='normal'){
-           $this->error('通道已经被禁用');
-       }
-       try{
-           $photo=Utils::makePhoto($barrier);
-           [$isplate,$plate_number,$plate_type]=Utils::checkPlate($photo);
-           sleep(1);
-       }catch (\Exception $e){
-           $this->error($e->getMessage());
-       }
-       $this->success('',compact('isplate','plate_number','plate_type','photo'));
-   }
+    #[Post('photo')]
+    public function photo()
+    {
+        $barrier_id=$this->request->post('barrier_id');
+        $parking_ids=getParkingIds($this->sentrybox->parking_id);
+        $barrier=ParkingBarrier::where(['id'=>$barrier_id])->whereIn('parking_id',$parking_ids)->find();
+        if(!$barrier){
+            $this->error('通道不存在');
+        }
+        if($barrier->status!='normal'){
+            $this->error('通道已经被禁用');
+        }
+        try{
+            $photo=Utils::makePhoto($barrier);
+            [$isplate,$plate_number,$plate_type]=Utils::checkPlate($photo);
+            sleep(1);
+        }catch (\Exception $e){
+            $this->error($e->getMessage());
+        }
+        $this->success('',compact('isplate','plate_number','plate_type','photo'));
+    }
 
     #[Post('entry')]
     public function entry()
     {
         $postdata=$this->request->post();
-        $parking=Parking::cache('parking_'.$this->sentrybox->parking_id,24*3600)->withJoin(['setting'])->find($this->sentrybox->parking_id);
-        $barrier=ParkingBarrier::where(['parking_id'=>$this->sentrybox->parking_id,'id'=>$postdata['barrier_id']])->find();
+        $parking_ids=getParkingIds($this->sentrybox->parking_id);
+        $barrier=ParkingBarrier::where(['id'=>$postdata['barrier_id']])->whereIn('parking_id',$parking_ids)->find();
+        if(!$barrier){
+            $this->error('通道不存在');
+        }
+        if($barrier->status!='normal'){
+            $this->error('通道已经被禁用');
+        }
+        $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
         $parkingService=ParkingService::newInstance([
             'parking'=>$parking,
             'barrier'=>$barrier,
@@ -304,8 +332,15 @@ class Index extends BaseController
     public function exit()
     {
         $postdata=$this->request->post();
-        $parking=Parking::cache('parking_'.$this->sentrybox->parking_id,24*3600)->withJoin(['setting'])->find($this->sentrybox->parking_id);
-        $barrier=ParkingBarrier::where(['parking_id'=>$this->sentrybox->parking_id,'id'=>$postdata['barrier_id']])->find();
+        $parking_ids=getParkingIds($this->sentrybox->parking_id);
+        $barrier=ParkingBarrier::where(['id'=>$postdata['barrier_id']])->whereIn('parking_id',$parking_ids)->find();
+        if(!$barrier){
+            $this->error('通道不存在');
+        }
+        if($barrier->status!='normal'){
+            $this->error('通道已经被禁用');
+        }
+        $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
         $statusnum=[
             'x3'=>3,
             'x4'=>4,
@@ -332,7 +367,7 @@ class Index extends BaseController
     #[Get('download')]
     public function download()
     {
-        $file=root_path().'gangting.zip';
+        $file=root_path().'public/gangting.zip';
         return download($file,'gangting.zip');
     }
 }

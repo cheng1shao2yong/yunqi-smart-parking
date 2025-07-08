@@ -30,7 +30,12 @@ class Sentrybox extends ParkingBase
     {
         parent::_initialize();
         $this->model=new ParkingSentrybox();
-        $this->assign('barrier',ParkingBarrier::where(['parking_id'=>$this->parking->id,'pid'=>0])->column('title','id'));
+        if($this->parking->property_id){
+            $parking_id=Parking::where('property_id',$this->parking->property_id)->column('id');
+        }else{
+            $parking_id=[$this->parking->id];
+        }
+        $this->assign('barrier',ParkingBarrier::where(['pid'=>0])->whereIn('parking_id',$parking_id)->column('title','id'));
         $this->postParams['parking_id']=$this->parking->id;
     }
 

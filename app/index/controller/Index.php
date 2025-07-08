@@ -26,8 +26,6 @@ class Index extends BaseController
     #[Get('/test')]
     public function test()
     {
-        $invoce=ParkingInvoice::find(280);
-        $parking=Parking::find(1);
-        Invoice::doInvoice($parking,$invoce,'贵阳云起信息科技有限公司','91520102MAAK4KQEXA');
+        echo strtotime('2025-07-01 00:00:00');
     }
 }
