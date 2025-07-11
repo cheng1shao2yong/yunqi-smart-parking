@@ -444,10 +444,15 @@ trait Functions{
             $rulesType=$this->getRulesType($plate);
             $rules=$this->getMatchRules($rulesType,$plate);
             $special=$this->getSpecial($plate);
-            $account=new ParkingAccount($parking);
-            $account->setRecords($records->plate_type,$special,$records->entry_time,$end_time,$rules)->fee();
-            $activities_fee=$account->getTotal();
-            $activities_fee=($totalFee>$activities_fee)?$activities_fee:$totalFee;
+            //优惠时长不够
+            if($exit_time>$end_time){
+                $account=new ParkingAccount($parking);
+                $account->setRecords($records->plate_type,$special,$end_time,$exit_time,$rules)->fee();
+                $newTotalFee=$account->getTotal();
+                $activities_fee=($totalFee-$newTotalFee>0)?$totalFee-$newTotalFee:0;
+            }else{
+                $activities_fee=$totalFee;
+            }
             $count=count($rlist);
             if($count==1){
                 $title=$rlist[0]->coupon->title;

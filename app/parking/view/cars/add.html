@@ -146,6 +146,7 @@
                 vip:[
                     {field:"id",title:"ID",edit:"hidden"},
                     {field:"rules_id",title:"选择VIP卡",edit:'select',searchList:Yunqi.data.rules,rules:'required'},
+                    {field:"code",title:"车位编号",edit:'text'},
                     {field:"plates",title:"车辆",edit:{form:'slot',value:[{plate_number:'贵A',plate_type:'blue',car_models:'small'}],name:'plates'}},
                     {field:"contact",title:"车主姓名",edit:'text',rules:'required'},
                     {field:"mobile",title:"手机号",edit:'text',rules:'required;mobile'},
@@ -170,16 +171,19 @@
         methods: {
             addPlates:function (e){
                 Yunqi.api.open({
-                    url:'cars/listplate?cars_id='+Yunqi.data.row.id,
+                    url:'parking/cars/listplate?cars_id='+Yunqi.data.row.id,
                     title:'设置车牌',
                     width:850,
                     icon:'fa fa-edit'
                 });
             },
             changeRules:function (e){
-                Yunqi.ajax.get('cars/change-rules',{id:e}).then(res=>{
+                Yunqi.ajax.get('parking/cars/change-rules',{id:e}).then(res=>{
                     if(res.rules_type=='monthly' && !Yunqi.data.row){
                         this.$refs.yunForm.setValue('pay',res.fee);
+                    }
+                    if(res.remark_list){
+                        this.remarkline=res.remark_list;
                     }
                 });
             },
@@ -203,7 +207,7 @@
                 if(!e){
                     return;
                 }
-                Yunqi.ajax.get('cars/rulesRemark',{rules_id:e}).then(res=>{
+                Yunqi.ajax.get('parking/cars/rulesRemark',{rules_id:e}).then(res=>{
                     if(!res){
                         this.remarkline=[];
                         return;
