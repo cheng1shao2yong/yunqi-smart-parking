@@ -21,6 +21,7 @@ class ParkingAccount{
     private mixed $rules;
     private $total_fee;
     private $parking_detail;
+    private $allow_free_time=true;
 
     public function __construct(Parking $parking)
     {
@@ -48,6 +49,12 @@ class ParkingAccount{
         $this->total_fee=0;
         $this->parking_detail=[];
         return $this;
+    }
+
+    //获取免费时长
+    public function unAllowFreeTime()
+    {
+        $this->allow_free_time=false;
     }
 
     public function fee()
@@ -103,7 +110,12 @@ class ParkingAccount{
                 continue;
             }
             //免费时长内
-            if($key===0 && $this->exit_time-$this->entry_time<$mode->free_time*60){
+            if(
+                $key===0 &&
+                $this->allow_free_time &&
+                $mode->free_time &&
+                ($this->exit_time-$this->entry_time)<$mode->free_time*60
+            ){
                 $this->total_fee=0;
                 $this->parking_detail=array(
                     ['start_time'=>$this->entry_time,'end_time'=>$this->exit_time,'fee'=>0,'mode'=>$mode->title]

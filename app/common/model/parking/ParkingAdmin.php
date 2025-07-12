@@ -179,7 +179,7 @@ class ParkingAdmin Extends Model
             'name'=>'用户申请',
             'controller'=>\app\api\controller\parking\Cars::class,
             'action'=>'apply,applyDetail,doApply',
-            'menus'=>'parking/plate?type=stored_pay'
+            'menus'=>'parking/cars/apply'
         ],
         [
             'id'=>'merchant-add',

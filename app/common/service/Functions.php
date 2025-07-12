@@ -448,6 +448,7 @@ trait Functions{
             if($exit_time>$end_time){
                 $account=new ParkingAccount($parking);
                 $account->setRecords($records->plate_type,$special,$end_time,$exit_time,$rules)->fee();
+                $account->unAllowFreeTime();
                 $newTotalFee=$account->getTotal();
                 $activities_fee=($totalFee-$newTotalFee>0)?$totalFee-$newTotalFee:0;
             }else{
