@@ -52,9 +52,7 @@ class Setting extends ParkingBase
         }
         $this->setting->save([$field=>$value]);
         $parking=Parking::withJoin(['setting'])->find($this->parking->id);
-        $auth_rules=Session::get('admin.parking.auth_rules');
-        $parking->auth_rules=$auth_rules;
-        Session::set('admin.parking',$parking);
+        Session::set('parking.parkingModel',$parking);
         Session::save();
         $this->success('修改成功');
     }

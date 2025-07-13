@@ -81,7 +81,7 @@
                 {field: "coupon_txt", title: "停车券",operate:false},
                 {field: "status", title: "状态",operate: 'select',searchList:Yunqi.data.status,formatter: function (data,row){
                     let tag=Yunqi.formatter.tag;
-                    let type={'0':'','1':'','2':'danger','3':'success','4':'success','5':'warning','6':'warning','7':'danger'};
+                    let type={'0':'primary','1':'primary','2':'danger','3':'success','4':'success','5':'warning','6':'warning','7':'danger'};
                     tag.value=Yunqi.data.status[row.status];
                     tag.type=type[row.status];
                     return tag;

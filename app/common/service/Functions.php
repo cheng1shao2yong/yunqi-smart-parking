@@ -447,8 +447,8 @@ trait Functions{
             //优惠时长不够
             if($exit_time>$end_time){
                 $account=new ParkingAccount($parking);
-                $account->setRecords($records->plate_type,$special,$end_time,$exit_time,$rules)->fee();
                 $account->unAllowFreeTime();
+                $account->setRecords($records->plate_type,$special,$end_time,$exit_time,$rules)->fee();
                 $newTotalFee=$account->getTotal();
                 $activities_fee=($totalFee-$newTotalFee>0)?$totalFee-$newTotalFee:0;
             }else{

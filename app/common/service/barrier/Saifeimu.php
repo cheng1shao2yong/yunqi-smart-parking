@@ -150,7 +150,7 @@ class Saifeimu extends BarrierService {
                 $service->destroy();
             }
             Utils::send($this->barrier,'显示+语音',['message'=>$e->getMessage(),'voice'=>'支付失败']);
-            ParkingScreen::sendRedMessage($barrier,'支付失败');
+            ParkingScreen::sendRedMessage($barrier,'支付失败，'.$e->getMessage());
         }
     }
 

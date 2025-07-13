@@ -7,7 +7,7 @@ use think\Model;
 
 class ParkingException extends Model
 {
-    public static function addException(ParkingPlate $plate,ParkingBarrier $barrier,string $message,string $photo)
+    public static function addException(ParkingPlate $plate,ParkingBarrier $barrier,string $message,string $photo=null)
     {
         $rules_type='临时车';
         if($plate->cars){

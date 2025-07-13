@@ -198,8 +198,9 @@ class Index extends ParkingBase
     #[Route('GET','logout')]
     public function logout()
     {
+        $parking=Session::get('parking.parkingModel.uniqid');
         $this->auth->logout();
-        $url=request()->domain().'/login';
+        $url=request()->domain().'/login?parking='.$parking;
         return redirect($url);
     }
 }

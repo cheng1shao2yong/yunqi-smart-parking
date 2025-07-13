@@ -85,7 +85,7 @@ class MerchantCouponList extends ParkingBase
         if ($this->request->isPost()) {
             $plate_number=trim(strtoupper($this->request->post('row.plate_number')));
             $merch_id=$this->request->post('row.merch_id');
-            $remark=$this->request->post('row.remark');
+            $remark=$this->request->post('row.remark','');
             $merchant=ParkingMerchant::find($merch_id);
             if(!is_car_license($plate_number)){
                 $this->error('车牌号格式错误');
