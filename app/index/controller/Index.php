@@ -28,6 +28,6 @@ class Index extends BaseController
     #[Get('/test')]
     public function test()
     {
-
+        echo strtotime('2025-03-1');
     }
 }

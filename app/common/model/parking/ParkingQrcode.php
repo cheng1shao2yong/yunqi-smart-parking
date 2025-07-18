@@ -73,7 +73,12 @@ class ParkingQrcode extends Model
         }
         //图片添加logo
         $logo=Attachment::where(['fullurl'=>site_config("basic.logo")])->find();
-        self::addlogo($tempfile,root_path().$logo->url);
+        if(!$logo){
+            $logourl='public/assets/img/logo.png';
+        }else{
+            $logourl=$logo->url;
+        }
+        self::addlogo($tempfile,root_path().$logourl);
         //图片添加背景
         if($qrcode->background){
             $background=Attachment::where(['fullurl'=>$qrcode->background])->find();
@@ -103,7 +108,7 @@ class ParkingQrcode extends Model
 
     private static function getQrcodeInfo(ParkingQrcode $qrcode,string $serialno)
     {
-        $url=request()->domain();
+        $url=get_domain('index');
         $uniqid=$qrcode->parking->uniqid;
         $records_id=$qrcode->records_id;
         $name=$qrcode['name'];

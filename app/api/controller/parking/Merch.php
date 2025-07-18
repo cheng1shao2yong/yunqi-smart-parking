@@ -15,6 +15,7 @@ use app\common\model\parking\ParkingMerchantUser;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\PayUnion;
 use app\common\model\Third;
+use app\common\model\UserToken;
 use think\annotation\route\Get;
 use think\annotation\route\Group;
 use think\annotation\route\Post;
@@ -354,6 +355,24 @@ class Merch extends Base
                 }
             }
             (new ParkingMerchantSetting())->saveAll($coupon);
+            $merchuser=ParkingMerchantUser::where(['merch_id'=>$model->id,'parking_id'=>$this->parking_id])->select();
+            $tokens=UserToken::where('merch_admin','<>', null)->where('expire','>',time())->select();
+            foreach ($merchuser as $user){
+                foreach ($tokens as $token){
+                    if(!$token->merch_admin){
+                        continue;
+                    }
+                    $merch_admin=json_decode($token->merch_admin,true);
+                    if(
+                        $merch_admin['id']==$user->merch_id &&
+                        $merch_admin['parking_id']==$user->parking_id
+                    ){
+                        $token->merch_admin=null;
+                        $token->save();
+                    }
+                }
+                $user->delete();
+            }
             //处理微信登录
             if(!empty($postdata['third'])){
                 $insert=[];

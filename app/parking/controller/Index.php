@@ -29,6 +29,7 @@ class Index extends ParkingBase
     #[Route('GET','index')]
     public function index()
     {
+        $parking=Session::get('parking');
         $referer=Session::pull('referer');
         if($referer){
             Session::save(); 

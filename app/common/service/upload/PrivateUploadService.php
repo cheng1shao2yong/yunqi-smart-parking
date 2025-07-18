@@ -29,9 +29,9 @@ class PrivateUploadService extends UploadService{
             $this->imageheight = $imageinfo[1];
             $this->imagetype = $imageinfo['mime'];
         }
-        $alismodel=get_module_alis('admin');
         $sha1=$this->file->sha1();
-        $fullurl=request()->domain().'/'.$alismodel.'/ajax/readfile?sha1='.$sha1;
+        $domain=get_domain('admin');
+        $fullurl=$domain.'/ajax/readfile?sha1='.$sha1;
         return ['storage/'.$url,$fullurl];
     }
 

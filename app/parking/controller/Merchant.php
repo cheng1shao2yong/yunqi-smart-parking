@@ -12,6 +12,7 @@ use app\common\model\parking\ParkingMerchantUser;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRules;
 use app\common\model\PayUnion;
+use app\common\model\UserToken;
 use think\annotation\route\Group;
 use app\parking\traits\Actions;
 use think\annotation\route\Route;
@@ -169,7 +170,24 @@ class Merchant extends ParkingBase
                 ParkingMerchantSetting::where(['parking_id'=>$row->parking_id,'merch_id'=>$row->id])->delete();
                 (new ParkingMerchantSetting())->saveAll($coupon);
                 //处理登录微信
-                ParkingMerchantUser::where(['merch_id'=>$row->id,'parking_id'=>$this->parking->id])->delete();
+                $merchuser=ParkingMerchantUser::where(['merch_id'=>$row->id,'parking_id'=>$this->parking->id])->select();
+                $tokens=UserToken::where('merch_admin','<>', null)->where('expire','>',time())->select();
+                foreach ($merchuser as $user){
+                    foreach ($tokens as $token){
+                        if(!$token->merch_admin){
+                            continue;
+                        }
+                        $merch_admin=json_decode($token->merch_admin,true);
+                        if(
+                            $merch_admin['id']==$user->merch_id &&
+                            $merch_admin['parking_id']==$user->parking_id
+                        ){
+                            $token->merch_admin=null;
+                            $token->save();
+                        }
+                    }
+                    $user->delete();
+                }
                 $third_id=$this->request->post('third_id');
                 if($third_id){
                     $third_id=explode(',',$third_id);
