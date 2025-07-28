@@ -37,6 +37,23 @@
             columns:{
                 provisional:[
                     {field:'provisionalmode.title',title:'收费名称'},
+                    {field:'time_limit_entry',title:'限制入场',formatter:function (data){
+                        let tag=Yunqi.formatter.tag;
+                        tag.value=(data==1)?'是':'否';
+                        tag.type=(data==1)?'danger':'';
+                        return tag;
+                    }},
+                    {field:'time_limit_setting',title:'限制时间',formatter:function (data,row){
+                        if(row.time_limit_entry && data){
+                            let html=Yunqi.formatter.html;
+                            html.value='';
+                            for(let i in data){
+                                html.value+='<div style="width: 100%;text-align: center">'+data[i].period_begin+' 至 '+data[i].period_end+'</div>';
+                            }
+                            return html;
+                        }
+                        return '';
+                    }},
                     {field:'weigh',title:'权重'},
                     {field: 'status', title: '启用状态',searchList: {'normal': '正常','hidden': '隐藏'},formatter:Yunqi.formatter.switch},
                     {

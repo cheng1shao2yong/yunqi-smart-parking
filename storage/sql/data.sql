@@ -5346,6 +5346,8 @@ CREATE TABLE `yun_parking_rules` (
   `discount` decimal(4,2) DEFAULT NULL,
   `notice` tinyint DEFAULT '3' COMMENT '微信到期通知',
   `weigh` int DEFAULT NULL,
+  `time_limit_entry` tinyint DEFAULT '0',
+  `time_limit_setting` varchar(255) DEFAULT NULL,
   `status` varchar(20) DEFAULT 'normal',
   PRIMARY KEY (`id`),
   KEY `parking_id` (`parking_id`)

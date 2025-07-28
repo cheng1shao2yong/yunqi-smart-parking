@@ -73,6 +73,14 @@ class ParkingRules extends Model
         return null;
     }
 
+    public function getTimeLimitSettingAttr($data)
+    {
+        if($data){
+            return json_decode($data,true);
+        }
+        return null;
+    }
+
     public function getOnlineApplyRemarkAttr($data)
     {
         if($data && is_string($data)){

@@ -106,6 +106,13 @@ class Rules extends ParkingBase
 
     private function parseParmer()
     {
+        if($this->rules_type=='provisional'){
+            $time_limit_entry=$this->request->post('row.time_limit_entry');
+            $time_limit_setting=$this->request->post('row.time_limit_setting');
+            if($time_limit_entry){
+                $this->postParams['time_limit_setting']=json_encode($time_limit_setting,JSON_UNESCAPED_UNICODE);
+            }
+        }
         if($this->rules_type=='monthly' || $this->rules_type=='day' ||  $this->rules_type=='stored'){
             $mode=$this->request->post('row.mode');
             $gifts=$this->request->post('row.gifts');

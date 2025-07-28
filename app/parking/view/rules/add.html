@@ -91,6 +91,17 @@
                         </Fieldlist>
                     </el-form-item>
                 </template>
+                <template #time_limit_setting="{rows}">
+                    <el-form-item label="限制时间:" prop="period_fee">
+                        <Fieldlist :label='["时间区间"]' :keys='["period_begin","period_end"]' :value="rows.time_limit_setting" @change="changePeriod">
+                            <template #period="{list,row}">
+                                <div class="row">
+                                    <el-input v-model="list[row].period_begin" type="text"></el-input><el-input v-model="list[row].period_end" type="text"></el-input>
+                                </div>
+                            </template>
+                        </Fieldlist>
+                    </el-form-item>
+                </template>
         </yun-form>
     </el-card>
 </template>
@@ -120,6 +131,10 @@
                 provisional:[
                     {field:"id",title:"ID",edit:"hidden"},
                     {field:"mode_id",title:"收费规则",edit: 'select',searchList: Yunqi.data.parking_mode,rules:'required'},
+                    {field:"time_limit_entry",title:"限制入场",edit:{form:'radio',value:'0'},searchList:{'0':"否",'1':"是"}},
+                    {field:"time_limit_setting",title:"限制时间",edit:{form:'slot',value:[{period_begin:'08:00',period_end:'12:00'}]},visible:function (row){
+                        return row.time_limit_entry==='1';
+                    }},
                     {field:"weigh",title:"权重",edit:"number"},
                     {field:"status",title:"状态",edit: {form:'radio',value:'normal'},searchList:{normal:"正常",hidden:"隐藏"}},
                 ],
@@ -206,6 +221,9 @@
             },
             changeGifts:function (e){
                 this.$refs.yunForm.setValue('gifts',e);
+            },
+            changePeriod:function (e){
+                this.$refs.yunForm.setValue('time_limit_setting',e);
             }
         }
     }

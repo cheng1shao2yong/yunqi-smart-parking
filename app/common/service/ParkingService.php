@@ -222,6 +222,17 @@ class ParkingService extends BaseService{
             if($setting->match_no_rule==1 && !$rules){
                 $this->throwException('无匹配规则，禁止入场');
             }
+            //临时车限时入场
+            if($rulesType==ParkingRules::RULESTYPE('临时车') && $rules->time_limit_entry && $rules->time_limit_setting){
+                $now=intval(date('Hi',time()));
+                foreach ($rules->time_limit_setting as $svalue){
+                    $period_begin=intval(str_replace(':','',$svalue['period_begin']));
+                    $period_end=intval(str_replace(':','',$svalue['period_end']));
+                    if($now>=$period_begin && $now<=$period_end){
+                        $this->throwException('临时车'.$svalue['period_begin'].'到'.$svalue['period_end'].'禁止入场');
+                    }
+                }
+            }
             if($rules && !$this->checkBarrierAllowRules($rules,$this->barrier)){
                 $ruletitle=$rules->title;
                 if(!$ruletitle){
