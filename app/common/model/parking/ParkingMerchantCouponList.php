@@ -372,7 +372,7 @@ class ParkingMerchantCouponList extends BaseModel
                     $list->status=$status;
                     $list->save();
                 }
-            }else{
+            }else if($coupon_type!=ParkingMerchantCoupon::COUPON_TYPE('时效券')){
                 foreach ($couponlist as $list){
                     $list->status=ParkingMerchantCouponList::STATUS('已作废');
                     $list->save();

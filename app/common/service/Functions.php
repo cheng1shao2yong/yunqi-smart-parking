@@ -562,7 +562,7 @@ trait Functions{
         ->alias('list')
         ->field('list.*')
         ->rightJoin('parking_merchant_coupon coupon','coupon.id = list.coupon_id')
-        ->order('list.status desc,coupon.weigh desc')
+        ->order('coupon.weigh desc,list.status desc')
         ->select();
         $coupon=ParkingMerchantCoupon::where(['parking_id'=>$parking->id,'status'=>'normal'])->cache('parking_coupon_'.$parking->id,3600*24)->select();
         $r=[];
