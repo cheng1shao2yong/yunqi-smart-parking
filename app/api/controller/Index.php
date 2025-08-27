@@ -135,16 +135,10 @@ class Index extends Api
             if($trigger){
                 $photo=$trigger->image;
             }else{
-                $photo=Utils::makePhoto($barrier);
+                $photo=ParkingTemporary::makePhoto($barrier);
                 $temporary_check_cars=$parking->setting->temporary_check_cars;
                 if($temporary_check_cars){
-                    [$isplate,$hava_plate_number]=Utils::checkPlate($photo);
-                    if(!$isplate){
-                        throw new \Exception('没有识别到车辆');
-                    }
-                    if($hava_plate_number){
-                        throw new \Exception('识别到车辆车牌与临时车牌不一致');
-                    }
+                    $this->error('没有识别到无牌车，请退后重试');
                 }
             }
             $service=ParkingService::newInstance([
@@ -492,22 +486,10 @@ class Index extends Api
         if($trigger){
             $photo=$trigger->image;
         }else{
+            $photo=ParkingTemporary::makePhoto($barrier);
             $temporary_check_cars=$parking->setting->temporary_check_cars;
-            $photo=Utils::makePhoto($barrier);
             if($temporary_check_cars){
-                try{
-                    [$isplate,$plate_number]=Utils::checkPlate($photo);
-                    ParkingScreen::sendRedMessage($barrier,'识别到无牌车扫码入场<br><img style="width:250px;" src="'.$photo.'"/><br>');
-                    if(!$isplate){
-                        throw new \Exception('没有识别到车辆');
-                    }
-                    if($plate_number){
-                        throw new \Exception('识别到车辆车牌与临时车牌不一致');
-                    }
-                }catch (\Exception $e){
-                    ParkingScreen::sendRedMessage($barrier,$e->getMessage());
-                    $this->error($e->getMessage());
-                }
+                $this->error('没有识别到无牌车，请退后重试');
             }
         }
         try{

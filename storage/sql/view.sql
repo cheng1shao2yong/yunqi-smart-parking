@@ -8,16 +8,16 @@ SELECT
     SUM(CASE WHEN order_type = 'parking_monthly' THEN pay_price ELSE 0 END) AS parking_monthly_income,
     SUM(CASE WHEN order_type = 'parking_stored' THEN pay_price ELSE 0 END) AS parking_stored_income,
     SUM(CASE WHEN order_type = 'merch_recharge' THEN pay_price ELSE 0 END) AS merch_recharge_income,
-		round(SUM(handling_fees)/100,2) AS handling_fees,
-    COALESCE(SUM(CASE WHEN order_type = 'refund' THEN -refund_price ELSE 0 END), 0) AS total_refund,
-    ROUND((SUM(pay_price) -SUM(handling_fees)/100 - COALESCE(SUM(CASE WHEN order_type = 'refund' THEN -refund_price ELSE 0 END), 0)),2) AS net_income
+		SUM(handling_fees) AS handling_fees,
+    SUM(CASE WHEN order_type = 'refund' THEN -refund_price ELSE 0 END) AS total_refund,
+    ROUND((SUM(pay_price) -SUM(handling_fees)-SUM(CASE WHEN order_type = 'refund' THEN -refund_price ELSE 0 END)),2) AS net_income
 FROM
 (
     SELECT 
-        parking_id,
-        order_type,
-        pay_price,
-		handling_fees,
+    parking_id,
+    order_type,
+    pay_price,
+		round(round(handling_fees)/100,2) as handling_fees,
 		0 as refund_price,
 		pay_time AS time
     FROM yun_pay_union
@@ -26,9 +26,9 @@ FROM
     SELECT 
         parking_id,
         'refund' AS order_type,
-        refund_price * -1 AS pay_price, -- 将退款转换为负值
+        0 AS pay_price, -- 将退款转换为负值
 				0 as handling_fees,
-        refund_price,
+        refund_price*-1 as refund_price,
 			  refund_time AS time
     FROM yun_pay_refund
 ) AS combined_data

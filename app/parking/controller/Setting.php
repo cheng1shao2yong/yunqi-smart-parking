@@ -17,6 +17,7 @@ use app\common\model\parking\ParkingBarrier;
 use app\common\model\parking\ParkingMode;
 use app\common\model\parking\ParkingRules;
 use app\common\model\parking\ParkingSetting;
+use app\common\service\barrier\Zhenshi;
 use think\annotation\route\Group;
 use think\annotation\route\Route;
 use think\facade\Cache;
@@ -33,6 +34,8 @@ class Setting extends ParkingBase
         $this->setting=ParkingSetting::where(['parking_id'=>$this->parking->id])->find();
         $this->assign('rules_type',ParkingRules::RULESTYPE);
         $this->assign('special',ParkingMode::SPECIAL);
+        $this->assign('monthly_entry_tips',Zhenshi::MESSAGE_ENTRY);
+        $this->assign('monthly_exit_tips',Zhenshi::MESSAGE_EXIT);
     }
 
     #[Route('GET,POST','index')]

@@ -96,7 +96,7 @@ class Mqtt extends Command
                             'manual'=>$manual,
                             'message'=>$data['message'],
                         ];
-                        if(count($this->parking_log)>=50){
+                        if(count($this->parking_log)>=120){
                             (new ParkingLog())->saveAll($this->parking_log);
                             $this->parking_log=[];
                         }
@@ -180,20 +180,20 @@ class Mqtt extends Command
                 Cache::set('mqtt_barrier_add',null);
                 $this->output('新增设备：'.implode(',',$mqtt_barrier_add));
             }
-            try {
-                $buffer = $client->recv();
-                if ($buffer && $buffer !== true){
-                    if ($buffer['type'] === Types::DISCONNECT) {
-                        $this->output('mqtt客户端断开连接');
-                        $client->close();
-                        $this->receive();
-                        break;
-                    }
-                    if (isset($buffer['topic']) && isset($buffer['message'])) {
-                        $topic=$buffer['topic'];
-                        $message=json_decode($buffer['message'],true);
-                        Coroutine\go(function() use ($topic,$message){
-                            $this->output('收到消息,'.$topic);
+            $buffer = $client->recv();
+            if ($buffer && $buffer !== true){
+                if ($buffer['type'] === Types::DISCONNECT) {
+                    $this->output('mqtt客户端断开连接');
+                    $client->close();
+                    $this->receive();
+                    break;
+                }
+                if (isset($buffer['topic']) && isset($buffer['message'])) {
+                    $topic=$buffer['topic'];
+                    $message=json_decode($buffer['message'],true);
+                    Coroutine\go(function() use ($topic,$message){
+                        $this->output('收到消息,'.$topic);
+                        try {
                             /* @var ParkingBarrier $barrier */
                             $barrier=BarrierService::getBarriers($topic,$message);
                             if($barrier){
@@ -207,13 +207,13 @@ class Mqtt extends Command
                                     $this->reply[$message[$uniqid]]=time();
                                 }
                             }
-                        });
-                    }
+                        }catch (\Exception $e){
+                            $this->output->info(date('Y-m-d H:i:s'));
+                            $this->output->error($e->getMessage());
+                            $this->output->error($e->getTraceAsString());
+                        }
+                    });
                 }
-            }catch (\Exception $e){
-                $this->output->info(date('Y-m-d H:i:s'));
-                $this->output->error($e->getMessage());
-                $this->output->error($e->getTraceAsString());
             }
         }
     }

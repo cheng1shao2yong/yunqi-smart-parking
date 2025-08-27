@@ -111,6 +111,8 @@ class Rules extends ParkingBase
             $time_limit_setting=$this->request->post('row.time_limit_setting');
             if($time_limit_entry){
                 $this->postParams['time_limit_setting']=json_encode($time_limit_setting,JSON_UNESCAPED_UNICODE);
+            }else{
+                $this->postParams['time_limit_setting']=null;
             }
         }
         if($this->rules_type=='monthly' || $this->rules_type=='day' ||  $this->rules_type=='stored'){

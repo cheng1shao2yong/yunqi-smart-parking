@@ -40,7 +40,7 @@
                     {field:'time_limit_entry',title:'限制入场',formatter:function (data){
                         let tag=Yunqi.formatter.tag;
                         tag.value=(data==1)?'是':'否';
-                        tag.type=(data==1)?'danger':'';
+                        tag.type=(data==1)?'danger':'primary';
                         return tag;
                     }},
                     {field:'time_limit_setting',title:'限制时间',formatter:function (data,row){
@@ -169,10 +169,8 @@
                 this.extend=extend;
             },
             tabChange:function (e){
-                Vue.nextTick(()=>{
-                    this.setExtend();
-                    this.$refs.yunTable.reset();
-                });
+                this.setExtend();
+                this.$refs.yunTable.reset();
             }
         }
     }

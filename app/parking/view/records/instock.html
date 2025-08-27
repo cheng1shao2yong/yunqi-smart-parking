@@ -50,7 +50,7 @@
                 }},
                 {field: "status", title: "停车状态",operate: 'select',searchList:tcstatus,formatter: function (data,row){
                     let tag=Yunqi.formatter.tag;
-                    let type={'0':'','1':'','2':'danger','3':'success','4':'success','5':'warning','6':'warning','7':'danger'};
+                    let type={'0':'primary','1':'primary','2':'danger','3':'success','4':'success','5':'warning','6':'warning','7':'danger'};
                     tag.value=tcstatus[row.status];
                     tag.type=type[row.status];
                     return tag;

@@ -171,14 +171,17 @@
                     </el-radio-group>
                 </div>
             </el-form-item>
-            <el-form-item label="月租车入场欢迎语音:">
+            <el-form-item label="月租车入场欢迎语:">
                 <div class="right-box">
-                    <el-select @blur="changeParkingType('monthly_voice')" v-model="rows.monthly_voice" placeholder="请选择">
-                        <el-option label="欢迎光临" :value="1"></el-option>
-                        <el-option label="请入场停车" :value="20"></el-option>
-                        <el-option label="欢迎回家" :value="39"></el-option>
-                        <el-option label="请通行" :value="40"></el-option>
-                        <el-option label="无" :value="0"></el-option>
+                    <el-select @blur="changeParkingType('monthly_entry_tips')" v-model="rows.monthly_entry_tips" placeholder="请选择">
+                        <el-option v-for="(entry,key) in monthly_entry_tips" :label="entry" :value="parseInt(key)"></el-option>
+                    </el-select>
+                </div>
+            </el-form-item>
+            <el-form-item label="月租车离场欢送语:">
+                <div class="right-box">
+                    <el-select @blur="changeParkingType('monthly_exit_tips')" v-model="rows.monthly_exit_tips" placeholder="请选择">
+                        <el-option v-for="(exit,key) in monthly_exit_tips" :label="exit" :value="parseInt(key)"></el-option>
                     </el-select>
                 </div>
             </el-form-item>
@@ -197,12 +200,28 @@
                     <el-radio-group v-model="rows.invoice_type" @change="changeParkingType('invoice_type')">
                         <el-radio label="handle">手动开票</el-radio>
                         <el-radio label="backend">后台开票</el-radio>
+                        <el-radio label="auto">自动开票</el-radio>
                     </el-radio-group>
                 </div>
             </el-form-item>
             <el-form-item label="开具发票主体:">
                 <div class="right-box">
                     <el-input v-model="rows.invoice_entity" @blur="changeParkingType('invoice_entity')"></el-input>
+                </div>
+            </el-form-item>
+            <el-form-item label="纳税人识别号:">
+                <div class="right-box">
+                    <el-input v-model="rows.invoice_code" @blur="changeParkingType('invoice_code')"></el-input>
+                </div>
+            </el-form-item>
+            <el-form-item label="收费公示牌:">
+                <div class="right-box">
+                    <upload-img :width="250" :height="250" :image-url="rows.beian_pad" :is-circle="false" @change="changeImg">
+                        <template #title>
+                            <i class="fa fa-user-circle"></i>
+                            <span>请上传备案公示牌</span>
+                        </template>
+                    </upload-img>
                 </div>
             </el-form-item>
             <el-form-item label="清空缓存:">
@@ -215,21 +234,34 @@
 </template>
 <script>
     import form from "@components/Form.js";
+    import uploadimg from "@components/UploadImg.js";
     export default{
         components:{
             'YunForm':form,
+            'UploadImg':uploadimg
         },
         data:{
             rows:Yunqi.data.setting,
+            monthly_entry_tips:Yunqi.data.monthly_entry_tips,
+            monthly_exit_tips:Yunqi.data.monthly_exit_tips,
             special:Yunqi.data.special,
+            uploadurl:Yunqi.config.baseUrl+Yunqi.config.upload.uploadurl
         },
         methods: {
+            parseInt:function (val){
+                return parseInt(val);
+            },
             changeParkingType:function (type){
                 let options={ids:this.rows.id,field:type,value:this.rows[type]};
                 Yunqi.api.multi('setting/update',options);
             },
             clearCache:function (){
                 Yunqi.ajax.post('setting/clearCache');
+            },
+            changeImg:function (r){
+                this.rows.beian_pad=r;
+                let options={ids:this.rows.id,field:'beian_pad',value:r};
+                Yunqi.api.multi('setting/update',options);
             }
         }
     }
@@ -238,6 +270,11 @@
 .right-box{
     padding-left: 40px;
     width: 80%;
+}
+.right-box-pad{
+    padding-left: 40px;
+    height: 300px;
+    position: relative;
 }
 .pitem{
     width: 100%;

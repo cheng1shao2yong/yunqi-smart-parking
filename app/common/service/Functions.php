@@ -24,7 +24,6 @@ use think\facade\Db;
 
 trait Functions{
     private $recordsPay;
-    private $occupat;
     private $chargeRules;
 
     public function getTotalFee(Parking $parking,ParkingRecords $records,ParkingPlate $plate,int $exit_time,array &$detail=[])
@@ -611,21 +610,6 @@ trait Functions{
             if($plate->cars->rules_type==ParkingRules::RULESTYPE('月租车')){
                 $rules=$plate->cars->rules;
                 if($plate->cars->endtime+$rules->expire_day*3600*24<time()){
-                    $plate->rulesType=ParkingRules::RULESTYPE('临时车');
-                    return $plate->rulesType;
-                }
-            }
-        }
-        //月租车
-        if($plate->cars->rules_type==ParkingRules::RULESTYPE('月租车')){
-            $plates_count=$plate->cars->plates_count;
-            $occupat_number=$plate->cars->occupat_number;
-            //多位多车情况
-            if($plates_count>$occupat_number){
-                if($this->occupat===null){
-                    $this->occupat=ParkingCarsOccupat::where(['parking_id'=>$plate->cars->parking_id,'cars_id'=>$plate->cars->id])->whereRaw("plate_number='{$plate->plate_number}' or plate_number is null")->count();
-                }
-                if($this->occupat===0){
                     $plate->rulesType=ParkingRules::RULESTYPE('临时车');
                     return $plate->rulesType;
                 }

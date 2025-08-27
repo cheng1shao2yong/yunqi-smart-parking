@@ -48,6 +48,24 @@
                 {field:"manual_confirm",title:"人工确认开闸",searchList: {0:'否',1:'是'},edit:'radio',visible:function (row) {
                     return row.barrier_type=='entry';
                 }},
+                {field: "monthly_voice", title: "月卡语音", edit: {form:'select',value:'blessing'},searchList: {
+                        blessing:'播报祝福语',
+                        day:'播报剩余天数',
+                        last:'播报祝福语，剩N天后播报剩余天数'
+                    }
+                },
+                {field: "monthly_voice_day", title: "语音-剩N天", edit: {type:'number',form:'input',value:15},visible:function (row) {
+                        return row.monthly_voice=='last';
+                    }},
+                {field: "monthly_screen", title: "月卡屏显", edit: {form:'select',value:'day'},searchList: {
+                        blessing:'显示祝福语',
+                        day:'显示剩余天数',
+                        last:'显示祝福语，剩N天后显示剩余天数'
+                    }
+                },
+                {field: "monthly_screen_day", title: "屏显-剩N天", edit: {type:'number',form:'input',value:15},visible:function (row) {
+                        return row.monthly_screen=='last';
+                    }},
                 {
                     field: "plate_type",
                     title: "允许通行车牌",

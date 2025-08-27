@@ -53,7 +53,7 @@
                     let tag=Yunqi.formatter.tag;
                     if(row.pid){
                         tag.value='辅机';
-                        tag.type='';
+                        tag.type='primary';
                         return tag;
                     }
                     if(row.barrier_type=='entry' && row.trigger_type=='outfield'){
@@ -80,7 +80,7 @@
                     if(row.barrier_type=='exit' && row.trigger_type=='outside'){
                         tag.value='外场出口-内场入口通道';
                     }
-                    tag.type='';
+                    tag.type='primary';
                     return tag;
                 }},
                 {field:"title",title:"通道名称",formatter:function(data,row){

@@ -191,34 +191,36 @@ export default {
     },
     methods:{
         reset:function(){
-            let columns=copyObj(this.columns);
-            for(let i=0;i<columns.length;i++){
-                if(this.isTree && i===1){
-                    columns[i].type='';
-                }
-                if(columns[i].children){
-                    columns[i].visible=true;
-                    for(let j=0;j<columns[i].children.length;j++){
-                        if(columns[i].children[j].children){
-                            columns[i].children[j].visible=true;
-                            for (let k=0;k<columns[i].children[j].children.length;k++){
-                                columns[i].children[j].children[k]=this.formatColumn(columns[i].children[j].children[k]);
-                            }
-                        }else{
-                            columns[i].children[j]=this.formatColumn(columns[i].children[j]);
-                        }
+            Vue.nextTick(()=>{
+                let columns=copyObj(this.columns);
+                for(let i=0;i<columns.length;i++){
+                    if(this.isTree && i===1){
+                        columns[i].type='';
                     }
-                }else{
-                    columns[i]=this.formatColumn(columns[i]);
+                    if(columns[i].children){
+                        columns[i].visible=true;
+                        for(let j=0;j<columns[i].children.length;j++){
+                            if(columns[i].children[j].children){
+                                columns[i].children[j].visible=true;
+                                for (let k=0;k<columns[i].children[j].children.length;k++){
+                                    columns[i].children[j].children[k]=this.formatColumn(columns[i].children[j].children[k]);
+                                }
+                            }else{
+                                columns[i].children[j]=this.formatColumn(columns[i].children[j]);
+                            }
+                        }
+                    }else{
+                        columns[i]=this.formatColumn(columns[i]);
+                    }
                 }
-            }
-            this.table_.columns=columns;
-            this.searchValue='';
-            this.currentPage=1;
-            this.list=[];
-            this.total=0;
-            this.selections=[];
-            this.dataList();
+                this.table_.columns=columns;
+                this.searchValue='';
+                this.currentPage=1;
+                this.list=[];
+                this.total=0;
+                this.selections=[];
+                this.dataList();
+            });
         },
         formatColumn:function (column){
             let operate={form:'input',value:'',size:'default',placeholder:column.title};

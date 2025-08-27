@@ -6,8 +6,8 @@ namespace app\common\service\barrier;
 use app\common\model\manage\Parking;
 use app\common\model\parking\ParkingBarrier;
 use app\common\model\parking\ParkingBarrierTjtc;
+use app\common\model\parking\ParkingPlate;
 use app\common\model\parking\ParkingRules;
-use app\common\library\TencentOss;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingScreen;
 use app\common\model\parking\ParkingTrigger;
@@ -20,6 +20,22 @@ use think\facade\Cache;
 
 defined('DS') or define('DS',DIRECTORY_SEPARATOR);
 class Zhenshi extends BarrierService {
+
+    const MESSAGE_ENTRY=[
+        0=>'无',
+        1=>'欢迎光临',
+        20=>'请入场停车',
+        39=>'欢迎回家',
+        40=>'请通行'
+    ];
+
+    const MESSAGE_EXIT=[
+        0=>'无',
+        2=>'一路平安',
+        40=>'请通行',
+        95=>'一路顺风',
+        99=>'出入平安'
+    ];
 
     const PLATE_TYPE = [
         0 => 'unknown',
@@ -305,11 +321,7 @@ class Zhenshi extends BarrierService {
                     $plate_number=self::stringToGbkHexArray($plate_number);
                 }
                 if($param['rulesType']==ParkingRules::RULESTYPE('月租车') || $param['rulesType']==ParkingRules::RULESTYPE('VIP车')){
-                    $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
-                    $setting=$parking->setting;
-                    if($setting->monthly_voice){
-                        $message=array_merge($plate_number,[$setting->monthly_voice]);
-                    }
+                    $message=self::monthlyVoiceAndScreen($barrier,$param['plate'],'voice',$plate_number);
                 }else{
                     $message=array_merge($plate_number,[0x01]);
                 }
@@ -328,21 +340,12 @@ class Zhenshi extends BarrierService {
             case '入场显示':
                 $l1=self::convertScreenline($barrier->screen_time,1,$param['plate']->plate_number);
                 $l2=self::convertScreenline($barrier->screen_time,2,ParkingRules::RULESTYPE[$param['rulesType']]);
+                $l3=self::convertScreenline($barrier->screen_time,1,'一车一杆');
+                $l4=self::convertScreenline($barrier->screen_time,2,'减速慢行');
                 if($param['rulesType']==ParkingRules::RULESTYPE('月租车') || $param['rulesType']==ParkingRules::RULESTYPE('VIP车')){
-                    $time=$param['plate']->cars->endtime-time();
-                    if($time<=0){
-                        $l3=self::convertScreenline($barrier->screen_time,1,'已过期');
-                    }else{
-                        $day=self::convertTimeToString($time);
-                        $l3=self::convertScreenline($barrier->screen_time,1,'有效期'.$day);
-                    }
-                    $l4=self::convertScreenline($barrier->screen_time,2,'减速慢行');
+                    $l3=self::monthlyVoiceAndScreen($barrier,$param['plate'],'screen',$l3);
                 }else if($param['rulesType']==ParkingRules::RULESTYPE('储值车')){
                     $l3=self::convertScreenline($barrier->screen_time,1,'余额'.formatNumber($param['plate']->cars->balance).'元');
-                    $l4=self::convertScreenline($barrier->screen_time,2,'减速慢行');
-                }else{
-                    $l3=self::convertScreenline($barrier->screen_time,1,'一车一杆');
-                    $l4=self::convertScreenline($barrier->screen_time,2,'减速慢行');
                 }
                 $message=array_merge($l1,$l2,$l3,$l4);
                 $data=self::convertArrayToHex($message,0x29);
@@ -360,16 +363,8 @@ class Zhenshi extends BarrierService {
             case '免费离场语音':
             case '已付款语音':
                 $plate_number=self::stringToGbkHexArray($param['plate']->plate_number);
-                if($param['rulesType']==ParkingRules::RULESTYPE('月租车')){
-                    $time=$param['plate']->cars->endtime-time();
-                    if($time<=0){
-                        $message=array_merge($plate_number,[0x0F]);
-                    }else{
-                        $day=intval($time/24/3600);
-                        $day=self::convertNumberToChinese($day);
-                        $string=self::stringToGbkHexArray($day.'天');
-                        $message=array_merge($plate_number,[0x12],$string);
-                    }
+                if($param['rulesType']==ParkingRules::RULESTYPE('月租车') || $param['rulesType']==ParkingRules::RULESTYPE('VIP车')){
+                    $message=self::monthlyVoiceAndScreen($barrier,$param['plate'],'voice',$plate_number);
                 }else{
                     $message=array_merge($plate_number,[0x02]);
                 }
@@ -443,27 +438,6 @@ class Zhenshi extends BarrierService {
                     ]
                 ];
                 break;
-            case '缴费离场显示':
-                $l1=self::convertScreenline($barrier->screen_time,1,$param['plate']->plate_number);
-                $fee=formatNumber($param['recordsPay']->pay_price);
-                $string=$fee.'元';
-                $l2=self::convertScreenline($barrier->screen_time,1,$string);
-                $l3=self::convertScreenline($barrier->screen_time,2,ParkingRules::RULESTYPE[$param['rulesType']]);
-                $time=self::convertTimeToString(time()-$param['records']->entry_time);
-                $l4=self::convertScreenline($barrier->screen_time,2,$time);
-                $message=array_merge($l1,$l2,$l3,$l4);
-                $data=self::convertArrayToHex($message,0x29);
-                $dataStream = pack('C*', ...$data);
-                $body=[
-                    'serialData'=>[
-                        [
-                            'serialChannel'=>0,
-                            'data'=>base64_encode($dataStream),
-                            'dataLen'=>strlen($dataStream),
-                        ]
-                    ]
-                ];
-                break;
             case '人工确认语音':
                 $plate_number=self::stringToGbkHexArray($param['plate_number']);
                 $message=array_merge($plate_number,[0x1F]);
@@ -497,29 +471,36 @@ class Zhenshi extends BarrierService {
                     ]
                 ];
                 break;
-            case '已付款显示':
+            case '缴费离场显示':
                 $l1=self::convertScreenline($barrier->screen_time,1,$param['plate']->plate_number);
-                if($param['rulesType']==ParkingRules::RULESTYPE('月租车') || $param['rulesType']==ParkingRules::RULESTYPE('VIP车')){
-                    $time=$param['plate']->cars->endtime-time();
-                    if($time<=0){
-                        $l2=self::convertScreenline($barrier->screen_time,2,'已过期');
-                    }else{
-                        $day=self::convertTimeToString($time);
-                        $l2=self::convertScreenline($barrier->screen_time,2,'有效期'.$day);
-                    }
-                    $l3=self::convertScreenline($barrier->screen_time,1,ParkingRules::RULESTYPE[$param['rulesType']]);
-                    $l4=self::convertScreenline($barrier->screen_time,2,'减速慢行');
-                }else if($param['rulesType']==ParkingRules::RULESTYPE('储值车')){
+                $l2=self::convertScreenline($barrier->screen_time,2,ParkingRules::RULESTYPE[$param['rulesType']]);
+                $fee=formatNumber($param['recordsPay']->pay_price);
+                $string=$fee.'元';
+                $l3=self::convertScreenline($barrier->screen_time,1,$string);
+                $time=self::convertTimeToString(time()-$param['records']->entry_time);
+                $l4=self::convertScreenline($barrier->screen_time,2,$time);
+                $message=array_merge($l1,$l2,$l3,$l4);
+                $data=self::convertArrayToHex($message,0x29);
+                $dataStream = pack('C*', ...$data);
+                $body=[
+                    'serialData'=>[
+                        [
+                            'serialChannel'=>0,
+                            'data'=>base64_encode($dataStream),
+                            'dataLen'=>strlen($dataStream),
+                        ]
+                    ]
+                ];
+                break;
+            case '已付款显示':
+                $time=self::convertTimeToString(time()-$param['records']->entry_time);
+                $l1=self::convertScreenline($barrier->screen_time,1,$param['plate']->plate_number);
+                $l2=self::convertScreenline($barrier->screen_time,2,ParkingRules::RULESTYPE[$param['rulesType']]);
+                $l3=self::convertScreenline($barrier->screen_time,1,'已付款');
+                $l4=self::convertScreenline($barrier->screen_time,2,$time);
+                if($param['rulesType']==ParkingRules::RULESTYPE('储值车')){
                     $fee=formatNumber($param['records']->pay_fee);
-                    $l2=self::convertScreenline($barrier->screen_time,2,'已付款'.$fee.'元，余额'.formatNumber($param['plate']->cars->balance).'元');
-                    $l3=self::convertScreenline($barrier->screen_time,1,ParkingRules::RULESTYPE[$param['rulesType']]);
-                    $time=self::convertTimeToString(time()-$param['records']->entry_time);
-                    $l4=self::convertScreenline($barrier->screen_time,2,$time);
-                }else{
-                    $l2=self::convertScreenline($barrier->screen_time,2,'已付款');
-                    $time=self::convertTimeToString(time()-$param['records']->entry_time);
-                    $l3=self::convertScreenline($barrier->screen_time,1,ParkingRules::RULESTYPE[$param['rulesType']]);
-                    $l4=self::convertScreenline($barrier->screen_time,2,$time);
+                    $l3=self::convertScreenline($barrier->screen_time,2,'已付款'.$fee.'元，余额'.formatNumber($param['plate']->cars->balance).'元');
                 }
                 $message=array_merge($l1,$l2,$l3,$l4);
                 $data=self::convertArrayToHex($message,0x29);
@@ -535,27 +516,15 @@ class Zhenshi extends BarrierService {
                 ];
                 break;
             case '免费离场显示':
+                $time=self::convertTimeToString(time()-$param['records']->entry_time);
                 $l1=self::convertScreenline($barrier->screen_time,1,$param['plate']->plate_number);
+                $l2=self::convertScreenline($barrier->screen_time,2,ParkingRules::RULESTYPE[$param['rulesType']]);
+                $l3=self::convertScreenline($barrier->screen_time,1,'免费');
+                $l4=self::convertScreenline($barrier->screen_time,2,$time);
                 if($param['rulesType']==ParkingRules::RULESTYPE('月租车') || $param['rulesType']==ParkingRules::RULESTYPE('VIP车')){
-                    $time=$param['plate']->cars->endtime-time();
-                    if($time<=0){
-                        $l2=self::convertScreenline($barrier->screen_time,2,'已过期');
-                    }else{
-                        $day=self::convertTimeToString($time);
-                        $l2=self::convertScreenline($barrier->screen_time,2,'有效期'.$day);
-                    }
-                    $l3=self::convertScreenline($barrier->screen_time,1,ParkingRules::RULESTYPE[$param['rulesType']]);
-                    $l4=self::convertScreenline($barrier->screen_time,2,'减速慢行');
+                    $l3=self::monthlyVoiceAndScreen($barrier,$param['plate'],'screen',$l3);
                 }else if($param['rulesType']==ParkingRules::RULESTYPE('储值车')){
-                    $l2=self::convertScreenline($barrier->screen_time,2,'本次停车免费，余额'.formatNumber($param['plate']->cars->balance).'元');
-                    $l3=self::convertScreenline($barrier->screen_time,1,ParkingRules::RULESTYPE[$param['rulesType']]);
-                    $time=self::convertTimeToString(time()-$param['records']->entry_time);
-                    $l4=self::convertScreenline($barrier->screen_time,2,$time);
-                }else{
-                    $l2=self::convertScreenline($barrier->screen_time,2,'免费');
-                    $l3=self::convertScreenline($barrier->screen_time,1,ParkingRules::RULESTYPE[$param['rulesType']]);
-                    $time=self::convertTimeToString(time()-$param['records']->entry_time);
-                    $l4=self::convertScreenline($barrier->screen_time,2,$time);
+                    $l3=self::convertScreenline($barrier->screen_time,2,'本次停车免费，余额'.formatNumber($param['plate']->cars->balance).'元');
                 }
                 $message=array_merge($l1,$l2,$l3,$l4);
                 $data=self::convertArrayToHex($message,0x29);
@@ -1001,6 +970,95 @@ class Zhenshi extends BarrierService {
         $triggerData['usetime']=$usetime;
         $trigger->save($triggerData);
         return false;
+    }
+
+    private static function monthlyVoiceAndScreen(ParkingBarrier $barrier,ParkingPlate $plate,string $type,mixed $default)
+    {
+        $message_entry=self::MESSAGE_ENTRY;
+        $message_exit=self::MESSAGE_EXIT;
+        $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
+        $setting=$parking->setting;
+        $blessing_screen=[
+            'entry'=>self::convertScreenline($barrier->screen_time,1,$message_entry[$setting->monthly_entry_tips]),
+            'exit'=>self::convertScreenline($barrier->screen_time,1,$message_exit[$setting->monthly_exit_tips])
+        ];
+        $blessing_voice=[
+            'entry'=>array_merge($default,[$setting->monthly_entry_tips]),
+            'exit'=>array_merge($default,[$setting->monthly_exit_tips])
+        ];
+        $overdate_screen=self::convertScreenline($barrier->screen_time,1,'已过期');
+        $overdate_voice=array_merge($default,[0x0F]);
+        //显示祝福语
+        if($type=='screen' && $barrier->monthly_screen=='blessing'){
+            $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
+            $setting=$parking->setting;
+            if($setting->monthly_voice){
+                return $blessing_screen[$barrier->barrier_type];
+            }
+        }
+        //显示剩余天数
+        if($type=='screen' && $barrier->monthly_screen=='day'){
+            $time=$plate->cars->endtime-time();
+            if($time<=0){
+                return $overdate_screen;
+            }else{
+                $day=self::convertTimeToString($time);
+                return self::convertScreenline($barrier->screen_time,1,'有效期'.$day);
+            }
+        }
+        //显示祝福语，剩余N天时显示剩余天数
+        if($type=='screen' && $barrier->monthly_screen=='last'){
+            $time=$plate->cars->endtime-time();
+            $lday=ceil($time/86400);
+            if($lday<=$barrier->monthly_screen_day){
+                if($time<=0){
+                    return $overdate_screen;
+                }else{
+                    $day=self::convertTimeToString($time);
+                    return self::convertScreenline($barrier->screen_time,1,'有效期'.$day);
+                }
+            }else{
+                return $blessing_screen[$barrier->barrier_type];
+            }
+        }
+        //播放祝福语
+        if($type=='voice' && $barrier->monthly_voice=='blessing'){
+            $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
+            $setting=$parking->setting;
+            if($setting->monthly_voice){
+                return $blessing_voice[$barrier->barrier_type];
+            }
+        }
+        //播放剩余天数
+        if($type=='voice' && $barrier->monthly_voice=='day'){
+            $time=$plate->cars->endtime-time();
+            if($time<=0){
+                return $overdate_voice;
+            }else{
+                $day=intval($time/24/3600);
+                $day=self::convertNumberToChinese($day);
+                $string=self::stringToGbkHexArray($day.'天');
+                return array_merge($default,[0x12],$string);
+            }
+        }
+        //显示祝福语，剩余N天时显示剩余天数
+        if($type=='voice' && $barrier->monthly_voice=='last'){
+            $time=$plate->cars->endtime-time();
+            $lday=ceil($time/86400);
+            if($lday<=$barrier->monthly_voice_day){
+                if($time<=0){
+                    return $overdate_voice;
+                }else{
+                    $day=intval($time/24/3600);
+                    $day=self::convertNumberToChinese($day);
+                    $string=self::stringToGbkHexArray($day.'天');
+                    return array_merge($default,[0x12],$string);
+                }
+            }else{
+                return $blessing_voice[$barrier->barrier_type];
+            }
+        }
+        return $default;
     }
 
     private static function convertScreenline(int $time,int $color,string $string)

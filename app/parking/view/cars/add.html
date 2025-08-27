@@ -171,14 +171,14 @@
         methods: {
             addPlates:function (e){
                 Yunqi.api.open({
-                    url:'parking/cars/listplate?cars_id='+Yunqi.data.row.id,
+                    url:'cars/listplate?cars_id='+Yunqi.data.row.id,
                     title:'设置车牌',
                     width:850,
                     icon:'fa fa-edit'
                 });
             },
             changeRules:function (e){
-                Yunqi.ajax.get('parking/cars/change-rules',{id:e}).then(res=>{
+                Yunqi.ajax.get('cars/change-rules',{id:e}).then(res=>{
                     if(res.rules_type=='monthly' && !Yunqi.data.row){
                         this.$refs.yunForm.setValue('pay',res.fee);
                     }
@@ -207,7 +207,7 @@
                 if(!e){
                     return;
                 }
-                Yunqi.ajax.get('parking/cars/rulesRemark',{rules_id:e}).then(res=>{
+                Yunqi.ajax.get('cars/rulesRemark',{rules_id:e}).then(res=>{
                     if(!res){
                         this.remarkline=[];
                         return;
