@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use app\common\model\PayUnion;
+use app\common\service\pay\Dougong;
 use app\common\service\pay\Yibao;
 use app\common\service\pay\Guotong;
 use app\common\middleware\MerchantCheck;
@@ -39,6 +40,7 @@ abstract class PayService extends BaseService{
     private static $hanleClass=[
         'yibao'=>Yibao::class,
         'guotong'=>Guotong::class,
+        'dougong'=>Dougong::class,
     ];
 
     protected function getSubMerchNo()

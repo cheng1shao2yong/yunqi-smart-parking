@@ -72,19 +72,27 @@ class Barrier extends ParkingBase
         }
         $where=[];
         $where[]=['parking_id','=',$this->parking->id];
+        $where[]=['pid','=',0];
         if($this->request->post('selectpage')){
             return $this->selectpage($where);
         }
         [$where, $order, $limit, $with] = $this->buildparams($where);
         $list = $this->model
-            ->where($where)
             ->order('id asc')
-            ->select()
-            ->toArray();
+            ->where($where)
+            ->order($order)
+            ->paginate($limit);
+        $rows1=collect($list->items())->toArray();
+        $total=$list->total();
+        $ids=[];
+        foreach ($rows1 as $v){
+            $ids[]=$v['id'];
+        }
+        $rows2=ParkingBarrier::whereIn('pid',$ids)->select()->toArray();
         $tree = Tree::instance();
-        $tree->init($list, 'pid');
-        $list = $tree->getTreeList($tree->getTreeArray(0), 'title');
-        $result = ['total' => 1000, 'rows' => $list];
+        $tree->init(array_merge($rows1,$rows2), 'pid');
+        $list = $tree->getTreeList($tree->getTreeArray(0));
+        $result = ['total' => $total, 'rows' => $list];
         return json($result);
     }
 
@@ -197,6 +205,7 @@ class Barrier extends ParkingBase
             if($pid){
                 $parent=ParkingBarrier::find($pid);
                 $this->postParams['barrier_type']=$parent->barrier_type;
+                $this->postParams['title']=$parent->title.'-辅机';
             }
         }
         if(!$this->request->isPost() && $row->pid){
@@ -218,6 +227,7 @@ class Barrier extends ParkingBase
             if($pid){
                 $parent=ParkingBarrier::find($pid);
                 $this->postParams['barrier_type']=$parent->barrier_type;
+                $this->postParams['title']=$parent->title.'-辅机';
             }
         }
         $fuji=$this->request->get('fuji');

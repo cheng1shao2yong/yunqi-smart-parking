@@ -4,15 +4,9 @@
                 :columns="columns"
                 :common-search="false"
                 ref="yunTable"
-                :pagination="false"
                 @render="checkOnline"
                 toolbar="refresh,addtd,fuji,duijiang,tjtc"
-                :auth="{
-                    add:{:$auth->check('app\\parking\\controller\\Barrier','add')},
-                    edit:{:$auth->check('app\\parking\\controller\\Barrier','edit')},
-                    del:{:$auth->check('app\\parking\\controller\\Barrier','del')},
-                    multi:{:$auth->check('app\\parking\\controller\\Barrier','multi')},
-                }"
+                :auth="auth"
                 :add-form="{height:580}"
                 :edit-form="{height:580}"
                 :extend="extend">
@@ -41,6 +35,12 @@
         },
         data:{
             plateType:Yunqi.data.plate_type,
+            auth:{
+                add:Yunqi.auth.check('app\\parking\\controller\\Barrier','add'),
+                edit:Yunqi.auth.check('app\\parking\\controller\\Barrier','edit'),
+                del:Yunqi.auth.check('app\\parking\\controller\\Barrier','del'),
+                multi:Yunqi.auth.check('app\\parking\\controller\\Barrier','multi'),
+            },
             extend:{
                 index_url: 'barrier/index',
                 del_url: 'barrier/del',
@@ -83,14 +83,7 @@
                     tag.type='primary';
                     return tag;
                 }},
-                {field:"title",title:"通道名称",formatter:function(data,row){
-                    if(row.pid){
-                        data=data+'辅机';
-                    }
-                    let html=Yunqi.formatter.html;
-                    html.value=data.replace(/&nbsp;/g,'&nbsp;&nbsp;');
-                    return html;
-                }},
+                {field:"title",title:"通道名称"},
                 {field:"serialno",title:"序列号"},
                 {field:"camera",title:"摄像机厂家",searchList:Yunqi.data.camera},
                 {field:"plate_type",title:"允许通行车牌",align:"center",formatter:Yunqi.formatter.slot},

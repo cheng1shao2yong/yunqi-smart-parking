@@ -5,6 +5,8 @@ namespace app\index\controller;
 
 use app\common\controller\BaseController;
 use app\common\library\ParkingTestAccount;
+use app\common\model\parking\ParkingBarrier;
+use app\common\service\barrier\Utils;
 use think\annotation\route\Get;
 
 class Index extends BaseController
@@ -23,6 +25,9 @@ class Index extends BaseController
     #[Get('/test')]
     public function test()
     {
-
+        $barrier=ParkingBarrier::find(4);
+        Utils::send($barrier,'状态', [],function ($result){
+            var_dump($result);
+        });
     }
 }

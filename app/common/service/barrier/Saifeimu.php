@@ -121,7 +121,7 @@ class Saifeimu extends BarrierService {
                 throw new \Exception('订单已经支付');
             }
             if($pay->createtime<=time() - $barrier->limit_pay_time){
-                throw new \Exception('订单已经超时');
+                //throw new \Exception('订单已经超时');
             }
             $records=$pay->records;
             $parking=Parking::cache('parking_'.$records->parking_id,24*3600)->withJoin(['setting'])->find($records->parking_id);

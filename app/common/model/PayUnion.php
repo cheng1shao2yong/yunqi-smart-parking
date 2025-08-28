@@ -62,6 +62,7 @@ class PayUnion extends Model{
     const PAY_TYPE_HANDLE=[
         'yibao'=>'易宝支付',
         'guotong'=>'国通支付',
+        'dougong'=>'斗拱支付'
     ];
 
     const ORDER_TYPE=[
