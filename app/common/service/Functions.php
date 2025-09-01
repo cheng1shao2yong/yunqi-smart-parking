@@ -20,7 +20,6 @@ use app\common\model\parking\ParkingMonthlyRecharge;
 use app\common\model\parking\ParkingPlate;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRules;
-use think\facade\Db;
 
 trait Functions{
     private $recordsPay;

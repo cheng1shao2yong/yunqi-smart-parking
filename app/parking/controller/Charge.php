@@ -3,6 +3,7 @@ declare (strict_types = 1);
 
 namespace app\parking\controller;
 
+use app\admin\traits\Actions;
 use app\common\controller\ParkingBase;
 use app\common\model\parking\ParkingCharge;
 use app\common\model\parking\ParkingChargeList;
@@ -16,9 +17,36 @@ use think\annotation\route\Route;
 #[Group("charge")]
 class Charge extends ParkingBase
 {
+    use Actions{
+        add as _add;
+        edit as _edit;
+    }
+
     protected function _initialize()
     {
         parent::_initialize();
+        $this->model = new ParkingCharge();
+        $this->assign('channel',ParkingCharge::CHANNEL);
+        $this->assign('trigger',ParkingCharge::TRIGGER);
+        $this->assign('coupon',ParkingMerchantCoupon::where(['parking_id'=>$this->parking->id,'status'=>'normal'])->column('title','id'));
+        $this->assign('merch',ParkingMerchant::where(['parking_id'=>$this->parking->id,'status'=>'normal'])->column('merch_name','id'));
+        $this->assign('rules',ParkingRules::where(['parking_id'=>$this->parking->id,'status'=>'normal'])->where('rules_type','<>','provisional')->column('title','id'));
+    }
+
+    #[Route('GET,JSON','index')]
+    public function index()
+    {
+        if (false === $this->request->isAjax()) {
+            return $this->fetch();
+        }
+        [$where, $order, $limit, $with] = $this->buildparams();
+        $list = $this->model
+            ->with(['merch'])
+            ->where(['parking_id'=>$this->parking->id])
+            ->order($order)
+            ->paginate($limit);
+        $result = ['total' => $list->total(), 'rows' => $list->items()];
+        return json($result);
     }
 
     #[Route('GET,POST','setting')]
@@ -35,19 +63,51 @@ class Charge extends ParkingBase
             $model->save($postdata);
             $this->success();
         }
-        $coupon=ParkingMerchantCoupon::where(['parking_id'=>$this->parking->id,'status'=>'normal'])->column('title','id');
         $charge=ParkingCharge::where('parking_id',$this->parking->id)->find();
         if($charge){
             $charge->merch_id=(string)$charge->merch_id;
             $charge->rules_id=(string)$charge->rules_id;
+            $charge->channel=explode(',',$charge->channel);
         }
         $this->assign('charge',$charge);
-        $this->assign('merch',ParkingMerchant::where(['parking_id'=>$this->parking->id,'status'=>'normal'])->column('merch_name','id'));
-        $this->assign('channel',ParkingCharge::CHANNEL);
-        $this->assign('trigger',ParkingCharge::TRIGGER);
-        $this->assign('rules',ParkingRules::where(['parking_id'=>$this->parking->id,'status'=>'normal'])->where('rules_type','<>','provisional')->column('title','id'));
-        $this->assign('coupon',$coupon);
         return $this->fetch();
+    }
+
+    #[Route('GET,POST','add')]
+    public function add()
+    {
+        if($this->request->isPost()){
+            $merch_id=$this->request->post('row.merch_id');
+            $rules_value=$this->request->post('row.rules_value');
+            $coupon=ParkingMerchant::where(['id'=>$merch_id,'parking_id'=>$this->parking->id])->value('coupon');
+            foreach ($rules_value as $item){
+                if(!in_array($item['coupon_id'],explode(',',$coupon))){
+                    $title=ParkingMerchantCoupon::where(['id'=>$item['coupon_id']])->value('title');
+                    $this->error('商户没有配置优惠券：'.$title);
+                }
+            }
+            $this->postParams['parking_id']=$this->parking->id;
+            $this->postParams['rules_value']=json_encode($rules_value);
+        }
+        return $this->_add();
+    }
+
+    #[Route('GET,POST','edit')]
+    public function edit()
+    {
+        if($this->request->isPost()){
+            $merch_id=$this->request->post('row.merch_id');
+            $rules_value=$this->request->post('row.rules_value');
+            $coupon=ParkingMerchant::where(['id'=>$merch_id,'parking_id'=>$this->parking->id])->value('coupon');
+            foreach ($rules_value as $item){
+                if(!in_array($item['coupon_id'],explode(',',$coupon))){
+                    $title=ParkingMerchantCoupon::where(['id'=>$item['coupon_id']])->value('title');
+                    $this->error('商户没有配置优惠券：'.$title);
+                }
+            }
+            $this->postParams['rules_value']=json_encode($rules_value);
+        }
+        return $this->_edit();
     }
 
     #[Route('GET,JSON','list')]

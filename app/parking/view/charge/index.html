@@ -1,0 +1,73 @@
+<template>
+    <el-card shadow="never">
+        <yun-table
+                :columns="columns"
+                toolbar="refresh,add"
+                :common-search="false"
+                :extend="extend">
+        </yun-table>
+    </el-card>
+</template>
+<script>
+    import table from "@components/Table.js";
+    export default{
+        components:{
+            'YunTable':table
+        },
+        data:{
+            extend:{
+                index_url: 'charge/index',
+                add_url: 'charge/add',
+                edit_url: 'charge/edit',
+                del_url: 'charge/del'
+            },
+            columns:[
+                {field:"channel",title:"充电平台",formatter:function (data,row) {
+                    return Yunqi.data.channel[data];
+                }},
+                {field:"merch.merch_name",title:"绑定商户"},
+                {field:"code",title:"停车场编号"},
+                {field:"trigger",title:"优惠规则",formatter:function (data,row) {
+                    return '按'+Yunqi.data.trigger[data];
+                }},
+                {field:"rules_value",title:"规则明细",formatter:function (data,row) {
+                    let str='';
+                    let trigger_title={
+                        'charge-time':['时长','分钟'],
+                        'charge-fee':['金额','元'],
+                        'charge-kwh':['电量','kW·h（度）']
+                    };
+                    for(let i=0;i<data.length;i++){
+                        str+='<p>'+trigger_title[row.trigger][0]+'超过'+data[i].number+trigger_title[row.trigger][1]+'，停车券：'+Yunqi.data.coupon[data[i].coupon_id]+'</p>';
+                    }
+                    let html=Yunqi.formatter.html;
+                    html.value=str;
+                    return html;
+                }},
+                {field:"use_diy_rules",title:"自定义收费",formatter:function (data,row) {
+                    let tag=Yunqi.formatter.tag;
+                    if(data){
+                        tag.value='是';
+                        tag.type='success';
+                    }else{
+                        tag.value='否';
+                        tag.type='info';
+                    }
+                    return tag;
+                }},
+                {
+                    field: 'operate',
+                    title: __('操作'),
+                    width:130,
+                    action:{
+                       edit:true,del:true
+                    }
+                }
+            ]
+        },
+        methods: {
+        }
+    }
+</script>
+<style>
+</style>

@@ -1,0 +1,73 @@
+<template>
+    <el-card shadow="never" style="border: 0;">
+        <yun-form
+                :data="rows"
+                ref="yunForm"
+                :columns="columns">
+                <template #default>
+                    {:token_field()}
+                </template>
+                <template #rules_value="{rows}">
+                    <el-form-item label="优惠规则配置:">
+                        <Fieldlist :label='["最低"+trigger[rows.trigger],"指定停车券"]' :keys='["number","coupon_id"]' @change="changeField" :value="rows.rules_value">
+                            <template #number="{list,row}">
+                                <el-input v-model="list[row].number" type="number">
+                                    <template #append v-if="rows.trigger=='charge-time'">分钟</template>
+                                    <template #append v-if="rows.trigger=='charge-fee'">元</template>
+                                    <template #append v-if="rows.trigger=='charge-kwh'">kW·h（度）</template>
+                                </el-input>
+                            </template>
+                            <template #coupon_id="{list,row}">
+                                <el-select v-model="list[row].coupon_id" placeholder="请选择" style="width: 100%">
+                                    <el-option :label="item" :value="key" v-for="(item,key) in coupon"></el-option>
+                                </el-select>
+                            </template>
+                        </Fieldlist>
+                    </el-form-item>
+                </template>
+        </yun-form>
+    </el-card>
+</template>
+<script>
+import fieldlist from "@components/Fieldlist.js";
+import form from "@components/Form.js";
+export default{
+    components:{
+        'Fieldlist':fieldlist,
+        'YunForm':form
+    },
+    data:{
+        trigger:Yunqi.data.trigger,
+        coupon:Yunqi.data.coupon,
+        rules:Yunqi.data.rules,
+        columns:[
+            {field:"id",title:"ID",edit:"hidden"},
+            {field:"channel",title:"充电平台",edit:"select",searchList:Yunqi.data.channel,rules:'required'},
+            {field:"code",title:"停车场编号",edit:"text",rules:'required'},
+            {field:"merch_id",title:"绑定商户",edit:"select",searchList:Yunqi.data.merch,rules:'required'},
+            {field:"trigger",title:"优惠规则",edit:"radio",searchList:Yunqi.data.trigger},
+            {field:"rules_value",title:"优惠规则配置",edit:"slot"},
+            {field:"use_diy_rules",title:"自定义停车规则",edit:"radio",searchList:{1:'是',0:'否'}},
+            {field:"rules_id",title:"选择停车规则",edit:"select",searchList: Yunqi.data.rules,visible:function (row){
+                return row.use_diy_rules>0;
+            }},
+        ],
+        rows:Yunqi.data.row || {
+            channel: '',
+            code:'',
+            merch_id:'',
+            trigger:'charge-time',
+            rules_value:[],
+            use_diy_rules:0,
+            rules_id:''
+        }
+    },
+    methods: {
+        changeField:function (e){
+            this.$refs.yunForm.setValue('rules_value',e);
+        }
+    }
+}
+</script>
+<style>
+</style>

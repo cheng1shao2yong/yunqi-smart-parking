@@ -13,11 +13,11 @@ class Telaidian extends BaseService {
     //const URL="http://hlht.teld.cc:7777/evcs/v20191230/";
     const URL="https://hlht.teld.cn/evcs/v20161110/";
 
-    const OPERATOR_ID='';
-    const OPERATOR_SECRET='';
-    const SIGN_SECRET='';
-    const AES_SECRET='';
-    const AES_IV='';
+    const OPERATOR_ID='MAAK4KQEX';
+    const OPERATOR_SECRET='ZC5mFhbbMN69wIjl';
+    const SIGN_SECRET='Xfnm2bgI9Fc5P1WE';
+    const AES_SECRET='HAoIdHTwUmcy5WCL';
+    const AES_IV='I3Q0spiP6h0yo9NN';
 
     protected function init()
     {

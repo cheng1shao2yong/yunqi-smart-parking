@@ -199,6 +199,14 @@ class Barrier extends ParkingBase
         $ids=$this->request->get('ids');
         $row=ParkingBarrier::where(['id'=>$ids,'parking_id'=>$this->parking->id])->find();
         if($this->request->isPost()){
+            $monthly_screen=$this->request->post('row.monthly_screen');
+            if($monthly_screen!='last'){
+                $this->postParams['monthly_screen_day']=null;
+            }
+            $monthly_voice=$this->request->post('row.monthly_voice');
+            if($monthly_voice!='last'){
+                $this->postParams['monthly_voice_day']=null;
+            }
             $this->postParams['serialno']=trim($this->request->post('row.serialno'));
             $this->postParams['status']='hidden';
             $pid=$this->request->post('row.pid');
@@ -222,6 +230,14 @@ class Barrier extends ParkingBase
         if($this->request->isPost()){
             $this->postParams['parking_id']=$this->parking->id;
             $this->postParams['serialno']=trim($this->request->post('row.serialno'));
+            $monthly_screen=$this->request->post('row.monthly_screen');
+            if($monthly_screen!='last'){
+                $this->postParams['monthly_screen_day']=null;
+            }
+            $monthly_voice=$this->request->post('row.monthly_voice');
+            if($monthly_voice!='last'){
+                $this->postParams['monthly_voice_day']=null;
+            }
             $this->postParams['status']='hidden';
             $pid=$this->request->post('row.pid');
             if($pid){

@@ -17,6 +17,9 @@ class ParkingCharge extends Model
         'telaidian'=>'特来电',
         'xiang-qian-chong'=>'向黔充',
         'xiaoju'=>'小橘充电',
+        'jinglv'=>'鲸率充电',
+        'xindiantu'=>'新电途',
+        'weilai'=>'蔚来'
     ];
 
     const TRIGGER=[
@@ -86,8 +89,14 @@ class ParkingCharge extends Model
         return $this->belongsTo(Parking::class,'parking_id','id');
     }
 
+    public function merch()
+    {
+        return $this->belongsTo(ParkingMerchant::class,'merch_id','id');
+    }
+
     public function getRulesValueAttr($data)
     {
         return json_decode($data,true);
     }
 }
+

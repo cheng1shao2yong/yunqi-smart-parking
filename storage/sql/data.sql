@@ -4660,6 +4660,8 @@ CREATE TABLE `yun_parking_charge` (
   `channel` varchar(30) DEFAULT NULL,
   `trigger` varchar(30) DEFAULT NULL,
   `rules_value` varchar(255) DEFAULT NULL,
+  `use_diy_rules` tinyint DEFAULT 0,,
+  `rules_id` int DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -4679,6 +4681,7 @@ CREATE TABLE `yun_parking_charge_list` (
   `fee` decimal(10,2) DEFAULT NULL,
   `kwh` decimal(10,2) DEFAULT NULL,
   `time` int DEFAULT NULL,
+  `rules_id` int DEFAULT NULL,
   `coupon_id` int DEFAULT NULL,
   `coupon_list_id` int DEFAULT NULL,
   `createtime` int unsigned DEFAULT NULL,
