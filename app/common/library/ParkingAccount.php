@@ -379,49 +379,29 @@ class ParkingAccount{
     private function accountingLoop($key,$startTime,$endTime,ParkingMode $mode,&$rangeTime)
     {
         //存在起步时长
-        $start_fee=0;
-        $start_second=0;
         $r=[];
         if($key===0 && $mode->start_fee){
             [$instart,$start_fee]=self::calculateStartFee($mode->start_fee);
             if($instart){
                 $r[]=['start_time'=>$this->entry_time,'end_time'=>$this->exit_time,'fee'=>$start_fee,'mode'=>$mode->title];
                 return $r;
+            }else{
+                $start_second=$mode->start_fee[count($mode->start_fee)-1]['time']*60;
+                $r[]=['start_time'=>$this->entry_time,'end_time'=>$this->entry_time+$start_second,'fee'=>$start_fee,'mode'=>$mode->title];
+                $startTime=$startTime+$start_second;
             }
-            $start_second=$mode->start_fee[count($mode->start_fee)-1]['time']*60;
+        }
+        if($rangeTime){
+            $startTime=$startTime+$rangeTime;
         }
         $number=intval(ceil(($endTime-$startTime)/($mode->top_time*60)));
         for($i=0;$i<$number;$i++){
-            $startLoopTime=$startTime+$i*$mode->top_time*60;
-            if($rangeTime){
-                $startLoopTime=$startLoopTime+$rangeTime;
+            $add_fee=$mode->top_fee;
+            $add_time=$this->entry_time+($i+1)*$mode->top_time*60;
+            if($add_time>$endTime){
+                $add_time=$endTime;
             }
-            $endLoopTime=$startLoopTime+$mode->top_time*60;
-            if($endLoopTime>$endTime){
-                $endLoopTime=$endTime;
-            }
-            $addLoopTime=$startLoopTime;
-            $start_second+=$startLoopTime;
-            $fee=0;
-            while ($addLoopTime<$endLoopTime){
-                $addLoopTime+=$mode->add_time*60;
-                if($i===0 && $addLoopTime<=$start_second){
-                    $fee=$start_fee;
-                }else{
-                    $fee+=$mode->add_fee;
-                }
-                if($fee>=$mode->top_fee){
-                    $fee=$mode->top_fee;
-                    break;
-                }
-            }
-            if($addLoopTime>$endLoopTime){
-                $rangeTime=$addLoopTime-$endLoopTime;
-            }
-            if($addLoopTime>$this->exit_time){
-                $addLoopTime=$this->exit_time;
-            }
-            $r[]=['start_time'=>$startLoopTime,'end_time'=>$addLoopTime>$endLoopTime?$addLoopTime:$endLoopTime,'fee'=>$fee,'mode'=>$mode->title];
+            $r[]=['start_time'=>$this->entry_time,'end_time'=>$add_time,'fee'=>$add_fee,'mode'=>$mode->title];
         }
         return $r;
     }

@@ -30,7 +30,6 @@ trait Functions{
         $rulesType=$this->getRulesType($plate);
         $rules=$this->getMatchRules($rulesType,$plate);
         $special=$this->getSpecial($plate);
-        $topfee=false;
         $totalfee=0;
         $detail=[];
         $entry_time=$records->entry_time;
@@ -50,11 +49,6 @@ trait Functions{
                         ->sum('pay_fee');
                         if($payfee>=$mode->top_fee){
                             return 0;
-                        }else{
-                            $topfee=[
-                                'fee'=>$mode->top_fee-$payfee,
-                                'mode'=>$mode
-                            ];
                         }
                     }
                 }
@@ -248,10 +242,6 @@ trait Functions{
         if($fee12>0){
             $totalfee+=$fee12;
             $detail=array_merge($detail,$account->getDetail());
-        }
-        if($topfee && $totalfee>$topfee['fee']){
-            $totalfee=$topfee['fee'];
-            $detail=array(['start_time'=>$records->entry_time,'end_time'=>$exit_time,'fee'=>$totalfee,'mode'=>$topfee['mode']->title]);
         }
         return $totalfee;
     }

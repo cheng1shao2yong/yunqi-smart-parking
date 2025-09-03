@@ -157,8 +157,8 @@
                     this.$refs.yunForm.hideField(['step_fee','add_time','add_fee','top_time','top_fee']);
                 }
                 if(fee_setting=='loop'){
-                    this.$refs.yunForm.showField(['top_time','top_fee','add_time','add_fee']);
-                    this.$refs.yunForm.hideField(['step_fee','period_fee']);
+                    this.$refs.yunForm.showField(['top_time','top_fee']);
+                    this.$refs.yunForm.hideField(['step_fee','period_fee','add_time','add_fee']);
                 }
                 if(fee_setting=='step'){
                     this.$refs.yunForm.showField(['step_fee']);
