@@ -34,24 +34,34 @@ trait Functions{
         $detail=[];
         $entry_time=$records->entry_time;
         //周期收费的车辆，如果是在周期内，则免费放行
-        if($rules->mode){
-            $modesArr=ParkingMode::where(['parking_id'=>$parking->id,'status'=>'normal'])->cache('parking_mode_'.$parking->id,3600*24)->select();
+        $activeMode=false;
+        $modesArr=ParkingMode::where(['parking_id'=>$parking->id,'status'=>'normal'])->cache('parking_mode_'.$parking->id,3600*24)->select();
+        if($rules->rules_type==ParkingRules::RULESTYPE('临时车')){
+            foreach ($modesArr as $mode){
+                if($mode->id==$rules->mode_id && $mode->fee_setting=='loop'){
+                    $activeMode=$mode;
+                }
+            }
+        }else{
             foreach ($modesArr as $mode){
                 foreach ($rules->mode as $ruleMode){
                     if($mode->id==$ruleMode['mode_id'] && $mode->fee_setting=='loop'){
-                        $top_time=$mode->top_time*60;
-                        $payfee=ParkingRecords::where([
-                            'parking_id'=>$parking->id,
-                            'rules_id'=>$rules->id,
-                            'plate_number'=>$plate->plate_number
-                        ])
-                        ->where('entry_time','>',$exit_time-$top_time)
-                        ->sum('pay_fee');
-                        if($payfee>=$mode->top_fee){
-                            return 0;
-                        }
+                        $activeMode=$mode;
                     }
                 }
+            }
+        }
+        if($activeMode){
+            $top_time=$activeMode->top_time*60;
+            $payfee=ParkingRecords::where([
+                'parking_id'=>$parking->id,
+                'rules_id'=>$rules->id,
+                'plate_number'=>$plate->plate_number
+            ])
+            ->where('entry_time','>',$exit_time-$top_time)
+            ->sum('pay_fee');
+            if($payfee>0){
+                return 0;
             }
         }
         if($plate->cars && $plate->cars->rules_type==ParkingRules::RULESTYPE('月租车')){

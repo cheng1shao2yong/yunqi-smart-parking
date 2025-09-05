@@ -154,8 +154,8 @@ class InsideService extends BaseService{
         }
         if(!$records){
             //没有入场记录，查看上次出场时间在15分钟内可以再开一次
-            $exitRecords=ParkingRecords::where(['parking_id'=>$this->insideParking->id,'plate_number'=>$this->insidePlate->plate_number])->whereIn('status',[3,4,9])->where('exit_time','>',time()-15*60)->order('id desc')->find();
-            if($exitRecords){
+            $exitRecords=ParkingRecords::where(['parking_id'=>$this->insideParking->id,'plate_number'=>$this->insidePlate->plate_number])->whereIn('status',[3,4,9])->order('id desc')->find();
+            if($exitRecords && $exitRecords->exit_time>time()-60*15){
                 $next=function () use ($exitRecords){
                     /* @var BarrierService $barrierService*/
                     $barrierService=$this->insideBarrier->getBarrierService();
@@ -190,7 +190,37 @@ class InsideService extends BaseService{
                 };
                 return true;
             }
-            $this->inSideException('内场无入场记录');
+            //追溯到上次入场
+            if($exitRecords && $insideSetting[$rulesType.'_match_last']){
+                $parkingtime=$exitRecords->entry_time-$exitRecords->exit_time;
+                $modesArr=ParkingMode::where(['parking_id'=>$this->insideParking->id,'status'=>'normal'])->cache('parking_mode_'.$this->insideParking->id,3600*24)->select();
+                $activeMode=false;
+                if($rules->rules_type==ParkingRules::RULESTYPE('临时车')){
+                    foreach ($modesArr as $mode){
+                        if($mode->id==$rules->mode_id){
+                            $activeMode=$mode;
+                        }
+                    }
+                }else{
+                    foreach ($modesArr as $mode){
+                        foreach ($rules->mode as $ruleMode){
+                            if($mode->id==$ruleMode['mode_id']){
+                                $activeMode=$mode;
+                            }
+                        }
+                    }
+                }
+                //免费停车时间内离场
+                if($activeMode && $activeMode->free_time && $activeMode->free_time*60>$parkingtime){
+                    $exitRecords->account_time=null;
+                    $exitRecords->exit_time=null;
+                    $exitRecords->status=ParkingRecords::STATUS('正在场内');
+                    $records=$exitRecords;
+                }
+            }
+            if(!$records){
+                $this->inSideException('内场无入场记录');
+            }
         }
         if(time()<$records->entry_time){
             $this->inSideException('内场出场时间大于入场时间'.$records->id);
@@ -386,8 +416,8 @@ class InsideService extends BaseService{
         }
         if(!$records){
             //没有入场记录，查看上次出场时间在15分钟内可以再开一次
-            $exitRecords=ParkingRecords::where(['parking_id'=>$this->outsideParking->id,'plate_number'=>$this->outsidePlate->plate_number])->whereIn('status',[3,4,9])->where('exit_time','>',time()-15*60)->order('id desc')->find();
-            if($exitRecords){
+            $exitRecords=ParkingRecords::where(['parking_id'=>$this->outsideParking->id,'plate_number'=>$this->outsidePlate->plate_number])->whereIn('status',[3,4,9])->order('id desc')->find();
+            if($exitRecords && $exitRecords->exit_time>time()-60*15){
                 $next=function () use ($exitRecords){
                     //岗亭通知
                     ParkingScreen::sendGreenMessage($this->outsideBarrier,$this->outsidePlate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$exitRecords->rules_type].'，'.ParkingRecords::STATUS[$exitRecords->status]);
@@ -402,7 +432,37 @@ class InsideService extends BaseService{
                 };
                 return true;
             }
-            $this->outSideException('外场无入场记录');
+            //追溯到上次入场
+            if($exitRecords && $outsideSetting[$rulesType.'_match_last']){
+                $parkingtime=$exitRecords->entry_time-$exitRecords->exit_time;
+                $modesArr=ParkingMode::where(['parking_id'=>$this->outsideParking->id,'status'=>'normal'])->cache('parking_mode_'.$this->outsideParking->id,3600*24)->select();
+                $activeMode=false;
+                if($rules->rules_type==ParkingRules::RULESTYPE('临时车')){
+                    foreach ($modesArr as $mode){
+                        if($mode->id==$rules->mode_id){
+                            $activeMode=$mode;
+                        }
+                    }
+                }else{
+                    foreach ($modesArr as $mode){
+                        foreach ($rules->mode as $ruleMode){
+                            if($mode->id==$ruleMode['mode_id']){
+                                $activeMode=$mode;
+                            }
+                        }
+                    }
+                }
+                //免费停车时间内离场
+                if($activeMode && $activeMode->free_time && $activeMode->free_time*60>$parkingtime){
+                    $exitRecords->account_time=null;
+                    $exitRecords->exit_time=null;
+                    $exitRecords->status=ParkingRecords::STATUS('正在场内');
+                    $records=$exitRecords;
+                }
+            }
+            if(!$records){
+                $this->outSideException('外场无入场记录');
+            }
         }
         if(time()<$records->entry_time){
             $this->outSideException('外场出场时间大于入场时间'.$records->id);

@@ -13,7 +13,6 @@ class ParkingAccount{
     private $parking;
     private $rulesArr;
     private $modesArr;
-    private $chargeArr;
     private string $plate_type;
     private mixed $special;
     private int $entry_time;
@@ -33,9 +32,6 @@ class ParkingAccount{
         $this->modesArr=ParkingMode::where(['parking_id'=>$parking->id,'status'=>'normal'])
             ->cache('parking_mode_'.$parking->id,3600*24)
             ->select();
-        $this->chargeArr=ParkingCharge::where(['parking_id'=>$parking->id])
-            ->cache('parking_charge_'.$parking->id,3600*24)
-            ->find();
         $this->parking=$parking;
     }
 

@@ -30,8 +30,7 @@ class DeleteDirty implements EventInterFace
             DELETE FROM yun_parking_cars_apply where cars_id not in (SELECT id FROM yun_parking_cars);
             DELETE FROM yun_parking_cars_logs where cars_id not in (SELECT id FROM yun_parking_cars);
             DELETE FROM yun_parking_cars_occupat where cars_id not in (SELECT id FROM yun_parking_cars);
-            DELETE FROM yun_parking_records where cars_id is not null and cars_id not in (SELECT id FROM yun_parking_cars);
-            DELETE FROM yun_parking_records_detail where records_id not in (SELECT id FROM yun_parking_records);
+            UPDATE yun_parking_records SET cars_id=null where cars_id is not null and cars_id not in (SELECT id FROM yun_parking_cars);
             DELETE FROM yun_parking_trigger where createtime<{$time10};
             DELETE FROM yun_parking_log where createtime<{$time10};
             DELETE FROM yun_parking_records_pay where pay_id is null and createtime<{$time1};

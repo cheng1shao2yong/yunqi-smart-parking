@@ -127,6 +127,48 @@
                     </el-row>
                 </div>
             </el-form-item>
+            <el-form-item label="无入场记录追溯上次入场:">
+                <div class="right-box">
+                    <el-row>
+                        <el-col :span="3" v-if="!rows.provisional_no_entry">
+                            <div class="pitem">
+                                <div>临时车</div>
+                                <el-switch @change="changeParkingType('provisional_match_last')" v-model="rows.provisional_match_last" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3" v-if="!rows.monthly_no_entry">
+                            <div class="pitem">
+                                <div>月租车</div>
+                                <el-switch @change="changeParkingType('monthly_match_last')" v-model="rows.monthly_match_last" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3" v-if="!rows.day_no_entry">
+                            <div class="pitem">
+                                <div>日租车</div>
+                                <el-switch @change="changeParkingType('day_match_last')" v-model="rows.day_match_last" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3" v-if="!rows.member_no_entry">
+                            <div class="pitem">
+                                <div>会员车</div>
+                                <el-switch @change="changeParkingType('member_match_last')" v-model="rows.member_match_last" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3" v-if="!rows.stored_no_entry">
+                            <div class="pitem">
+                                <div>储值车</div>
+                                <el-switch @change="changeParkingType('stored_match_last')" v-model="rows.stored_match_last" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                        <el-col :span="3" v-if="!rows.vip_no_entry">
+                            <div class="pitem">
+                                <div>VIP车</div>
+                                <el-switch @change="changeParkingType('vip_match_last')" v-model="rows.vip_match_last" :active-value="1" :inactive-value="0"></el-switch>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
+            </el-form-item>
             <el-form-item label="特殊车辆免费:">
                 <div class="right-box">
                     <el-checkbox-group v-model="rows.special_free" @change="changeParkingType('special_free')">

@@ -348,8 +348,8 @@ class ParkingService extends BaseService{
         $barrierService->setParam(['recordsType'=>$this->records_type,'plate'=>$plate]);
         if(!$records){
             //没有入场记录，查看上次出场时间在15分钟内可以再开一次
-            $exitRecords=ParkingRecords::where(['parking_id'=>$parking->id,'plate_number'=>$plate->plate_number])->whereIn('status',[3,4,9])->where('exit_time','>',time()-15*60)->order('id desc')->find();
-            if($exitRecords){
+            $exitRecords=ParkingRecords::where(['parking_id'=>$parking->id,'plate_number'=>$plate->plate_number])->whereIn('status',[3,4,9])->order('id desc')->find();
+            if($exitRecords && $exitRecords->exit_time>time()-60*15){
                 $barrierService->setParam(['records'=>$exitRecords,'rulesType'=>$exitRecords->rules_type]);
                 //内场提前缴费
                 if($exitRecords->pay_fee>0){
@@ -367,7 +367,37 @@ class ParkingService extends BaseService{
                 ParkingScreen::sendRedMessage($this->barrier,$plate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType].'，没有入场记录');
                 return true;
             }
-            $this->throwException('无入场记录');
+            //追溯到上次入场
+            if($exitRecords && $setting[$rulesType.'_match_last']){
+                $parkingtime=$exitRecords->entry_time-$exitRecords->exit_time;
+                $modesArr=ParkingMode::where(['parking_id'=>$parking->id,'status'=>'normal'])->cache('parking_mode_'.$parking->id,3600*24)->select();
+                $activeMode=false;
+                if($rules->rules_type==ParkingRules::RULESTYPE('临时车')){
+                    foreach ($modesArr as $mode){
+                        if($mode->id==$rules->mode_id){
+                            $activeMode=$mode;
+                        }
+                    }
+                }else{
+                    foreach ($modesArr as $mode){
+                        foreach ($rules->mode as $ruleMode){
+                            if($mode->id==$ruleMode['mode_id']){
+                                $activeMode=$mode;
+                            }
+                        }
+                    }
+                }
+                //免费停车时间内离场
+                if($activeMode && $activeMode->free_time && $activeMode->free_time*60>$parkingtime){
+                    $exitRecords->account_time=null;
+                    $exitRecords->exit_time=null;
+                    $exitRecords->status=ParkingRecords::STATUS('正在场内');
+                    $records=$exitRecords;
+                }
+            }
+            if(!$records){
+                $this->throwException('无入场记录');
+            }
         }
         if($this->exit_time<$records->entry_time){
             $this->throwException('出场时间大于入场时间');
