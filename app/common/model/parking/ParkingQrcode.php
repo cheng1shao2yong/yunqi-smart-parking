@@ -38,21 +38,20 @@ class ParkingQrcode extends Model
 
     public static function getQrcode(ParkingQrcode $qrcode,string $serialno='')
     {
-        $random=$qrcode->name.rand(100000,999999);
-        $tempfile=root_path().'runtime/'.$random.'.png';
         if($qrcode['name']=='entry'){
-            self::createMpAppQrcode($serialno,'parking-entry-qrcode',$tempfile);
+            $content=self::createMpAppQrcode($serialno,'parking-entry-qrcode');
         }else if($qrcode['name']=='mpapp'){
-            self::createMpAppQrcode($qrcode->parking_id,'parking-mpapp-index',$tempfile);
+            $content=self::createMpAppQrcode($qrcode->parking_id,'parking-mpapp-index');
         }else if($qrcode['name']=='day'){
-            self::createMpAppQrcode($qrcode->parking_id,'parking-entry-apply',$tempfile);
+            $content=self::createMpAppQrcode($qrcode->parking_id,'parking-entry-apply');
         }else{
+            $random=$qrcode->name.rand(100000,999999);
+            $tempfile=root_path().'runtime/'.$random.'.png';
             $url=self::getQrcodeInfo($qrcode,$serialno);
-            //生成临时图片
             QRcode::png($url,$tempfile, QR_ECLEVEL_L, 10, 2);
+            $content=file_get_contents($tempfile);
+            unlink($tempfile);
         }
-        $content=file_get_contents($tempfile);
-        unlink($tempfile);
         return $content;
     }
 
@@ -61,24 +60,21 @@ class ParkingQrcode extends Model
         $random=$qrcode->name.rand(100000,999999);
         $tempfile=root_path().'runtime/'.$random.'.png';
         if($qrcode['name']=='entry'){
-            self::createMpAppQrcode($serialno,'parking-entry-qrcode',$tempfile);
+            $content=self::createMpAppQrcode($serialno,'parking-entry-qrcode');
+            file_put_contents($tempfile,$content);
         }else if($qrcode['name']=='mpapp'){
-            self::createMpAppQrcode($qrcode->parking_id,'parking-mpapp-index',$tempfile);
+            $content=self::createMpAppQrcode($qrcode->parking_id,'parking-mpapp-index');
+            file_put_contents($tempfile,$content);
         }else if($qrcode['name']=='day'){
-            self::createMpAppQrcode($qrcode->parking_id,'parking-entry-apply',$tempfile);
+            $content=self::createMpAppQrcode($qrcode->parking_id,'parking-entry-apply');
+            file_put_contents($tempfile,$content);
         }else{
             $url=self::getQrcodeInfo($qrcode,$serialno);
-            //生成临时图片
             QRcode::png($url,$tempfile, QR_ECLEVEL_Q, 30, 2);
         }
         //图片添加logo
         $logo=Attachment::where(['fullurl'=>site_config("basic.logo")])->find();
-        if(!$logo){
-            $logourl='public/assets/img/logo.png';
-        }else{
-            $logourl=$logo->url;
-        }
-        self::addlogo($tempfile,root_path().$logourl);
+        self::addlogo($tempfile,root_path().$logo->url);
         //图片添加背景
         if($qrcode->background){
             $background=Attachment::where(['fullurl'=>$qrcode->background])->find();
@@ -92,23 +88,30 @@ class ParkingQrcode extends Model
         return $content;
     }
 
-    private static function createMpAppQrcode(mixed $foreign_key,string $type,string $tempfile)
+    private static function createMpAppQrcode(mixed $foreign_key,string $type)
     {
         $config=[
             'appid'=>site_config("addons.uniapp_mpapp_id"),
             'appsecret'=>site_config("addons.uniapp_mpapp_secret"),
         ];
         $qrcode= QrcodeModel::createQrcode($type,$foreign_key,24*3600*365*80);
+        $qrcode_id=(string)$qrcode->id;
+        $tempfile=root_path().'public/qrcode/'.$qrcode_id.'.png';
+        if(file_exists($tempfile)){
+            $content=file_get_contents($tempfile);
+            return $content;
+        }
         $wechat=new \WeChat\Qrcode($config);
-        $ticket = $wechat->create($qrcode->id)['ticket'];
+        $ticket = $wechat->create($qrcode_id)['ticket'];
         $url=$wechat->url($ticket);
         $content=file_get_contents($url);
         file_put_contents($tempfile,$content);
+        return $content;
     }
 
     private static function getQrcodeInfo(ParkingQrcode $qrcode,string $serialno)
     {
-        $url=get_domain('index');
+        $url=request()->domain();
         $uniqid=$qrcode->parking->uniqid;
         $records_id=$qrcode->records_id;
         $name=$qrcode['name'];
