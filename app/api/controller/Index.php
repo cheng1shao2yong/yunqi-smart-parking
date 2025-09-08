@@ -135,7 +135,7 @@ class Index extends Api
             if($trigger){
                 $photo=$trigger->image;
             }else{
-                $photo=ParkingTemporary::makePhoto($barrier);
+                $photo=Utils::makePhoto($barrier);
                 $temporary_check_cars=$parking->setting->temporary_check_cars;
                 if($temporary_check_cars){
                     $this->error('没有识别到无牌车，请退后重试');
@@ -486,7 +486,7 @@ class Index extends Api
         if($trigger){
             $photo=$trigger->image;
         }else{
-            $photo=ParkingTemporary::makePhoto($barrier);
+            $photo=Utils::makePhoto($barrier);
             $temporary_check_cars=$parking->setting->temporary_check_cars;
             if($temporary_check_cars){
                 $this->error('没有识别到无牌车，请退后重试');

@@ -28,6 +28,7 @@ use app\common\model\UserToken;
 use think\annotation\route\Get;
 use think\annotation\route\Group;
 use think\annotation\route\Post;
+use think\annotation\route\Route;
 use think\facade\Db;
 
 #[Group("parking/index")]
@@ -41,6 +42,38 @@ class Index extends Base
     {
         $admin=$this->auth->getParkingAdmin();
         $this->success('',$admin);
+    }
+
+    #[Route('GET,POST','spacelast')]
+    public function spacelast()
+    {
+        if($this->request->isPost()){
+            $parking_space_last=$this->request->post('parking_space_last/d');
+            $parking_space_total=ParkingSetting::where('parking_id',$this->parking_id)->value('parking_space_total');
+            $barriers=ParkingBarrier::where(['parking_id'=>$this->parking_id])->select();
+            foreach ($barriers as $barrier){
+                if($barrier->show_last_space){
+                    $show_last_space=json_decode($barrier->show_last_space,true);
+                    $line=$show_last_space['line'];
+                    $text=str_replace('{剩余车位}',(string)$parking_space_last,$show_last_space['text']);
+                    Cache::set('parking_space_entry_'.$this->parking_id,$parking_space_total-$parking_space_last);
+                    Utils::send($barrier,'设置广告',[
+                        'line'=>$line,
+                        'text'=>$text
+                    ]);
+                }
+            }
+            $this->success('校准完成');
+        }else{
+            $parking_space_total=ParkingSetting::where('parking_id',$this->parking_id)->value('parking_space_total');
+            $parking_space_entry=ParkingRecords::where(['parking_id'=>$this->parking_id])->whereIn('status',[0,1])->count();
+            $parking_space_last=($parking_space_total-$parking_space_entry)>0?$parking_space_total-$parking_space_entry:0;
+            $this->success('',[
+                'parking_space_total'=>$parking_space_total,
+                'parking_space_entry'=>$parking_space_entry,
+                'parking_space_last'=>$parking_space_last
+            ]);
+        }
     }
 
     #[Get('info')]

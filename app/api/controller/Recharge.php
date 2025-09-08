@@ -49,6 +49,7 @@ class Recharge extends Api
     #[Post('storedapply')]
     public function storedapply()
     {
+        $pay_type=$this->request->post('pay_type');
         $rules_id=$this->request->post('rules_id');
         $plate_number=$this->request->post('plate_number');
         $mobile=$this->request->post('mobile');
@@ -95,13 +96,19 @@ class Recharge extends Api
                 'remark'=>$remark
             ],JSON_UNESCAPED_UNICODE)
         ]);
-        $r=$service->wechatMiniappPay();
+        if($pay_type=='wechat-miniapp'){
+            $r=$service->wechatMiniappPay();
+        }
+        if($pay_type=='mp-alipay'){
+            $r=$service->mpAlipay();
+        }
         $this->success('',$r);
     }
 
     #[Post('storedrenew')]
     public function storedrenew()
     {
+        $pay_type=$this->request->post('pay_type');
         $cars_id=$this->request->post('cars_id');
         $plate_number=$this->request->post('plate_number');
         $totalfee=$this->request->post('totalfee');
@@ -135,7 +142,12 @@ class Recharge extends Api
                 'plate_number'=>$plate_number,
             ],JSON_UNESCAPED_UNICODE)
         ]);
-        $r=$service->wechatMiniappPay();
+        if($pay_type=='wechat-miniapp'){
+            $r=$service->wechatMiniappPay();
+        }
+        if($pay_type=='mp-alipay'){
+            $r=$service->mpAlipay();
+        }
         $this->success('',$r);
     }
 
@@ -249,6 +261,7 @@ class Recharge extends Api
     #[Post('monthrenew')]
     public function monthrenew()
     {
+        $pay_type=$this->request->post('pay_type');
         $cars_id=$this->request->post('cars_id');
         $month=$this->request->post('month');
         $change_type=$this->request->post('change_type');
@@ -299,13 +312,19 @@ class Recharge extends Api
                 'remark'=>$remark
             ],JSON_UNESCAPED_UNICODE)
         ]);
-        $r=$service->wechatMiniappPay();
+        if($pay_type=='wechat-miniapp'){
+            $r=$service->wechatMiniappPay();
+        }
+        if($pay_type=='mp-alipay'){
+            $r=$service->mpAlipay();
+        }
         $this->success('',$r);
     }
 
     #[Post('monthapply')]
     public function monthapply()
     {
+        $pay_type=$this->request->post('pay_type');
         $rules_id=$this->request->post('rules_id');
         $mobile=$this->request->post('mobile');
         $contact=$this->request->post('contact');
@@ -353,7 +372,12 @@ class Recharge extends Api
                 'remark'=>$remark
             ],JSON_UNESCAPED_UNICODE)
         ]);
-        $r=$service->wechatMiniappPay();
+        if($pay_type=='wechat-miniapp'){
+            $r=$service->wechatMiniappPay();
+        }
+        if($pay_type=='mp-alipay'){
+            $r=$service->mpAlipay();
+        }
         $this->success('',$r);
     }
 
