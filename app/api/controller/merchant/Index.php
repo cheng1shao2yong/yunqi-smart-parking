@@ -138,16 +138,20 @@ class Index extends Base
                 'appsecret'=>site_config("addons.uniapp_mpapp_secret"),
             ];
             $wechat=new \WeChat\Qrcode($config);
-            $ticket = $wechat->create($qrcode->id)['ticket'];
+            $ticket = $wechat->create($qrcode->id,$expiretime)['ticket'];
             $url=$wechat->url($ticket);
+            $filepath=root_path().'public'.DS.'qrcode'.DS.$qrcode->id.'.jpg';
+            $data=file_get_contents($url);
+            file_put_contents($filepath,$data);
+            $url=$this->request->domain().'/qrcode/'.$qrcode->id.'.jpg';
         }else{
             $config=[
                 'appid'=>site_config("addons.uniapp_miniapp_id"),
                 'appsecret'=>site_config("addons.uniapp_miniapp_secret"),
             ];
             $mini=new \WeMini\Qrcode($config);
-            $path='pages/merchant/plate?qrcode_id='.$qrcode->id;
-            $data=$mini->createMiniPath($path,600);
+            $path='pages/merchant/plate';
+            $data=$mini->createMiniScene($qrcode->id,$path);
             $filepath=root_path().'public'.DS.'qrcode'.DS.$qrcode->id.'.jpg';
             file_put_contents($filepath,$data);
             $url=$this->request->domain().'/qrcode/'.$qrcode->id.'.jpg';
@@ -180,7 +184,7 @@ class Index extends Base
         $foreign_key=$this->request->get('foreign_key');
         $qrcode=Qrcode::createQrcode(Qrcode::TYPE('商户PC扫码登录'),$foreign_key,5*60);
         $wechat=new \WeChat\Qrcode($config);
-        $ticket = $wechat->create($qrcode->id)['ticket'];
+        $ticket = $wechat->create($qrcode->id,5*60)['ticket'];
         $url=$wechat->url($ticket);
         $this->success('',$url);
     }

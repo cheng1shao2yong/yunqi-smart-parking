@@ -183,9 +183,9 @@ class Saifeimu extends BarrierService {
             'appid'=>site_config("addons.uniapp_mpapp_id"),
             'appsecret'=>site_config("addons.uniapp_mpapp_secret"),
         ];
-        $qrcode= QrcodeModel::createQrcode('parking-entry-qrcode',$this->barrier->serialno,24*3600*365*80);
+        $qrcode= QrcodeModel::createQrcode('parking-entry-qrcode',$this->barrier->serialno,60*15);
         $wechat=new \WeChat\Qrcode($config);
-        $ticket = $wechat->create($qrcode->id)['ticket'];
+        $ticket = $wechat->create($qrcode->id,60*15)['ticket'];
         $url=$wechat->url($ticket);
         Utils::send($this->barrier,'显示入场码',['qrcode'=>$url]);
     }

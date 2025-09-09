@@ -43,9 +43,9 @@ class Car extends Base
             'appid'=>site_config("addons.uniapp_mpapp_id"),
             'appsecret'=>site_config("addons.uniapp_mpapp_secret"),
         ];
-        $qrcode= QrcodeModel::createQrcode('merchant-entry-apply',$this->parking_id.','.$this->merch_id.','.$rules_id,24*3600*365*80);
+        $qrcode= QrcodeModel::createQrcode('merchant-entry-apply',$this->parking_id.','.$this->merch_id.','.$rules_id,24*3600*30);
         $wechat=new \WeChat\Qrcode($config);
-        $ticket = $wechat->create($qrcode->id)['ticket'];
+        $ticket = $wechat->create($qrcode->id,24*3600*30)['ticket'];
         $url=$wechat->url($ticket);
         $this->success('',compact('url','qrcode'));
     }

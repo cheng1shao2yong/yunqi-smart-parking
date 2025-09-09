@@ -42,7 +42,7 @@ class User extends Api
             'appsecret'=>site_config("addons.uniapp_mpapp_secret"),
         ];
         $wechat=new \WeChat\Qrcode($config);
-        $ticket = $wechat->create($qrcode->id)['ticket'];
+        $ticket = $wechat->create($qrcode->id,3600)['ticket'];
         $url=$wechat->url($ticket);
         $this->success('',$url);
     }

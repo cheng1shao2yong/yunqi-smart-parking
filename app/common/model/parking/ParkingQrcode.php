@@ -94,7 +94,7 @@ class ParkingQrcode extends Model
             'appid'=>site_config("addons.uniapp_mpapp_id"),
             'appsecret'=>site_config("addons.uniapp_mpapp_secret"),
         ];
-        $qrcode= QrcodeModel::createQrcode($type,$foreign_key,24*3600*365*80);
+        $qrcode= QrcodeModel::createQrcode($type,$foreign_key,24*3600*365*10);
         $qrcode_id=(string)$qrcode->id;
         $tempfile=root_path().'public/qrcode/'.$qrcode_id.'.png';
         if(file_exists($tempfile)){

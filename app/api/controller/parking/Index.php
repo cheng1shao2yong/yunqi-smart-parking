@@ -379,7 +379,7 @@ class Index extends Base
         ];
         $qrcode=Qrcode::createQrcode(Qrcode::TYPE('绑定第三方账号'),$foreign_key,5*60);
         $wechat=new \WeChat\Qrcode($config);
-        $ticket = $wechat->create($qrcode->id)['ticket'];
+        $ticket = $wechat->create($qrcode->id,5*60)['ticket'];
         $url=$wechat->url($ticket);
         $content=file_get_contents($url);
         header('Content-Type: image/png');

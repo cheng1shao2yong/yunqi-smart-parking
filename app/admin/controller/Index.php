@@ -97,7 +97,7 @@ class Index extends Backend
             if($config['appid'] && $config['appsecret']){
                 $qrcode=Qrcode::createQrcode(Qrcode::TYPE('管理员扫码登录'),token(),5*60);
                 $wechat=new \WeChat\Qrcode($config);
-                $ticket = $wechat->create($qrcode->id)['ticket'];
+                $ticket = $wechat->create($qrcode->id,5*60)['ticket'];
                 $url=$wechat->url($ticket);
                 $this->assign('qrcode',$url);
             }else{
