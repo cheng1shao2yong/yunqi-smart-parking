@@ -19,6 +19,7 @@ use think\annotation\route\Group;
 use think\annotation\route\Route;
 use app\common\controller\Api;
 use app\common\model\QrcodeScan;
+use think\facade\Cache;
 
 #[Group("mpapp")]
 class Mpapp extends Api{
@@ -281,9 +282,9 @@ class Mpapp extends Api{
                 $path1=$this->request->domain()."/mpapp/connect?scan_id={$scan->id}&action=entry";
                 $end1="<a href=\"{$path1}\">👉👉无牌车入场点这里👈️👈️</a>";
                 $end2='';
-                $recovery=ParkingRecovery::where(['entry_barrier'=>$qrcode->foreign_key,'pay_id'=>null])->where('entry_time','>',time()-15*60)->find();
-                if($recovery){
-                    $path='pages/index/parking?serialno='.$barrier->serialno;
+                $recovery_plate=Cache::get('recovery_event_'.$barrier->serialno);;
+                if($recovery_plate){
+                    $path='pages/index/recovery-list?barrier_id='.$barrier->id.'&parking_id='.$barrier->parking_id.'&plate_number='.$recovery_plate;
                     $miniapp_id=site_config('addons.uniapp_miniapp_id');
                     $end2="\n\n<a data-miniprogram-appid=\"{$miniapp_id}\" data-miniprogram-path=\"{$path}\" data-miniprogram-type=\"text\">👉👉欠费补缴点这里👈️👈️</a>";
                 }

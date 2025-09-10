@@ -114,7 +114,7 @@ class Evading extends ParkingBase
                     'parking_id'=>$this->parking->id,
                     'records_id'=>$records->id,
                     'plate_number'=>$records->plate_number,
-                    'total_fee'=>$records->total_fee,
+                    'total_fee'=>round($records->total_fee-$records->pay_fee-$records->activities_fee,2),
                     'search_parking'=>$search_parking,
                     'recovery_type'=>$recovery_type,
                     'entry_set'=>$this->request->post('row.entry_set'),

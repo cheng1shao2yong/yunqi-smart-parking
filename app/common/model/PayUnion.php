@@ -31,6 +31,7 @@ use app\common\model\parking\ParkingScreen;
 use app\common\model\parking\ParkingStoredLog;
 use app\common\model\parking\ParkingTemporary;
 use app\common\model\parking\ParkingTrafficRecords;
+use app\common\service\barrier\Utils;
 use app\common\service\BarrierService;
 use app\common\service\InsideService;
 use app\common\service\msg\WechatMsg;
@@ -70,6 +71,7 @@ class PayUnion extends Model{
         'parking_monthly'=>'停车月租缴费',
         'parking_stored'=>'停车储值卡充值',
         'merch_recharge'=>'商户充值',
+        'parking_recovery'=>'逃费追缴'
     ];
 
     const PAYTYPE=[
@@ -210,6 +212,9 @@ class PayUnion extends Model{
                 case 'parking':
                     $this->parking();
                     break;
+                case 'parking_recovery':
+                    $this->parking_recovery();
+                    break;
             }
             Db::commit();
         }catch (\Exception $e){
@@ -268,6 +273,33 @@ class PayUnion extends Model{
                 Db::rollback();
                 throw $e;
             }
+        }
+    }
+
+    private function parking_recovery()
+    {
+        $attach=json_decode($this->attach,true);
+        $barrier_id=$attach['barrier_id'];
+        $recovery_id=$attach['recovery_id'];
+        $plate_number=$attach['plate_number'];
+        $recovery=ParkingRecovery::with(['records'])->whereIn('id',$recovery_id)->select();
+        foreach ($recovery as $item){
+            $item->pay_id=$this->id;
+            $item->save();
+            if($item->records){
+                $item->records->pay_fee=$item->total_fee;
+                $item->records->status=ParkingRecords::STATUS('追缴补缴出场');
+                $item->records->save();
+            }
+        }
+        $barrier=ParkingBarrier::find($barrier_id);
+        if($barrier && $barrier->barrier_type=='entry'){
+            ParkingScreen::sendGreenMessage($barrier,$plate_number.'，支付成功，重新识别车牌');
+            Utils::send($barrier,'主动识别');
+        }
+        if($barrier && $barrier->barrier_type=='exit'){
+            ParkingScreen::sendGreenMessage($barrier,$plate_number.'，支付成功，重新识别车牌');
+            Utils::send($barrier,'主动识别');
         }
     }
 

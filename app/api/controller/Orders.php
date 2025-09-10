@@ -11,12 +11,16 @@ use app\common\model\parking\ParkingMerchantCouponList;
 use app\common\model\parking\ParkingMonthlyRecharge;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecordsPay;
+use app\common\model\parking\ParkingRecovery;
+use app\common\model\parking\ParkingScreen;
 use app\common\model\parking\ParkingStoredLog;
 use app\common\model\parking\ParkingTemporary;
 use app\common\model\PayUnion;
+use app\common\service\PayService;
 use think\annotation\route\Get;
 use think\annotation\route\Group;
 use think\annotation\route\Post;
+use think\facade\Cache;
 use think\facade\Db;
 
 #[Group("orders")]
@@ -155,6 +159,8 @@ class Orders extends Api
         $postdata['pay_id']=implode(',',$postdata['pay_id']);
         $postdata['total_price']=$total_price;
         $postdata['title']=Parking::where('id',$postdata['parking_id'])->value('title');
+        $parking=Parking::cache('parking_'.$postdata['parking_id'],24*3600)->withJoin(['setting'])->find($postdata['parking_id']);
+        $postdata['invoice_send']=$parking->setting->invoice_type;
         try{
             Db::startTrans();
             PayUnion::whereIn('id',$postdata['pay_id'])->where('user_id',$this->auth->id)->update(['invoicing'=>1]);
@@ -211,5 +217,79 @@ class Orders extends Api
             $stored->plate_number=implode(',',$plate_number);
             $this->success('',compact('union','stored','parking'));
         }
+    }
+
+    #[Get('recovery-list')]
+    public function recoveryList()
+    {
+        $parking_id=$this->request->get('parking_id');
+        $plate_number=$this->request->get('plate_number');
+        $recoverylist=ParkingRecovery::where(['plate_number'=>$plate_number,'pay_id'=>null])->select();
+        $records_id=[];
+        foreach ($recoverylist as $recovery) {
+            if (($recovery->search_parking && in_array($parking_id, explode(',', $recovery->search_parking))) || is_null($recovery->search_parking)) {
+                $records_id[]=$recovery->records_id;
+            }
+        }
+        $recordslist=ParkingRecords::whereIn('id',$records_id)->select();
+        $totalfee=0;
+        foreach ($recordslist as $item)
+        {
+            foreach ($recoverylist as $recovery){
+                if($item->id==$recovery->records_id){
+                    $item->total_fee=$recovery->total_fee;
+                    $totalfee+=$recovery->total_fee;
+                }
+            }
+        }
+        $totalfee=round($totalfee,2);
+        $this->success('',compact('recordslist','totalfee'));
+    }
+
+    #[Post('recovery-pay')]
+    public function recoveryPay()
+    {
+        $pay_type=$this->request->post('pay_type');
+        $parking_id=$this->request->post('parking_id');
+        $plate_number=$this->request->post('plate_number');
+        $barrier_id=$this->request->post('barrier_id');
+        $parking=Parking::cache('parking_'.$parking_id,24*3600)->withJoin(['setting'])->find($parking_id);
+        $recoverylist=ParkingRecovery::where(['plate_number'=>$plate_number,'pay_id'=>null])->select();
+        $totalfee=0;
+        $recovery_id=[];
+        foreach ($recoverylist as $recovery) {
+            if (($recovery->search_parking && in_array($parking_id, explode(',', $recovery->search_parking))) || is_null($recovery->search_parking)) {
+                $recovery_id[]=$recovery->id;
+                $totalfee+=$recovery->total_fee;
+            }
+        }
+        $totalfee=round($totalfee,2);
+        $service=PayService::newInstance([
+            'pay_type_handle'=>$parking->pay_type_handle,
+            'user_id'=>$this->auth->id,
+            'parking_id'=>$parking->id,
+            'sub_merch_no'=>$parking->sub_merch_no,
+            'split_merch_no'=>$parking->split_merch_no,
+            'persent'=>$parking->parking_records_persent,
+            'pay_price'=>$totalfee,
+            'order_type'=>PayUnion::ORDER_TYPE('逃费追缴'),
+            'order_body'=>$plate_number.'补缴欠费'.$totalfee.'元',
+            'attach'=>json_encode([
+                'recovery_id'=>$recovery_id,
+                'plate_number'=>$plate_number,
+                'barrier_id'=>$barrier_id
+            ],JSON_UNESCAPED_UNICODE)
+        ]);
+        if($pay_type=='wechat-miniapp'){
+            $r=$service->wechatMiniappPay();
+        }
+        if($pay_type=='mp-alipay'){
+            $r=$service->mpAlipay();
+        }
+        if($barrier_id){
+            $barrier=ParkingBarrier::find($barrier_id);
+            ParkingScreen::sendGreenMessage($barrier,'正在支付欠费：'.$totalfee.'元');
+        }
+        $this->success('',$r);
     }
 }

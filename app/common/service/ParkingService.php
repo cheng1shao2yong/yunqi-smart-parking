@@ -496,17 +496,10 @@ class ParkingService extends BaseService{
                         $recovery->entry_time=time();
                         $recovery->save();
                         if($recovery->entry_set==1 || $recovery->entry_set==2){
-                            $recoveryRecords=ParkingRecords::find($recovery->records_id);
-                            $arr=[
-                                'total_fee'=>$recovery->total_fee,
-                                'activities_time'=>0,
-                                'activities_fee'=>0,
-                                'pay_fee'=>0,
-                                'pay_price'=>$recovery->total_fee,
-                            ];
-                            ParkingRecordsPay::createBarrierOrder($recoveryRecords,null,$arr,$this->barrier->id);
+                             Cache::set('recovery_event_'.$this->barrier->serialno,$recovery->plate_number,60*15);
                         }
                         if($recovery->entry_set==1){
+                            ParkingScreen::sendRedMessage($this->barrier,'车辆存在欠费，付费后才能入场');
                             $this->throwException('车辆存在欠费，请扫入场码付费后进入');
                         }
                         if($recovery->entry_set==2){
@@ -516,18 +509,11 @@ class ParkingService extends BaseService{
                     }
                     if($type=='exit'){
                         if($recovery->exit_set==1 || $recovery->exit_set==2){
-                            $recoveryRecords=ParkingRecords::find($recovery->records_id);
-                            $arr=[
-                                'total_fee'=>$recovery->total_fee,
-                                'activities_time'=>0,
-                                'activities_fee'=>0,
-                                'pay_fee'=>0,
-                                'pay_price'=>$recovery->total_fee,
-                            ];
-                            ParkingRecordsPay::createBarrierOrder($recoveryRecords,null,$arr,$this->barrier->id);
+                            Cache::set('recovery_event_'.$this->barrier->serialno,$recovery->plate_number,60*15);
                         }
                         if($recovery->exit_set==1){
-                            $this->throwException('车辆存在欠费，请扫入场码付费后进入');
+                            ParkingScreen::sendRedMessage($this->barrier,'车辆存在欠费，付费后才能出场');
+                            $this->throwException('车辆存在欠费，请扫入场码付费后出场');
                         }
                         if($recovery->exit_set==2){
                             ParkingScreen::sendRecoveryMessage($this->barrier,$recovery->id,$plate->plate_number,$this->barrier->id,$this->photo);

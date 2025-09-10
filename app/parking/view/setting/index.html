@@ -216,14 +216,14 @@
             <el-form-item label="月租车入场欢迎语:">
                 <div class="right-box">
                     <el-select @blur="changeParkingType('monthly_entry_tips')" v-model="rows.monthly_entry_tips" placeholder="请选择">
-                        <el-option v-for="(entry,key) in monthly_entry_tips" :label="entry" :value="parseInt(key)"></el-option>
+                        <el-option v-for="(entry,key) in monthly_entry_tips" :label="entry" :value="toInt(key)"></el-option>
                     </el-select>
                 </div>
             </el-form-item>
             <el-form-item label="月租车离场欢送语:">
                 <div class="right-box">
                     <el-select @blur="changeParkingType('monthly_exit_tips')" v-model="rows.monthly_exit_tips" placeholder="请选择">
-                        <el-option v-for="(exit,key) in monthly_exit_tips" :label="exit" :value="parseInt(key)"></el-option>
+                        <el-option v-for="(exit,key) in monthly_exit_tips" :label="exit" :value="toInt(key)"></el-option>
                     </el-select>
                 </div>
             </el-form-item>
@@ -290,7 +290,7 @@
             uploadurl:Yunqi.config.baseUrl+Yunqi.config.upload.uploadurl
         },
         methods: {
-            parseInt:function (val){
+            toInt:function (val){
                 return parseInt(val);
             },
             changeParkingType:function (type){
