@@ -282,7 +282,7 @@ class Mpapp extends Api{
                 $path1=$this->request->domain()."/mpapp/connect?scan_id={$scan->id}&action=entry";
                 $end1="<a href=\"{$path1}\">👉👉无牌车入场点这里👈️👈️</a>";
                 $end2='';
-                $recovery_plate=Cache::get('recovery_event_'.$barrier->serialno);;
+                $recovery_plate=Cache::get('recovery_event_'.$barrier->serialno);
                 if($recovery_plate){
                     $path='pages/index/recovery-list?barrier_id='.$barrier->id.'&parking_id='.$barrier->parking_id.'&plate_number='.$recovery_plate;
                     $miniapp_id=site_config('addons.uniapp_miniapp_id');

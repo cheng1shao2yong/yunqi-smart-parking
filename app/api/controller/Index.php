@@ -90,6 +90,11 @@ class Index extends Api
                 $pay=false;
             }
             if(!$pay){
+                //检测逃费追缴
+                $recovery_plate=Cache::get('recovery_event_'.$barrier->serialno);
+                if($recovery_plate){
+                    $this->success('',['type'=>'recovery','plate_number'=>$recovery_plate,'parking_id'=>$barrier->parking_id,'barrier_id'=>$barrier->id]);
+                }
                 $plate_number='';
                 //判断是否为临牌车
                 $third=Third::where(['user_id'=>$this->auth->id,'platform'=>'mpapp'])->find();

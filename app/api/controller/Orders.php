@@ -222,47 +222,32 @@ class Orders extends Api
     #[Get('recovery-list')]
     public function recoveryList()
     {
-        $parking_id=$this->request->get('parking_id');
         $plate_number=$this->request->get('plate_number');
-        $recoverylist=ParkingRecovery::where(['plate_number'=>$plate_number,'pay_id'=>null])->select();
-        $records_id=[];
-        foreach ($recoverylist as $recovery) {
-            if (($recovery->search_parking && in_array($parking_id, explode(',', $recovery->search_parking))) || is_null($recovery->search_parking)) {
-                $records_id[]=$recovery->records_id;
-            }
-        }
-        $recordslist=ParkingRecords::whereIn('id',$records_id)->select();
-        $totalfee=0;
-        foreach ($recordslist as $item)
-        {
-            foreach ($recoverylist as $recovery){
-                if($item->id==$recovery->records_id){
-                    $item->total_fee=$recovery->total_fee;
-                    $totalfee+=$recovery->total_fee;
-                }
-            }
-        }
-        $totalfee=round($totalfee,2);
-        $this->success('',compact('recordslist','totalfee'));
+        $recordslist=ParkingRecovery::with(['records'])->where(['plate_number'=>$plate_number,'pay_id'=>null])->select();
+        $this->success('',$recordslist);
     }
 
     #[Post('recovery-pay')]
     public function recoveryPay()
     {
         $pay_type=$this->request->post('pay_type');
-        $parking_id=$this->request->post('parking_id');
-        $plate_number=$this->request->post('plate_number');
+        $recovery_id=$this->request->post('recovery_id');
         $barrier_id=$this->request->post('barrier_id');
-        $parking=Parking::cache('parking_'.$parking_id,24*3600)->withJoin(['setting'])->find($parking_id);
-        $recoverylist=ParkingRecovery::where(['plate_number'=>$plate_number,'pay_id'=>null])->select();
+        $plate_number=$this->request->post('plate_number');
+        $recoverylist=ParkingRecovery::whereIn('id',$recovery_id)->select();
         $totalfee=0;
-        $recovery_id=[];
+        $parking_id=false;
         foreach ($recoverylist as $recovery) {
-            if (($recovery->search_parking && in_array($parking_id, explode(',', $recovery->search_parking))) || is_null($recovery->search_parking)) {
-                $recovery_id[]=$recovery->id;
-                $totalfee+=$recovery->total_fee;
+            if($recovery->pay_id){
+                $this->error('有订单已经支付，请勿重复支付');
             }
+            if($parking_id && $parking_id!=$recovery->parking_id){
+                $this->error('请勿选择不同停车场的订单');
+            }
+            $parking_id=$recovery->parking_id;
+            $totalfee+=$recovery->total_fee;
         }
+        $parking=Parking::cache('parking_'.$parking_id,24*3600)->withJoin(['setting'])->find($parking_id);
         $totalfee=round($totalfee,2);
         $service=PayService::newInstance([
             'pay_type_handle'=>$parking->pay_type_handle,
