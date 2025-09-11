@@ -32,7 +32,7 @@
             <el-form-item label="{:__('当前任务')}:">
                 <el-alert style="margin-bottom:10px;" type="warning">运行中的任务，每5分钟刷新一次。</el-alert>
                 <el-table :data="eventList" style="width: 100%">
-                    <el-table-column prop="title" label="{:__('任务名称')}"></el-table-column>
+                    <el-table-column width="250" prop="title" label="{:__('任务名称')}"></el-table-column>
                     <el-table-column prop="function" label="{:__('处理类')}"></el-table-column>
                     <el-table-column label="{:__('任务类型')}">
                         <template #default="{row}">

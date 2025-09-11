@@ -13,6 +13,8 @@ namespace app\admin\command\queueEvent;
 
 use app\common\model\Daili;
 use app\common\model\DailiLog;
+use app\common\model\manage\Parking;
+use app\common\service\PayService;
 use think\facade\Db;
 
 class DailyCashFlow implements EventInterFace
@@ -23,12 +25,13 @@ class DailyCashFlow implements EventInterFace
         $prefix=getDbPrefix();
         $sql="TRUNCATE TABLE {$prefix}parking_daily_cash_flow";
         Db::execute($sql);
-        $sql = "INSERT INTO {$prefix}parking_daily_cash_flow (parking_id, date, total_income, parking_income, parking_monthly_income, parking_stored_income, merch_recharge_income, handling_fees, total_refund, net_income)
-               SELECT parking_id, date, total_income, parking_income, parking_monthly_income, parking_stored_income, merch_recharge_income, handling_fees, total_refund, net_income
+        $sql = "INSERT INTO {$prefix}parking_daily_cash_flow (parking_id, date, total_income, parking_income, parking_recovery, parking_monthly_income, parking_stored_income, merch_recharge_income, handling_fees, total_refund, net_income)
+               SELECT parking_id, date, total_income, parking_income, parking_recovery, parking_monthly_income, parking_stored_income, merch_recharge_income, handling_fees, total_refund, net_income
                FROM parking_daily_cash_flow";
         Db::execute($sql);
-        $dailis=Daili::where(['status'=>'normal'])->select();
         $date=date('Y-m-d',time()-24*3600);
+        //处理代理结算
+        $dailis=Daili::where(['status'=>'normal'])->select();
         foreach ($dailis as $daili){
             DailiLog::settle($daili,$date);
         }

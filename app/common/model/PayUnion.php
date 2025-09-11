@@ -193,9 +193,15 @@ class PayUnion extends Model{
 
     public function paySuccess(string $transaction_id)
     {
+        $time=time();
+        $pay_time=date('Y-m-d H:i:s',$time);
+        //如果是每天23:55之后付款的订单，付款时间改为第二天00:00
+        if($this->pay_type_handle=='dougong' && intval(date('Hi',$time))>=2355){
+            $pay_time=date('Y-m-d',$time+86400).' 00:00:00';
+        }
         Db::startTrans();
         try{
-            $this->pay_time=date('Y-m-d H:i:s',time());
+            $this->pay_time=$pay_time;
             $this->transaction_id=$transaction_id;
             $this->pay_status=1;
             $this->save();
@@ -256,6 +262,12 @@ class PayUnion extends Model{
             if($handling_fees<0){
                 $handling_fees=0;
             }
+            $time=time();
+            $refund_time=date('Y-m-d H:i:s',$time);
+            //如果是每天23:55之后退款的订单，退款时间改为第二天00:00
+            if($this->pay_type_handle=='dougong' && intval(date('Hi',$time))>=2355){
+                $refund_time=date('Y-m-d',$time+86400).' 00:00:00';
+            }
             try{
                 Db::startTrans();
                 $this->refund_price=$this->refund_price+$refund_price;
@@ -266,7 +278,7 @@ class PayUnion extends Model{
                 $refund->parking_id=$this->parking_id;
                 $refund->refund_price=$refund_price;
                 $refund->refund_cause=$refund_cause;
-                $refund->refund_time=date('Y-m-d H:i:s',time());
+                $refund->refund_time=$refund_time;
                 $refund->save();
                 Db::commit();
             }catch (\Exception $e){

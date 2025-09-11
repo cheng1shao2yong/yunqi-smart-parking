@@ -5,6 +5,7 @@ SELECT
     DATE(time) AS date,
     SUM(pay_price) AS total_income,
     SUM(CASE WHEN order_type = 'parking' THEN pay_price ELSE 0 END) AS parking_income,
+	SUM(CASE WHEN order_type = 'parking_recovery' THEN pay_price ELSE 0 END) AS parking_recovery,
     SUM(CASE WHEN order_type = 'parking_monthly' THEN pay_price ELSE 0 END) AS parking_monthly_income,
     SUM(CASE WHEN order_type = 'parking_stored' THEN pay_price ELSE 0 END) AS parking_stored_income,
     SUM(CASE WHEN order_type = 'merch_recharge' THEN pay_price ELSE 0 END) AS merch_recharge_income,

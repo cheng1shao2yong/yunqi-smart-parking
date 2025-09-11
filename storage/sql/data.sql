@@ -4702,6 +4702,7 @@ CREATE TABLE `yun_parking_daily_cash_flow` (
   `date` date DEFAULT NULL,
   `total_income` decimal(11,2) DEFAULT NULL,
   `parking_income` decimal(11,2) DEFAULT NULL,
+  `parking_recovery` decimal(11,2) DEFAULT NULL,
   `parking_monthly_income` decimal(11,2) DEFAULT NULL,
   `parking_stored_income` decimal(11,2) DEFAULT NULL,
   `merch_recharge_income` decimal(11,2) DEFAULT NULL,
@@ -5768,21 +5769,21 @@ CREATE TABLE `yun_queue` (
 -- ----------------------------
 -- Records of yun_queue
 -- ----------------------------
-INSERT INTO `yun_queue` VALUES ('1', '发送消息', 'SendMsg', '0', '', '60', '491229', '2025-06-06 15:01:27', 'normal', '', '1694141040', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('3', '处理过期优惠券', 'Coupon', '0', '', '3600', '56142', '2025-06-06 14:52:31', 'normal', '', '1719195660', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('5', '处理过期二维码', 'Qrcode', '0', '', '86400', '317', '2025-06-06 14:12:17', 'normal', '', '1719475320', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('8', '上传交管平台', 'Traffic', '0', '', '10', '2158657', '2025-04-09 15:40:12', 'normal', '', '1727157660', '1744184708', '1744184708');
-INSERT INTO `yun_queue` VALUES ('9', '处理手动开闸记录', 'ManualOpen', '0', '', '3600', '5446', '2025-06-06 14:52:40', 'normal', '', '1729137420', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('10', '通知管理员开发票', 'Invoice', '0', '{\"H\":\"13\"}', '86400', '206', '2025-06-06 13:00:20', 'normal', '', '1730253060', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('11', '删除脏数据', 'DeleteDirty', '0', '{\"H\":\"03\"}', '86400', '171', '2025-06-06 03:34:17', 'normal', '', '1734409260', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('12', '同步白名单', 'Whitelist', '0', '', '3600', '4073', '2025-06-06 14:52:40', 'normal', '', '1734513720', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('14', '处理多位多车', 'Occupat', '0', '', '60', '198493', '2025-06-06 15:01:26', 'normal', '', '1737214260', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('15', '更新剩余车位', 'Spaceentry', '0', '', '1800', '6572', '2025-06-06 14:44:27', 'normal', '', '1737345000', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('16', '处理过滤订单', 'RecordsFilter', '0', '[]', '3600', '2232', '2025-06-06 14:05:57', 'normal', '', '1741145460', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('17', '计算每日结算账单', 'DailyCashFlow', '0', '{\"H\":\"04\"}', '86400', '93', '2025-06-06 04:03:13', 'normal', '', '1741146360', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('18', '上传交管平台', 'Traffic', '0', '[]', '60', '82945', '2025-06-06 15:01:26', 'normal', '', '1744184700', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('19', '月卡报停恢复', 'CarsStop', '0', '{\"H\":\"00\"}', '86400', '58', '2025-06-06 00:00:00', 'normal', '', '1744185360', '1749193290', null);
-INSERT INTO `yun_queue` VALUES ('20', '月租到期通知', 'MonthlyNotice', '0', '{\"H\":\"11\"}', '86400', '52', '2025-06-06 11:53:42', 'normal', '', '1744775580', '1749193290', null);
+INSERT INTO `yun_queue` VALUES ('1', '发送消息', 'SendMsg', '0', '', '60', '629240', '2025-09-11 15:05:44', 'normal', '', '1694141040', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('3', '处理过期优惠券', 'Coupon', '0', '', '3600', '58458', '2025-09-11 14:12:35', 'normal', '', '1719195660', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('5', '处理过期二维码', 'Qrcode', '0', '', '86400', '414', '2025-09-11 14:12:26', 'normal', '', '1719475320', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('9', '处理手动开闸记录', 'ManualOpen', '0', '', '3600', '7762', '2025-09-11 14:12:36', 'normal', '', '1729137420', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('10', '通知管理员开发票', 'Invoice', '0', '', '3600', '623', '2025-09-11 14:12:56', 'normal', '', '1730253060', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('11', '删除脏数据', 'DeleteDirty', '0', '{\"H\":\"03\"}', '86400', '267', '2025-09-11 03:24:38', 'normal', '', '1734409260', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('12', '同步白名单', 'Whitelist', '0', '', '3600', '6389', '2025-09-11 14:13:03', 'normal', '', '1734513720', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('14', '处理多位多车', 'Occupat', '0', '', '60', '336338', '2025-09-11 15:05:39', 'normal', '', '1737214260', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('17', '计算每日结算账单', 'DailyCashFlow', '0', '{\"H\":\"04\"}', '86400', '156', '2025-08-09 04:00:07', 'normal', '', '1741146360', '1755501995', '1755501995');
+INSERT INTO `yun_queue` VALUES ('18', '上传交管平台', 'Traffic', '0', '', '60', '220950', '2025-09-11 15:05:41', 'normal', '', '1744184700', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('19', '月卡报停恢复', 'CarsStop', '0', '{\"H\":\"00\"}', '86400', '155', '2025-09-11 00:00:15', 'normal', '', '1744185360', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('20', '月租到期通知', 'MonthlyNotice', '0', '{\"H\":\"11\"}', '86400', '149', '2025-09-11 11:53:46', 'normal', '', '1744775580', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('21', '处理每日资金结算', 'DailyCashFlow', '0', '{\"H\":\"02\"}', '86400', '23', '2025-09-11 02:00:00', 'normal', '', '1755502020', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('22', '检查过期的管理员账号', 'CheckAdmin', '0', '{\"H\":\"03\"}', '86400', '10', '2025-09-11 03:00:00', 'normal', '', '1756714500', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('23', '斗拱每日结算', 'DougongSettle', '0', '{\"H\":\"23\",\"i\":\"55\"}', '86401', '10', '2025-09-10 23:55:09', 'normal', '', '1756716300', '1757574368', null);
 
 -- ----------------------------
 -- Table structure for yun_third

@@ -103,15 +103,18 @@ class Mqtt extends Command
                     }
                     $this->output('发布消息,'.$body['topic']);
                     $client->publish($body['topic'], json_encode($body['message']),1);
+                    if($body['name']=='设置广告' || $body['name']=='状态'){
+                        usleep(100000);
+                    }
                 }
             }catch (\Exception $e){
                 $this->output($e->getMessage());
             }
-            Coroutine::sleep(0.1);
+            Coroutine\System::sleep(1);
         }
     }
 
-    //清除超过1分钟的消息
+    //清除超过1一个小时的消息
     private function clearMessage()
     {
         while (true){
@@ -157,7 +160,7 @@ class Mqtt extends Command
 
     private function receive()
     {
-        $client=$this->getClient('mqtt-receive-server-'.rand(1000,9000),2);
+        $client=$this->getClient('mqtt-receive-server-'.rand(1000,9000));
         $client->connect();
         $topcarr=$this->getSubscribe();
         $client->subscribe($topcarr);
@@ -191,8 +194,8 @@ class Mqtt extends Command
                 if (isset($buffer['topic']) && isset($buffer['message'])) {
                     $topic=$buffer['topic'];
                     $message=json_decode($buffer['message'],true);
+                    $this->output('收到消息,'.$topic);
                     Coroutine\go(function() use ($topic,$message){
-                        $this->output('收到消息,'.$topic);
                         try {
                             /* @var ParkingBarrier $barrier */
                             $barrier=BarrierService::getBarriers($topic,$message);
@@ -274,16 +277,7 @@ class Mqtt extends Command
         $config->setClientId($name);
         $config->setUserName($username);
         $config->setPassword($password);
-        $config->setKeepAlive(60);
-        $config->setDelay(3000);
-        $config->setMaxAttempts(5);
-        $config->setSwooleConfig([
-            'open_mqtt_protocol' => true,
-            'package_max_length' => 2 * 1024 * 1024,
-            'connect_timeout' => 5,
-            'write_timeout' => 5,
-            'read_timeout' => 5,
-        ]);
+        $config->setKeepAlive(24*3600*365);
         $client=new Client($host,$port,$config);
         return $client;
     }

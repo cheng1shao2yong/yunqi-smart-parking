@@ -6,17 +6,21 @@ use app\common\library\Http;
 use app\common\model\parking\ParkingBarrier;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingTraffic;
+use Rtgm\sm\RtSm2;
+use Rtgm\sm\RtSm4;
 
 //停车场配置地址 https://docs.qq.com/sheet/DYmxaSU9YeEtzblBJ?tab=BB08J2
 class Guiyang implements BaseTraffic
 {
-    const APP_ID="";
+    const APP_ID="OW202504222490";
     //测试地址
     //const URL="http://jieshun.zcreate.com.cn:8888";
     //正式地址
-    const URL="http://222.85.190.117:60004";
-    const AES_KEY="==";
-    const PRIVATE_KEY="";
+    const URL="http://weixinapp.gyszhjt.com:50001";
+
+    const SM4_KEY='c8ZH+LbTN1lpMk+6M+/rgA==';
+    const PUBLIC_KEY='MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEdTB5jJqCj3l8joG53X+Pz3VFUphClvV1VEZWsQ8BUkZUhLR1YEu+9C7TdQT+Eg1/q6TG95c+P2uw/tYatbxZYg==';
+    const PRIVATE_KEY='MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgnh9tBLQPGYaHzxJBcn6nDVmS25tMu1cAenhMNfidU72gCgYIKoEcz1UBgi2hRANCAAR1MHmMmoKPeXyOgbndf4/PdUVSmEKW9XVURlaxDwFSRlSEtHVgS770LtN1BP4SDX+rpMb3lz4/a7D+1hq1vFli';
 
     const PLATE_COLOR=[
         'blue'=>1,
@@ -26,10 +30,9 @@ class Guiyang implements BaseTraffic
         'green'=>5,
     ];
 
-
     public function heartbeat(ParkingTraffic $traffic)
     {
-        $url=self::URL."/api/mercury/park/heartbeat";
+        $url=self::URL."/open-server/api/mercury/park/heartbeat";
         $package=$this->pack([
             'park_id'=>$traffic->filings_code,
             'total_parking_number'=>$traffic->total_parking_number,
@@ -46,7 +49,7 @@ class Guiyang implements BaseTraffic
 
     public function inrecord(ParkingTraffic $traffic,ParkingRecords $records):bool
     {
-        $url=self::URL."/api/mercury/park/inrecord";
+        $url=self::URL."/open-server/api/v1/park/add/inrecord";
         $barrier=ParkingBarrier::find($records->entry_barrier);
         $data=[
             'order_no'=>$this->getOrderNo($records),
@@ -64,11 +67,14 @@ class Guiyang implements BaseTraffic
             'remain_parking_number'=>$traffic->remain_parking_number,
             'open_parking_number'=>$traffic->open_parking_number,
             'reserved_parking_number'=>$traffic->reserved_parking_number,
-            'image'=>$records->entry_photo
+            'exception_parking_number'=>0,
         ];
         $package=$this->pack($data);
         $response=Http::post($url,$package,'',['Content-Type: application/json','Content-Length: '.strlen($package)]);
         if($response->isSuccess()){
+            if(intval($response->content['code'])!==0){
+                throw new \Exception($response->content['message']);
+            }
             return true;
         }else{
             throw new \Exception($response->errorMsg);
@@ -77,10 +83,15 @@ class Guiyang implements BaseTraffic
 
     public function outrecord(ParkingTraffic $traffic,ParkingRecords $records):bool
     {
-        $url=self::URL."/api/mercury/park/outrecord";
+        $url=self::URL."/open-server/api/v1/park/add/record";
         $barrier=ParkingBarrier::find($records->exit_barrier);
         $data=[
             'order_no'=>$this->getOrderNo($records),
+            'order_real_price'=>intval($records->pay_fee*100),
+            'order_price'=>intval($records->total_fee*100),
+            'order_pay_status'=>1,
+            'order_parking_time'=>$records->exit_time-$records->entry_time,
+            'order_pay_time'=>$records->updatetime.':00',
             'in_time'=>date('Y-m-d H:i:s',$records->entry_time),
             'out_time'=>date('Y-m-d H:i:s',$records->exit_time),
             'park_id'=>$traffic->filings_code,
@@ -96,11 +107,47 @@ class Guiyang implements BaseTraffic
             'remain_parking_number'=>$traffic->remain_parking_number,
             'open_parking_number'=>$traffic->open_parking_number,
             'reserved_parking_number'=>$traffic->reserved_parking_number,
-            'image'=>$records->exit_photo
+            'exception_parking_number'=>0,
         ];
         $package=$this->pack($data);
         $response=Http::post($url,$package,'',['Content-Type: application/json','Content-Length: '.strlen($package)]);
         if($response->isSuccess()){
+            if(intval($response->content['code'])!==0){
+                throw new \Exception($response->content['message']);
+            }
+            if($records->pay_fee){
+                $this->order($traffic,$records);
+            }
+            return true;
+        }else{
+            throw new \Exception($response->errorMsg);
+        }
+    }
+
+    public function order(ParkingTraffic $traffic,ParkingRecords $records)
+    {
+        $url=self::URL."/open-server/api/v1/park/add/order";
+        $data=[
+            'park_id'=>$traffic->filings_code,
+            'plate_no'=>$records->plate_number,
+            'type'=>0,
+            'order_no'=>$this->getOrderNo($records),
+            'order_real_price'=>intval($records->pay_fee*100),
+            'order_pay_status'=>1,
+            'order_parking_time'=>$records->exit_time-$records->entry_time,
+            'order_pay_time'=>$records->updatetime.':00',
+            'in_time'=>date('Y-m-d H:i:s',$records->entry_time),
+            'out_time'=>date('Y-m-d H:i:s',$records->exit_time),
+            'car_type'=>1,
+            'plate_color'=>self::PLATE_COLOR[$records->plate_type],
+            'upload_time'=>date('Y-m-d H:i:s',time())
+        ];
+        $package=$this->pack($data);
+        $response=Http::post($url,$package,'',['Content-Type: application/json','Content-Length: '.strlen($package)]);
+        if($response->isSuccess()){
+            if(intval($response->content['code'])!==0){
+                throw new \Exception($response->content['message']);
+            }
             return true;
         }else{
             throw new \Exception($response->errorMsg);
@@ -124,23 +171,13 @@ class Guiyang implements BaseTraffic
 
     private function pack($data)
     {
-        $image='';
-        if(isset($data['image']) && $data['image']){
-            try{
-                $image=base64_encode(file_get_contents($data['image']));
-            }catch (\Exception $e){
-
-            }
-            unset($data['image']);
-        }
         $package=[
             'app_id'=>self::APP_ID,
-            'version'=>'1.0.0',
-            'timestamp'=>date('YmdHis',time()),
-            'data'=>$this->aes128Encrypt($data),
+            'timestamp'=>date('yyyyMMddHHmmss',time()),
+            'data'=>$this->SM4Encrypt(json_encode($data,JSON_UNESCAPED_UNICODE)),
         ];
-        $package['sign']=$this->sign($package);
-        $package['image']=$image;
+        $sign=trim($this->sign($data));
+        $package['sign']=$sign;
         return json_encode($package);
     }
 
@@ -153,31 +190,46 @@ class Guiyang implements BaseTraffic
         }
         //去掉最后一个&
         $str=substr($str,0,-1);
-        $privateString=self::PRIVATE_KEY;
-        $private_key = <<<EOT
------BEGIN RSA PRIVATE KEY-----
-{$privateString}
------END RSA PRIVATE KEY-----
-EOT;
-        $signature = '';
-        if (!openssl_sign($str, $signature, $private_key, 'SHA256')) {
-            throw new \Exception('Signature failed');
-        }
-        $r=base64_encode($signature);
-        return $r;
+        $sm2 = new RtSm2('base64',true);
+        $sign=$sm2->doSignOutKey($str, __DIR__.DIRECTORY_SEPARATOR.'private_pkcs1.pem');
+        return $sign;
     }
 
-    private function aes128Encrypt($plaintext) {
-        $plaintext=json_encode($plaintext,JSON_UNESCAPED_UNICODE);
-        $key=base64_decode(self::AES_KEY);
-        if (strlen($key) != 16) {
-            throw new Exception("Key must be exactly 16 bytes long.");
+    private function verifySign($data,$sign)
+    {
+        ksort($data);
+        $str='';
+        foreach ($data as $k=>$v){
+            $str.=$k.'='.$v.'&';
         }
-        $iv = str_repeat("\0", 16);
-        $ciphertext = openssl_encrypt($plaintext, "aes-128-cbc", $key, OPENSSL_PKCS1_PADDING, $iv);
-        if ($ciphertext === false) {
-            throw new \Exception("Encryption failed: " . openssl_error_string());
+        //去掉最后一个&
+        $str=substr($str,0,-1);
+        $sm2 = new RtSm2('base64',true);
+        return $sm2->verifySignOutKey($str, $sign, __DIR__.DIRECTORY_SEPARATOR.'public_pkcs1.pem');
+    }
+
+    private function SM4Encrypt($plaintext) {
+        $plaintext = $this->pkcs7Padding($plaintext);
+        $key=base64_decode(self::SM4_KEY);
+        $sm4 = new RtSm4($key);
+        $iv=str_repeat("\x00", 16);
+        $hex = $sm4->encrypt($plaintext,'sm4',$iv,'base64');
+        return $hex;
+    }
+
+    private function SM4Decrypt($hex) {
+        $key=base64_decode(self::SM4_KEY);
+        $sm4 = new RtSm4($key);
+        $iv=str_repeat("\x00", 16);
+        $result = $sm4->decrypt($hex,'sm4',$iv,'base64');
+        return $result;
+    }
+
+    private function pkcs7Padding($data, $blockSize = 16) {
+        $padLength = $blockSize - (strlen($data) % $blockSize);
+        if ($padLength == 0) {
+            $padLength = $blockSize; // 若长度正好是块大小的倍数，补一个完整块
         }
-        return base64_encode($ciphertext);
+        return $data . str_repeat(chr($padLength), $padLength);
     }
 }

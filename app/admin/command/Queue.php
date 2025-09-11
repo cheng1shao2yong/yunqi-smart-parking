@@ -32,7 +32,7 @@ class Queue extends Command
 
     protected function configure()
     {
-        $this->setName('Event')->setDescription('队列任务');
+        $this->setName('Queue')->setDescription('队列任务');
     }
 
     protected function execute(Input $input, Output $output)
@@ -68,18 +68,19 @@ class Queue extends Command
                 if($value['lasttime']){
                     $lasttime=strtotime($value['lasttime']);
                 }
+                $now=date('Y-m-d H:i:s');
                 try {
                     if($this->runEvent($title,$function,$delay,$filter,$lasttime)){
                         $value['times']++;
                         $value['error']='';
-                        $value['lasttime']=date('Y-m-d H:i:s');
+                        $value['lasttime']=$now;
                     }
                 }catch (\Exception $e) {
                     $this->output('执行出错:'.$e->getMessage());
                     $this->output('出错文件:'.$e->getFile());
                     $this->output('出错行数:'.$e->getLine());
                     $value['times']++;
-                    $value['lasttime']=date('Y-m-d H:i:s');
+                    $value['lasttime']=$now;
                     $value['error']=$e->getMessage();
                     $value['status']='hidden';
                 }

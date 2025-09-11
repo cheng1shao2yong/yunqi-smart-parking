@@ -43,5 +43,27 @@ class DeleteDirty implements EventInterFace
                 Db::execute($sql);
             }
         }
+        //清除过期缓存
+        $root=root_path().'runtime/cache';
+        $cachedir=scandir($root);
+        foreach ($cachedir as $dir){
+            if(is_dir($root.'/'.$dir) && $dir!='.' && $dir!='..'){
+                $files=scandir($root.'/'.$dir);
+                foreach ($files as $file){
+                    $realfile=$root.'/'.$dir.'/'.$file;
+                    if(is_file($realfile) && str_ends_with($file,'.php')){
+                        //文件最后一次修改的时间
+                        $time=filemtime($realfile);
+                        //读取$realfile第二行
+                        $cachetime=(int)str_replace('//','',file($realfile)[1]);
+                        //判断缓存是否超时
+                        if($cachetime>0 && $time+$cachetime<time()){
+                            //删除文件
+                            unlink($realfile);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
