@@ -52,31 +52,28 @@ class Index extends Api
                 $query->where('id','<>',13);
             }
         })
-        ->order('id desc')
-        ->limit(($page-1)*10,10)
-        ->select()
-        ->each(function ($row) use (&$parking){
-            $parking[]=$row->id;
-        });
+            ->order('id desc')
+            ->limit(($page-1)*10,10)
+            ->select()
+            ->each(function ($row) use (&$parking){
+                $parking[]=$row->id;
+            });
         $triggerlist=[];
         $paylist=[];
         if(!empty($parking)){
             $prefix=getDbPrefix();
-            $parkingstr=implode(',',$parking);
-            $sql="
-                SELECT id,parking_id,createtime FROM {$prefix}parking_trigger where id in
-                (
-                SELECT MAX(id) as id FROM {$prefix}parking_trigger where parking_id in ({$parkingstr}) GROUP BY parking_id
-                )
-            ";
-            $triggerlist=Db::query($sql);
-            $sql="
-                SELECT id,parking_id,createtime FROM {$prefix}pay_union where id in
-                (
-                SELECT MAX(id) as id FROM {$prefix}pay_union where pay_type<>'underline' and pay_type<>'stored' and parking_id in ({$parkingstr}) GROUP BY parking_id
-                )
-            ";
-            $paylist=Db::query($sql);
+            $trigger_sql='';
+            $pay_sql='';
+            foreach ($parking as $parking_id){
+                $trigger_sql.="(SELECT parking_id, createtime FROM {$prefix}parking_trigger WHERE parking_id = {$parking_id} ORDER BY id DESC LIMIT 1)";
+                $trigger_sql.="UNION ALL";
+                $pay_sql.="(SELECT parking_id, createtime FROM {$prefix}pay_union WHERE parking_id = {$parking_id} AND pay_type NOT IN ('underline', 'stored') ORDER BY id DESC LIMIT 1)";
+                $pay_sql.="UNION ALL";
+            }
+            $trigger_sql=substr($trigger_sql,0,-9);
+            $pay_sql=substr($pay_sql,0,-9);
+            $triggerlist=Db::query($trigger_sql);
+            $paylist=Db::query($pay_sql);
         }
         $barrierlist=ParkingBarrier::whereIn('parking_id',$parking)->field('id,parking_id,serialno')->select()->toArray();
         $now=time();

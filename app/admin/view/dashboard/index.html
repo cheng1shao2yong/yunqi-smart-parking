@@ -122,6 +122,18 @@
                         <el-table-column label="手续费">
                             <template #default="{row}">￥{{row.handling_fees}}</template>
                         </el-table-column>
+                        <el-table-column label="最近触发相机">
+                            <template #default="{row}">
+                                <span v-if="row.trigger_time">{{row.trigger_time}}</span>
+                                <span v-else style="color: red;">未启用</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="最近在线支付">
+                            <template #default="{row}">
+                                <span v-if="row.pay_time">{{row.pay_time}}</span>
+                                <span v-else style="color: red;">未开通</span>
+                            </template>
+                        </el-table-column>
                     </el-table>
                     <div class="pagination">
                         <el-pagination background layout="prev, pager, next" :page-size="10" :total="panel[2]" @current-change="changePage"></el-pagination>
@@ -392,7 +404,16 @@
             changeTable:function (type){
                 this.filterForm.table=type;
                 Yunqi.ajax.get('dashboard/table', {type:type,sort: this.table_sort,page:this.table_page}).then(res=>{
-                   this.table=res;
+                    res=res.map(t=>{
+                        if(t.trigger_time){
+                            t.trigger_time=formatDuration(t.trigger_time);
+                        }
+                        if(t.pay_time){
+                            t.pay_time=formatDuration(t.pay_time);
+                        }
+                        return t;
+                    });
+                    this.table=res;
                 });
             },
             changeLine:function (type){

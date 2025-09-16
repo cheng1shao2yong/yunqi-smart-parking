@@ -235,16 +235,48 @@ class Dashboard extends Backend
         $sql="
                 SELECT t1.id,t1.title,t2.pay_price,t2.handling_fees FROM {$prefix}parking t1 left join
                 (
-                SELECT parking_id,SUM(pay_price) as pay_price,SUM(handling_fees/100) as handling_fees FROM {$prefix}pay_union where pay_status=1 and pay_type!='underline' {$where} GROUP BY parking_id
+                SELECT parking_id,SUM(pay_price) as pay_price,SUM(handling_fees/100) as handling_fees FROM {$prefix}pay_union where pay_status=1 and pay_type!='underline' and pay_type!='stored' {$where} GROUP BY parking_id
                 )t2
-                on t1.id=t2.parking_id ORDER BY t2.pay_price {$sort} limit {$offset},10 
+                on t1.id=t2.parking_id where t1.id<>13 ORDER BY t2.pay_price {$sort} limit {$offset},10 
             ";
         $list=Db::query($sql);
+        $parking=array_column($list,'id');
+        $trigger_sql='';
+        $pay_sql='';
+        foreach ($parking as $parking_id){
+            $trigger_sql.="(SELECT parking_id, createtime FROM {$prefix}parking_trigger WHERE parking_id = {$parking_id} ORDER BY id DESC LIMIT 1)";
+            $trigger_sql.="UNION ALL";
+            $pay_sql.="(SELECT parking_id, createtime FROM {$prefix}pay_union WHERE parking_id = {$parking_id} AND pay_type NOT IN ('underline', 'stored') ORDER BY id DESC LIMIT 1)";
+            $pay_sql.="UNION ALL";
+        }
+        $trigger_sql=substr($trigger_sql,0,-9);
+        $pay_sql=substr($pay_sql,0,-9);
+        $triggerlist=Db::query($trigger_sql);
+        $paylist=Db::query($pay_sql);
         //模拟表格
         $table=[];
+        $now=time();
         foreach ($list as $key=>$item){
+            $item['trigger_time']=null;
+            $item['pay_time']=null;
+            $trigger=array_values(array_filter($triggerlist,function ($row) use ($item){
+                return $row['parking_id']==$item['id'];
+            }));
+            if(!empty($trigger)){
+                $trigger=$trigger[0];
+                $trigger_time=$now-$trigger['createtime'];
+                $item['trigger_time']=$trigger_time;
+            }
+            $lastpay=array_values(array_filter($paylist,function ($row) use ($item){
+                return $row['parking_id']==$item['id'];
+            }));
+            if(!empty($lastpay)){
+                $lastpay=$lastpay[0];
+                $pay_time=$now-$lastpay['createtime'];
+                $item['pay_time']=$pay_time;
+            }
             $table[]=[
-                'sort'=>$key+1,'title'=>$item['title'],'pay_price'=>formatNumber($item['pay_price']),'handling_fees'=>formatNumber($item['handling_fees'])
+                'sort'=>$key+1,'trigger_time'=>$item['trigger_time'],'pay_time'=>$item['pay_time'],'title'=>$item['title'],'pay_price'=>formatNumber($item['pay_price']),'handling_fees'=>formatNumber($item['handling_fees'])
             ];
         }
         $this->success('',$table);
