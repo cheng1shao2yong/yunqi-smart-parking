@@ -69,6 +69,11 @@ class ParkingAccount{
         $arr=[];
         while(true){
             $mode=$this->getMatchMode($modeTime);
+            if($mode->fee_setting=='diy'){
+                $diyobj=new $mode->diy_class();
+                $mode->free_time=$diyobj->free_time;
+                $mode->day_top_fee=$diyobj->day_top_fee;
+            }
             $modeTime=strtotime('tomorrow',$modeTime);
             $isEnd=false;
             if($modeTime>=$this->exit_time){
@@ -152,7 +157,10 @@ class ParkingAccount{
                     $itme_detail=$this->accountingLoop($have_day_top?1:$key,$startTime,$endTime,$mode,$rangeTime);
                     break;
                 case 'step':
-                    $itme_detail=$this->accountingStep($startTime,$endTime,$mode,$rangeTime);
+                    $itme_detail=$this->accountingStep($have_day_top?1:$key,$startTime,$endTime,$mode,$rangeTime);
+                    break;
+                case 'diy':
+                    $itme_detail=$this->accountingDiy($have_day_top?1:$key,$startTime,$endTime,$mode,$rangeTime);
                     break;
             }
             //如果有每日封顶，则取最大值
@@ -186,11 +194,13 @@ class ParkingAccount{
         return $this->parking_detail;
     }
 
-    public static function formatDetail(array $detail)
+    public function getFormatDetail()
     {
-        foreach ($detail as $key=>$item){
-            $detail[$key]['start_time']=date('Y-m-d H:i:s',$item['start_time']);
-            $detail[$key]['end_time']=date('Y-m-d H:i:s',$item['end_time']);
+        $detail=[];
+        foreach ($this->parking_detail as $key=>$item){
+            $detail[$key]['start_time']=date('Y-m-d H:i:s',(int)$item['start_time']);
+            $detail[$key]['end_time']=date('Y-m-d H:i:s',(int)$item['end_time']);
+            $detail[$key]['fee']=formatNumber($item['fee']);
         }
         return $detail;
     }
@@ -374,9 +384,15 @@ class ParkingAccount{
 
     private function accountingLoop($key,$startTime,$endTime,ParkingMode $mode,&$rangeTime)
     {
-        //存在起步时长
         $r=[];
-        if($key===0 && $mode->start_fee){
+        if($rangeTime){
+            $startTime=$startTime+$rangeTime;
+            //这里可能有问题
+            $rangeTime=0;
+        }
+        $this->entry_time=(int)$startTime;
+        $this->exit_time=(int)$endTime;
+        if($mode->start_fee){
             [$instart,$start_fee]=self::calculateStartFee($mode->start_fee);
             if($instart){
                 $r[]=['start_time'=>$this->entry_time,'end_time'=>$this->exit_time,'fee'=>$start_fee,'mode'=>$mode->title];
@@ -387,26 +403,26 @@ class ParkingAccount{
                 $startTime=$startTime+$start_second;
             }
         }
-        if($rangeTime){
-            $startTime=$startTime+$rangeTime;
-        }
         $number=intval(ceil(($endTime-$startTime)/($mode->top_time*60)));
         for($i=0;$i<$number;$i++){
             $add_fee=$mode->top_fee;
-            $add_time=$this->entry_time+($i+1)*$mode->top_time*60;
-            if($add_time>$endTime){
-                $add_time=$endTime;
+            $endTime=$startTime+$mode->top_time*60;
+            if($endTime>$this->exit_time){
+                $endTime=$this->exit_time;
             }
-            $r[]=['start_time'=>$this->entry_time,'end_time'=>$add_time,'fee'=>$add_fee,'mode'=>$mode->title];
+            $r[]=['start_time'=>$startTime,'end_time'=>$endTime,'fee'=>$add_fee,'mode'=>$mode->title];
+            $startTime+=$endTime;
         }
         return $r;
     }
 
-    private function accountingStep($startTime,$endTime,ParkingMode $mode,&$rangeTime)
+    private function accountingStep($key,$startTime,$endTime,ParkingMode $mode,&$rangeTime)
     {
         $r=[];
         if($rangeTime){
             $startTime=$startTime+$rangeTime;
+            //这里可能有问题
+            $rangeTime=0;
         }
         $top_time=$mode->step_fee[count($mode->step_fee)-1]['time'];
         $top_fee=$mode->step_fee[count($mode->step_fee)-1]['fee'];
@@ -433,6 +449,13 @@ class ParkingAccount{
             }
         }
         return $r;
+    }
+
+    private function accountingDiy($key,$startTime,$endTime,ParkingMode $mode,&$rangeTime)
+    {
+        $diy=new $mode->diy_class();
+        $diy->account($mode,$key,(int)$startTime,(int)$endTime,$rangeTime);
+        return $diy->getDetail();
     }
 
     private function getTimePeriods($periods, $startTime, $endTime) {

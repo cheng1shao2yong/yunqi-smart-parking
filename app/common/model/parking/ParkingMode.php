@@ -36,7 +36,8 @@ class ParkingMode extends Model
         'normal'=>'标准收费',
         'period'=>'时段收费',
         'loop'=>'周期收费',
-        'step'=>'阶梯收费'
+        'step'=>'阶梯收费',
+        'diy'=>'定制收费'
     ];
 
     const TIMESETTING=[
@@ -133,5 +134,20 @@ class ParkingMode extends Model
             return $row['time_setting_rules'];
         }
         return null;
+    }
+
+    public static function getDiyMode()
+    {
+        $files=glob(root_path().'/app/common/service/diymode/*.php');
+        $list=[];
+        foreach ($files as $file){
+            $name=basename($file,'.php');
+            if($name=='ParkingDiyMode'){
+                continue;
+            }
+            $class='\\app\\common\\service\\diymode\\'.$name;
+            $list[$class]=(new $class())->title;
+        }
+        return $list;
     }
 }

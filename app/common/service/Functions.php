@@ -53,15 +53,31 @@ trait Functions{
         }
         if($activeMode){
             $top_time=$activeMode->top_time*60;
+            $top_fee=$activeMode->top_fee;
             $payfee=ParkingRecords::where([
                 'parking_id'=>$parking->id,
                 'rules_id'=>$rules->id,
                 'plate_number'=>$plate->plate_number
             ])
-            ->where('entry_time','>',$exit_time-$top_time)
+            ->where('exit_time','>',$exit_time-$top_time)
             ->sum('pay_fee');
-            if($payfee>0){
+            if($payfee>0 && $payfee>=$top_fee){
                 return 0;
+            }
+            if($payfee>0 && $payfee<$top_fee){
+                $lastfee=$top_fee-$payfee;
+                $account=new ParkingAccount($parking);
+                $account->setRecords($records->plate_type,$special,$entry_time,$exit_time,$rules)->fee();
+                $fee13=$account->getTotal();
+                if($fee13>0){
+                    $detail=$account->getDetail();
+                    if($fee13>$lastfee){
+                        $detail['pay_fee']=$lastfee;
+                        return $lastfee;
+                    }else{
+                        return $fee13;
+                    }
+                }
             }
         }
         if($plate->cars && $plate->cars->rules_type==ParkingRules::RULESTYPE('月租车')){
@@ -267,6 +283,7 @@ trait Functions{
 
     private function getActivitiesFee(Parking $parking,ParkingPlate $plate,ParkingRecords $records,$exit_time,$totalFee)
     {
+        $exit_time=strtotime('2025-09-13 10:14:00');
         $activities_fee=0;
         $usetime=0;
         $end_time=$records->entry_time;

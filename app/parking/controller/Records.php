@@ -131,13 +131,15 @@ class Records extends ParkingBase
             $this->success('缴费成功');
         }
         if($records->status===0 || $records->status==1 || $records->status==6){
+            $exit_time=time();
+            $exit_time=strtotime('2025-09-13 10:14:00');
             $service=ParkingService::newInstance([
                 'parking'=>$this->parking,
                 'plate_number'=>$records->plate_number,
                 'plate_type'=>$records->plate_type,
-                'exit_time'=>time(),
+                'exit_time'=>$exit_time,
             ]);
-            $total_fee=$service->getTotalFee($records,time());
+            $total_fee=$service->getTotalFee($records,$exit_time);
             [$activities_fee,$activities_time,$coupon_type,$couponlist,$coupont_title]=$service->getActivitiesFee($records,$total_fee);
             $need_pay_fee=formatNumber($total_fee-$records->activities_fee-$activities_fee-$records->pay_fee);
             $this->assign('records',$records);

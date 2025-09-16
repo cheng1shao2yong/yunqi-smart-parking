@@ -5068,6 +5068,7 @@ CREATE TABLE `yun_parking_mode` (
   `parking_id` int NOT NULL,
   `title` varchar(50) NOT NULL,
   `fee_setting` varchar(30) NOT NULL DEFAULT 'normal',
+  `diy_class` varchar(255) DEFAULT NULL COMMENT '定制收费',
   `free_time` int DEFAULT NULL COMMENT '免费时长',
   `start_fee` varchar(255) DEFAULT NULL COMMENT '起步收费',
   `period_fee` varchar(1200) DEFAULT NULL,

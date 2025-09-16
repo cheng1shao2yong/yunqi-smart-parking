@@ -82,6 +82,7 @@
                 {field:"id",title:"ID",edit:"hidden"},
                 {field:"title",tab:0,title:"收费名称",edit: 'text',rules:"required"},
                 {field:"fee_setting",tab:0,title:"收费类型",searchList:Yunqi.data.feeSetting,edit:{form:'radio',value:'free',change:'changeFeeSetting'}},
+                {field:"diy_class",tab:0,title:"定制类名",edit: 'select',searchList: Yunqi.data.diymode,visible: function (row){return row.fee_setting=='diy';}},
                 {field:"plate_type",tab:0,title:"车牌颜色",edit: {form: 'checkbox',value:['green','blue']},searchList:Yunqi.data.plateType},
                 {field:"time_setting",tab:0,title:"有效期",edit: {form:'select',value:'all',change:'changeTimeSetting'},rules:"required",searchList: Yunqi.data.timeSetting},
                 {field:"time_setting_date",tab:0,title:"指定固定日期",edit: {form:'date-picker',type:'dates'},visible:false},
@@ -146,6 +147,9 @@
                 if(fee_setting=='step'){
                     this.tabs=['基本设置','阶梯收费'];
                 }
+                if(fee_setting=='diy'){
+                    this.tabs=['基本设置'];
+                }
             },
             setShowField:function(fee_setting){
                 if(fee_setting=='normal'){
@@ -174,7 +178,7 @@
             changeFeeSetting:function (e){
                 this.setTabs(e);
                 this.setShowField(e);
-                if(e=='free'){
+                if(e=='free' || e=='diy'){
                     this.$refs.yunForm.activeTab=0;
                 }else{
                     this.$refs.yunForm.activeTab=1;
@@ -200,7 +204,7 @@
                     r=this.empty(row,arr);
                 }
                 if(row.fee_setting=='loop'){
-                    let arr=['free_time','add_time','add_fee','top_time','top_fee'];
+                    let arr=['free_time','top_time','top_fee'];
                     r=this.empty(row,arr);
                 }
                 if(row.fee_setting=='step'){

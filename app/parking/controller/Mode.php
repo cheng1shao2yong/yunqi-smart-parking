@@ -64,6 +64,7 @@ class Mode extends ParkingBase
         if($this->request->isPost()){
             $this->parseParmer();
         }
+        $this->assign('diymode',ParkingMode::getDiyMode());
         return $this->_add();
     }
 
@@ -73,6 +74,7 @@ class Mode extends ParkingBase
         if($this->request->isPost()){
             $this->parseParmer();
         }
+        $this->assign('diymode',ParkingMode::getDiyMode());
         return $this->_edit();
     }
 
@@ -103,6 +105,7 @@ class Mode extends ParkingBase
         $period_fee=$this->request->post('row.period_fee');
         $step_fee=$this->request->post('row.step_fee');
         $time_setting=$this->request->post('row.time_setting');
+        $diy_class=$this->request->post('row.diy_class');
         $this->postParams['parking_id']=$this->parking->id;
         if($start_fee){
             foreach ($start_fee as $k=>$v){
@@ -116,6 +119,15 @@ class Mode extends ParkingBase
             $this->postParams['period_fee']=null;
             $this->postParams['step_fee']=null;
             $this->postParams['day_top_fee']=null;
+        }
+        if($fee_setting=='diy'){
+            $this->postParams['start_fee']=null;
+            $this->postParams['period_fee']=null;
+            $this->postParams['step_fee']=null;
+            $this->postParams['day_top_fee']=null;
+            if(!$diy_class){
+                $this->error('自定义收费规则，请填写自定义收费规则类名');
+            }
         }
         if($fee_setting=='normal'){
             $this->postParams['start_fee']=$start_fee?json_encode($start_fee):null;
