@@ -5,20 +5,20 @@ SELECT
     DATE(time) AS date,
     SUM(pay_price) AS total_income,
     SUM(CASE WHEN order_type = 'parking' THEN pay_price ELSE 0 END) AS parking_income,
-	SUM(CASE WHEN order_type = 'parking_recovery' THEN pay_price ELSE 0 END) AS parking_recovery,
+	  SUM(CASE WHEN order_type = 'parking_recovery' THEN pay_price ELSE 0 END) AS parking_recovery,
     SUM(CASE WHEN order_type = 'parking_monthly' THEN pay_price ELSE 0 END) AS parking_monthly_income,
     SUM(CASE WHEN order_type = 'parking_stored' THEN pay_price ELSE 0 END) AS parking_stored_income,
     SUM(CASE WHEN order_type = 'merch_recharge' THEN pay_price ELSE 0 END) AS merch_recharge_income,
-		SUM(handling_fees) AS handling_fees,
+	  ROUND(SUM(handling_fees),2) AS handling_fees,
     SUM(CASE WHEN order_type = 'refund' THEN -refund_price ELSE 0 END) AS total_refund,
-    ROUND((SUM(pay_price) -SUM(handling_fees)-SUM(CASE WHEN order_type = 'refund' THEN -refund_price ELSE 0 END)),2) AS net_income
+    ROUND((SUM(pay_price) -ROUND(SUM(handling_fees),2)-SUM(CASE WHEN order_type = 'refund' THEN -refund_price ELSE 0 END)),2) AS net_income
 FROM
 (
     SELECT
     parking_id,
     order_type,
     pay_price,
-		round(round(handling_fees)/100,2) as handling_fees,
+		round(handling_fees/100,4) as handling_fees,
 		0 as refund_price,
 		pay_time AS time
     FROM yun_pay_union

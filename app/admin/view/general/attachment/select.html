@@ -253,7 +253,7 @@
                 this.checked.forEach(res=>{
                     imgs.push(res.fullurl);
                 });
-                Yunqi.api.closelayer(Yunqi.config.window.id,imgs);
+                Yunqi.api.closelayer(Yunqi.app.window.id,imgs);
             },
             checkImg:function (file) {
                 let xi=this.inArray(file.fullurl);

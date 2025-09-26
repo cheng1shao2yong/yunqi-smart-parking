@@ -35,6 +35,9 @@ class ParkingBarrier extends Model
     public static function findBarrierBySerialno(string $serialno,$where=[])
     {
         $barrier=self::where($where)->whereRaw("serialno='{$serialno}' or virtual_serialno='{$serialno}'")->find();
+        if(!$barrier){
+            return false;
+        }
         if($barrier->pid && $barrier->pid>0){
             $barrier=self::find($barrier->pid);
         }

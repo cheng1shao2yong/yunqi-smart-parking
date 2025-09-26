@@ -45,8 +45,7 @@ class ParkingMode extends Model
         'date'=>'指定固定日期',
         'period'=>'指定范围日期',
         'week'=>'指定每周日期',
-        'month'=>'指定每月日期',
-        'holiday'=>'节假日',
+        'month'=>'指定每月日期'
     ];
 
     public function getStartFeeAttr($data)

@@ -20,7 +20,6 @@ class Saifeimu extends BarrierService {
         '显示+语音'=>'setDeviceCustomDisplay',
         '显示付款码'=>'setQrcodeCustomDisplay',
         '显示入场码'=>'setQrcodeCustomDisplay',
-        '服务器应答对讲'=>'startTalking',
         '状态'=>'version'
     ];
 
@@ -76,24 +75,11 @@ class Saifeimu extends BarrierService {
                     return $this->uploadScanReadData($message['data']);
                 case 'version':
                     return $this->version($message['data']);
-                case 'startTalking':
-                    return $this->startTalking($message);
             }
         }else{
             return $this->ivs_result($message);
         }
     }
-
-    private function startTalking(array $message)
-    {
-        $fail=[
-            'resultCode'=>0,
-            'message'=>'服务器应答对讲失败'
-        ];
-        Utils::send($this->barrier,'服务器应答对讲',$fail);
-        return false;
-    }
-    
 
     private function version(string $data)
     {
@@ -121,7 +107,7 @@ class Saifeimu extends BarrierService {
                 throw new \Exception('订单已经支付');
             }
             if($pay->createtime<=time() - $barrier->limit_pay_time){
-                //throw new \Exception('订单已经超时');
+                throw new \Exception('订单已经超时');
             }
             $records=$pay->records;
             $parking=Parking::cache('parking_'.$records->parking_id,24*3600)->withJoin(['setting'])->find($records->parking_id);
@@ -237,12 +223,6 @@ class Saifeimu extends BarrierService {
                     'voiceText'=>$param['voice'],
                     'messageText'=>$param['message'],
                     'displayPageTimeout'=>30
-                ];
-                break;
-            case '服务器应答对讲':
-                $result['data']=[
-                    'resultCode'=>$param['resultCode'],
-                    'message'=>$param['message'],
                 ];
                 break;
             case '状态':
