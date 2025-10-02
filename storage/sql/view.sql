@@ -28,9 +28,9 @@ FROM
         parking_id,
         'refund' AS order_type,
         0 AS pay_price, -- 将退款转换为负值
-				0 as handling_fees,
+		0 as handling_fees,
         refund_price*-1 as refund_price,
-			  refund_time AS time
+		refund_time AS time
     FROM yun_pay_refund
 ) AS combined_data
 GROUP BY parking_id, DATE(time)
