@@ -25,10 +25,12 @@ use app\common\model\Qrcode;
 use app\common\model\QrcodeScan;
 use app\common\model\Third;
 use app\common\model\UserToken;
+use app\common\service\barrier\Utils;
 use think\annotation\route\Get;
 use think\annotation\route\Group;
 use think\annotation\route\Post;
 use think\annotation\route\Route;
+use think\facade\Cache;
 use think\facade\Db;
 
 #[Group("parking/index")]
@@ -57,10 +59,7 @@ class Index extends Base
                     $line=$show_last_space['line'];
                     $text=str_replace('{剩余车位}',(string)$parking_space_last,$show_last_space['text']);
                     Cache::set('parking_space_entry_'.$this->parking_id,$parking_space_total-$parking_space_last);
-                    Utils::send($barrier,'设置广告',[
-                        'line'=>$line,
-                        'text'=>$text
-                    ]);
+                    Utils::setScreentextAd($barrier,$text,$line);
                 }
             }
             $this->success('校准完成');

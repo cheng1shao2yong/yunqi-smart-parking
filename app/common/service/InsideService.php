@@ -74,7 +74,7 @@ class InsideService extends BaseService{
         $insideCallback=null;
         $insideNext=null;
         if($this->insideEntry($insideCallback,$insideNext) && $this->outsideExit($outsideCallback,$outsideNext)){
-            Utils::send($this->insideBarrier,'开闸');
+            Utils::open($this->insideBarrier,ParkingRecords::RECORDSTYPE('自动识别'));
             Db::startTrans();
             try{
                 if($outsideCallback){
@@ -107,7 +107,7 @@ class InsideService extends BaseService{
         $outsideCallback=null;
         $outsideNext=null;
         if($this->outsideEntry($insideCallback,$insideNext) && $this->insideExit($outsideCallback,$outsideNext)){
-            Utils::send($this->insideBarrier,'开闸');
+            Utils::open($this->insideBarrier,ParkingRecords::RECORDSTYPE('自动识别'));
             Db::startTrans();
             try{
                 if($outsideCallback){
@@ -185,7 +185,7 @@ class InsideService extends BaseService{
                     $barrierService->setParam([
                         'recordsType'=>ParkingRecords::RECORDSTYPE('自动识别'),
                     ]);
-                    $barrierService->havaNoEntryOpen('无入场记录,免费出场',false);
+                    $barrierService->havaNoEntryOpen(false);
                     ParkingScreen::sendRedMessage($this->insideBarrier,$this->insidePlate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType].'，没有入场记录');
                 };
                 return true;

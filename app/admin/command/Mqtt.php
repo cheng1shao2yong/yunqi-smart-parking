@@ -103,9 +103,6 @@ class Mqtt extends Command
                     }
                     $this->output('发布消息,'.$body['topic']);
                     $client->publish($body['topic'], json_encode($body['message']),1);
-                    if($body['name']=='设置广告' || $body['name']=='状态'){
-                        usleep(100000);
-                    }
                 }
             }catch (\Exception $e){
                 $this->output($e->getMessage());
@@ -124,7 +121,7 @@ class Mqtt extends Command
                     unset($this->reply[$id]);
                 }
             }
-            Coroutine::sleep(5);
+            Coroutine\System::sleep(1);
         }
     }
 
@@ -202,8 +199,7 @@ class Mqtt extends Command
                             if($barrier){
                                 /* @var BarrierService $barrierService*/
                                 $barrierService=$barrier->getBarrierService();
-                                $callback=$barrierService->invoke($message);
-                                $barrierService->destroy();
+                                $callback=$barrierService::invoke($barrier,$message);
                                 if($callback){
                                     $uniqid=Utils::getUniqidName($barrier);
                                     $this->redis->set($message[$uniqid],json_encode($message));
@@ -269,7 +265,7 @@ class Mqtt extends Command
     }
     private function getClient(string $name)
     {
-        $host=site_config("mqtt.mqtt_host");
+        $host=site_config("mqtt.mqtt_host");;
         $port=(int)site_config("mqtt.mqtt_port");
         $username=site_config("mqtt.mqtt_username");
         $password=site_config("mqtt.mqtt_password");

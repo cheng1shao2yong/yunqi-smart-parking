@@ -463,7 +463,7 @@ trait Actions
             $postdata=$this->request->post();
             //获取table的列
             $listAction=explode('/',str_replace('.','/',$postdata['listAction']));
-            $controller='\\app\\admin\\controller';
+            $controller='\\app\\parking\\controller';
             for($i=0;$i<count($listAction)-1;$i++){
                 if($i==count($listAction)-2){
                     $listAction[$i]=ucfirst($listAction[$i]);

@@ -3,6 +3,7 @@
         <yun-form
                 :data="row"
                 ref="yunform"
+                :tabs="tabs"
                 :columns="columns">
                 <template #default>
                     {:token_field()}
@@ -27,47 +28,106 @@
             'YunForm': form
         },
         data: {
+            tabs:'',
             columns:Yunqi.data.fuji?[
                 {field: "id", title: "ID", edit: "hidden"},
-                {field: "pid", title: "主机", edit: "select",searchList:Yunqi.data.list,rules: "required"},
-                {field: "serialno", title: "序列号", edit: "text"},
-                {field:"camera",title:"摄像机厂家",edit: 'select',searchList:Yunqi.data.camera,rules:'required'},
-                {field:"support_led",title:"支持LED屏",searchList: {0:'否',1:'是'},edit:'radio'},
-                {field: "local_ip", title: "本地IP", edit: "text"}
-            ]:[
-                {field: "id", title: "ID", edit: "hidden"},
-                {field: "title", title: "通道名称", edit: "text", rules: "required"},
-                {field:"barrier_type",title:"通道类型",searchList: {entry:'入口',exit:'出口'},edit:'radio'},
-                {field: "serialno", title: "序列号", edit: "text"},
-                {field: "virtual_serialno", title: "虚拟序列号", edit: 'slot', rules: "required"},
-                {field:"camera",title:"摄像机厂家",edit: 'select',searchList:Yunqi.data.camera,rules:'required'},
-                {field:"support_led",title:"支持LED屏",searchList: {0:'否',1:'是'},edit:'radio'},
-                {field: "limit_pay_time", title: "付款等待时间", edit: {form:'input',type:'number',value:300,append:'秒'}, rules: "required"},
-                {field: "screen_time", title: "屏显时间", edit: {form:'input',type:'number',value:30,append:'秒'}, rules: "required"},
-                {field: "local_ip", title: "本地IP", edit: "text"},
-                {field:"manual_confirm",title:"人工确认开闸",searchList: {0:'否',1:'是'},edit:'radio',visible:function (row) {
-                    return row.barrier_type=='entry';
+                {field: "pid", tab:0, title: "主机", edit: "select",searchList:Yunqi.data.list,rules: "required"},
+                {field: "serialno", tab:0, title: "序列号", edit: "text"},
+                {field:"camera", tab:0, title:"摄像机厂家",edit: 'select',searchList:Yunqi.data.camera,rules:'required'},
+                {field: "local_ip", tab:0, title: "本地IP", edit: "text"},
+                {field: "screen_support", tab:1, title:"屏显支持",searchList: Yunqi.data.screen_voice,edit:{form:'select',value:Object.keys(Yunqi.data.screen_voice)[0]}},
+                {field: "screen_time", tab:1, title: "屏显时间", edit: {form:'input',type:'number',value:30,append:'秒'},visible:function (row) {
+                    return row.screen_support!='none';
                 }},
-                {field: "monthly_voice", title: "月卡语音", edit: {form:'select',value:'blessing'},searchList: {
-                        blessing:'播报祝福语',
-                        day:'播报剩余天数',
-                        last:'播报祝福语，剩N天后播报剩余天数'
-                    }
-                },
-                {field: "monthly_voice_day", title: "语音-剩N天", edit: {type:'number',form:'input',value:15},visible:function (row) {
-                        return row.monthly_voice=='last';
-                    }},
-                {field: "monthly_screen", title: "月卡屏显", edit: {form:'select',value:'day'},searchList: {
+                {
+                    field: "monthly_screen",
+                    tab:1,
+                    title: "月卡屏显",
+                    edit: {form:'select',value:'day'},
+                    visible:function (row) {
+                        return row.screen_support!='none';
+                    },
+                    searchList: {
                         blessing:'显示祝福语',
                         day:'显示剩余天数',
                         last:'显示祝福语，剩N天后显示剩余天数'
                     }
                 },
-                {field: "monthly_screen_day", title: "屏显-剩N天", edit: {type:'number',form:'input',value:15},visible:function (row) {
-                        return row.monthly_screen=='last';
-                    }},
+                {field: "monthly_screen_day", tab:1, title: "屏显-剩N天", edit: {type:'number',form:'input',value:15},visible:function (row) {
+                    return row.screen_support!='none' && row.monthly_screen=='last';
+                }},
+                {field: "voice_support", tab:1, title:"语音支持",searchList: Yunqi.data.screen_voice,edit:{form:'select',value:Object.keys(Yunqi.data.screen_voice)[0]}},
+                {
+                    field: "monthly_voice",
+                    tab:1,
+                    title: "月卡语音",
+                    edit: {form:'select',value:'blessing'},
+                    visible:function (row) {
+                        return row.voice_support!='none';
+                    },
+                    searchList: {
+                        blessing:'播报祝福语',
+                        day:'播报剩余天数',
+                        last:'播报祝福语，剩N天后播报剩余天数'
+                    }
+                },
+                {field: "monthly_voice_day", tab:1, title: "语音-剩N天", edit: {type:'number',form:'input',value:15},visible:function (row) {
+                    return row.voice_support!='none' && row.monthly_voice=='last';
+                }},
+            ]:[
+                {field: "id", title: "ID", edit: "hidden"},
+                {field: "title", tab:0, title: "通道名称", edit: "text", rules: "required"},
+                {field:"barrier_type",tab:0, title:"通道类型",searchList: {entry:'入口',exit:'出口'},edit:'radio'},
+                {field: "serialno", tab:0, title: "序列号", edit: "text"},
+                {field: "virtual_serialno", tab:0, title: "虚拟序列号", edit: 'slot', rules: "required"},
+                {field:"camera", tab:0, title:"摄像机厂家",edit: 'select',searchList:Yunqi.data.camera,rules:'required'},
+                {field: "limit_pay_time", tab:0, title: "付款等待时间", edit: {form:'input',type:'number',value:300,append:'秒'}, rules: "required"},
+                {field: "local_ip", tab:0, title: "本地IP", edit: "text"},
+                {field: "screen_support", tab:1, title:"屏显支持",searchList: Yunqi.data.screen_voice,edit:{form:'select',value:Object.keys(Yunqi.data.screen_voice)[0]}},
+                {field: "screen_time", tab:1, title: "屏显时间", edit: {form:'input',type:'number',value:30,append:'秒'},visible:function (row) {
+                    return row.screen_support!='none';
+                }},
+                {
+                    field: "monthly_screen",
+                    tab:1,
+                    title: "月卡屏显",
+                    edit: {form:'select',value:'day'},
+                    visible:function (row) {
+                        return row.screen_support!='none';
+                    },
+                    searchList: {
+                        blessing:'显示祝福语',
+                        day:'显示剩余天数',
+                        last:'显示祝福语，剩N天后显示剩余天数'
+                    }
+                },
+                {field: "monthly_screen_day", tab:1, title: "屏显-剩N天", edit: {type:'number',form:'input',value:15},visible:function (row) {
+                        return row.screen_support!='none' && row.monthly_screen=='last';
+                }},
+                {field: "voice_support", tab:1, title:"语音支持",searchList: Yunqi.data.screen_voice,edit:{form:'select',value:Object.keys(Yunqi.data.screen_voice)[0]}},
+                {
+                    field: "monthly_voice",
+                    tab:1,
+                    title: "月卡语音",
+                    edit: {form:'select',value:'blessing'},
+                    visible:function (row) {
+                        return row.voice_support!='none';
+                    },
+                    searchList: {
+                        blessing:'播报祝福语',
+                        day:'播报剩余天数',
+                        last:'播报祝福语，剩N天后播报剩余天数'
+                    }
+                },
+                {field: "monthly_voice_day", tab:1, title: "语音-剩N天", edit: {type:'number',form:'input',value:15},visible:function (row) {
+                    return row.voice_support!='none' && row.monthly_voice=='last';
+                }},
+                {field:"manual_confirm", tab:2, title:"人工确认开闸",searchList: {0:'否',1:'是'},edit:'radio',visible:function (row) {
+                    return row.barrier_type=='entry';
+                }},
                 {
                     field: "plate_type",
+                    tab:2,
                     title: "允许通行车牌",
                     edit: "checkbox",
                     rules: "required",
@@ -75,6 +135,7 @@
                 },
                 {
                     field: "rules_type",
+                    tab:2,
                     title: "允许通行车辆",
                     edit: "checkbox",
                     rules: "required",
@@ -82,15 +143,19 @@
                 },
                 {
                     field: "rules_id",
+                    tab:2,
                     title: "允许通行规则",
                     edit: "checkbox",
                     searchList:Yunqi.data.rules,
                     visible:function (row) {
                         return inArray(row.rules_type,'unprovisional');
                     }
-                }
+                },
             ],
             row: Yunqi.data.row || {support_led:0,manual_confirm:0,barrier_type:'entry',plate_type:Object.keys(Yunqi.data.plate_type),rules_type:['provisional']}
+        },
+        onLoad(){
+            this.tabs=Yunqi.data.fuji?['基本设置','屏显语音']:['基本设置','屏显语音','通行规则'];
         },
         methods: {
             createVirtualSerialno:function (){

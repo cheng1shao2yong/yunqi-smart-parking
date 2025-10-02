@@ -132,7 +132,6 @@ class Records extends ParkingBase
         }
         if($records->status===0 || $records->status==1 || $records->status==6){
             $exit_time=time();
-            $exit_time=strtotime('2025-09-13 10:14:00');
             $service=ParkingService::newInstance([
                 'parking'=>$this->parking,
                 'plate_number'=>$records->plate_number,

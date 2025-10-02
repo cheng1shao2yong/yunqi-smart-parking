@@ -44,6 +44,7 @@ class Barrier extends ParkingBase
         $this->model=new ParkingBarrier();
         $this->assign('plate_type',ParkingMode::PLATETYPE);
         $this->assign('camera',ParkingBarrier::CAMERA);
+        $this->assign('screen_voice',ParkingBarrier::SCREEN_VOICE);
         $this->assign('rules_type',['provisional'=>'临时车','unprovisional'=>'非临时车']);
         $this->assign('rules',ParkingRules::where(['parking_id'=>$this->parking->id])->where('rules_type','<>','provisional')->column('title','id'));
     }
@@ -281,10 +282,7 @@ class Barrier extends ParkingBase
                     $last=$parking_space_total-$parking_space_entry;
                     $last=$last>0?$last:0;
                     $t=str_replace('{剩余车位}',(string)$last,$t);
-                    Utils::send($barrier,'设置广告',[
-                        'line'=>$k,
-                        'text'=>$t
-                    ]);
+                    Utils::setScreentextAd($barrier,$t,$k);
                 }
                 if(!$show_last_space){
                     $barrier->show_last_space=null;
@@ -294,27 +292,12 @@ class Barrier extends ParkingBase
             if($postdata['type']=='voice'){
                 $voice=$postdata['voice'];
                 $barrier=ParkingBarrier::where(['id'=>$postdata['id'],'parking_id'=>$this->parking->id])->find();
-                Utils::send($barrier,'设置音量',[
-                    'voice'=>$voice,
-                    'step'=>1
-                ]);
-                Utils::send($barrier,'设置音量',[
-                    'step'=>2
-                ]);
+                Utils::setVolume($barrier,1,$voice);
+                Utils::setVolume($barrier,2);
             }
             if($postdata['type']=='time'){
                 $barrier=ParkingBarrier::where(['id'=>$postdata['id'],'parking_id'=>$this->parking->id])->find();
-                $time=time();
-                Utils::send($barrier,'设置时间',[
-                    'time'=>[
-                        'year'=>date('Y',$time),
-                        'month'=>date('m',$time),
-                        'day'=>date('d',$time),
-                        'hour'=>date('H',$time),
-                        'min'=>date('i',$time),
-                        'sec'=>date('s',$time)
-                    ],
-                ]);
+                Utils::setSystemTime($barrier,time());
             }
             $this->success('设置成功');
         }

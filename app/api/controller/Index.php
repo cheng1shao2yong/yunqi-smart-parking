@@ -358,6 +358,7 @@ class Index extends Api
     {
         $bind=PlateBinding::where('user_id',$this->auth->id)->select();
         $r=[];
+        $plates=[];
         foreach ($bind as $value){
             $r[]=[
                 'bind_id'=>$value->id,

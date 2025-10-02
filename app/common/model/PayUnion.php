@@ -307,11 +307,11 @@ class PayUnion extends Model{
         $barrier=ParkingBarrier::find($barrier_id);
         if($barrier && $barrier->barrier_type=='entry'){
             ParkingScreen::sendGreenMessage($barrier,$plate_number.'，支付成功，重新识别车牌');
-            Utils::send($barrier,'主动识别');
+            Utils::trigger($barrier);
         }
         if($barrier && $barrier->barrier_type=='exit'){
             ParkingScreen::sendGreenMessage($barrier,$plate_number.'，支付成功，重新识别车牌');
-            Utils::send($barrier,'主动识别');
+            Utils::trigger($barrier);
         }
     }
 
@@ -368,9 +368,7 @@ class PayUnion extends Model{
             /* @var ParkingBarrier $barrier*/
             $barrier=ParkingBarrier::find($recordspay->barrier_id);
             if($barrier->trigger_type=='infield' || $barrier->trigger_type=='outfield'){
-                /* @var BarrierService $barrierService*/
-                $barrierService=$barrier->getBarrierService();
-                $barrierService->payOpen();
+                Utils::payOpen($barrier,$records->plate_number);
                 //发送消息
                 ParkingScreen::sendGreenMessage($barrier,$records->plate_number.'，支付成功，开启道闸');
                 WechatMsg::exit($parking,$records->plate_number);

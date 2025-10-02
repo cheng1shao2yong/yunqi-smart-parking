@@ -40,7 +40,7 @@ class ParkingScreen extends Model
         if($barrier->trigger_type=='outside' && $barrier->barrier_type=='entry'){
             throw new \Exception('外场不能控制内场出场通道');
         }
-        Utils::send($barrier,'开闸',[],function($result) use ($parking,$barrier,$records_id,$openuser,$remark){
+        Utils::open($barrier,ParkingRecords::RECORDSTYPE('人工确认'),function($result) use ($parking,$barrier,$records_id,$openuser,$remark){
             if($result){
                 $records=false;
                 if($records_id){
@@ -178,7 +178,7 @@ class ParkingScreen extends Model
         $time=date('Y/m/d H:i');
         $title='【'.$barrier->title.'】';
         $data['message']=$time.$title.$data['message'];
-        Utils::send($barrier,'通道记录',$data);
+        Utils::addBarrierLog($barrier,$data);
     }
 
     public static function getBarrierControl(ParkingBarrier $barrier)

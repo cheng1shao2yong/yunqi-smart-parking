@@ -111,7 +111,7 @@ class ParkingQrcode extends Model
 
     private static function getQrcodeInfo(ParkingQrcode $qrcode,string $serialno)
     {
-        $url=request()->domain();
+        $url=get_domain('api');
         $uniqid=$qrcode->parking->uniqid;
         $records_id=$qrcode->records_id;
         $name=$qrcode['name'];

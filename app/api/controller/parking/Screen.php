@@ -4,6 +4,7 @@ declare (strict_types = 1);
 namespace app\api\controller\parking;
 
 use app\common\model\manage\Parking;
+use app\common\model\parking\ParkingRecords;
 use app\common\service\barrier\Utils;
 use app\common\model\parking\ParkingBarrier;
 use app\common\model\parking\ParkingScreen;
@@ -93,7 +94,7 @@ class Screen extends Base
         if($barrier->status!='normal'){
             $this->error('通道已经被禁用');
         }
-        Utils::send($barrier,'关闸',[],function ($result) use ($barrier){
+        Utils::close($barrier,ParkingRecords::RECORDSTYPE('人工确认'),function ($result) use ($barrier){
             if($result){
                 ParkingScreen::sendBlackMessage($barrier,'管理员-'.$this->parkingAdmin['nickname'].'手动关闸');
                 $this->success('关闸成功');

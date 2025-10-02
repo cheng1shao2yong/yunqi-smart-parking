@@ -12,6 +12,7 @@ declare (strict_types = 1);
 namespace app\parking\controller;
 
 use app\common\controller\ParkingBase;
+use app\common\model\parking\ParkingRecords;
 use app\common\service\barrier\Utils;
 use app\common\model\parking\ParkingBarrier;
 use app\common\model\parking\ParkingScreen;
@@ -95,7 +96,7 @@ class Screen extends ParkingBase
         if($barrier->status!='normal'){
             $this->error('通道已经被禁用');
         }
-        Utils::send($barrier,'关闸',[],function ($result) use ($barrier){
+        Utils::close($barrier,ParkingRecords::RECORDSTYPE('人工确认'),function ($result) use ($barrier){
             if($result){
                 ParkingScreen::sendRedMessage($barrier,'管理员-'.$this->auth->nickname.'手动关闸');
                 $this->success('关闸成功');
@@ -140,7 +141,7 @@ class Screen extends ParkingBase
             $this->error('通道已经被禁用');
         }
         try{
-            Utils::send($barrier,'主动识别');
+            Utils::trigger($barrier);
         }catch (\Exception $e){
             $this->error($e->getMessage());
         }

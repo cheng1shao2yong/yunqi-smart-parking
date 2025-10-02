@@ -16,86 +16,52 @@ defined('DS') or define('DS',DIRECTORY_SEPARATOR);
 
 class Saifeimu extends BarrierService {
 
-    const ACTION=[
-        '显示+语音'=>'setDeviceCustomDisplay',
-        '显示付款码'=>'setQrcodeCustomDisplay',
-        '显示入场码'=>'setQrcodeCustomDisplay',
-        '状态'=>'version'
-    ];
-
-    public static function get_subject(string $serialno){
-        $arr=[];
-        $arr['/camera/push/result']=0;
-        $arr['/gate/push/result']=0;
-        return $arr;
-    }
-    
-    public static function get_keep_alive(string $serialno)
+    public static function get_keep_alive(string $serialno):array
     {
         return [];
     }
 
-    public function open(): bool
+    public static function get_subject(string $serialno):array{
+        $arr=[];
+        $arr['/gate/push/result']=0;
+        return $arr;
+    }
+
+    public static function getTopic(ParkingBarrier $barrier,string $name)
+    {
+        return '/gate/'.$barrier->serialno.'/command';
+    }
+
+    public static function getUniqidName(ParkingBarrier $barrier)
+    {
+        return 'msgId';
+    }
+
+     public static function invoke(ParkingBarrier $barrier,array $message)
+     {
+         $action=$message['actionName'];
+         switch ($action){
+             case 'uploadScanReadData':
+                 return self::uploadScanReadData($message['data']);
+             case 'version':
+                 return self::version($message['data']);
+         }
+     }
+
+    private static function version(string $data)
     {
         return true;
     }
 
-    public function inFieldOpen(): bool
+    private static function uploadScanReadData(ParkingBarrier $scanbarrier,array $data)
     {
-        return true;
-    }
-
-    public function voice(string $action)
-    {
-
-    }
-
-    public function screen(string $action)
-    {
-
-    }
-
-    public static function isOnline(ParkingBarrier $barrier):bool
-    {
-        $r=false;
-        Utils::send($barrier,'状态',[],function($result) use (&$r){
-            if($result){
-                $r=true;
-            }
-        },3);
-        return $r;
-    }
-
-    public function invoke(array $message)
-    {
-        if($this->barrier->pid){
-            $action=$message['actionName'];
-            switch ($action){
-                case 'uploadScanReadData':
-                    return $this->uploadScanReadData($message['data']);
-                case 'version':
-                    return $this->version($message['data']);
-            }
-        }else{
-            return $this->ivs_result($message);
+        $barrier=ParkingBarrier::where(['id'=>$scanbarrier->pid,'status'=>'normal'])->find();
+        if(!$barrier){
+            throw new \Exception('没有找到对应的道闸');
         }
-    }
-
-    private function version(string $data)
-    {
-        return true;
-    }
-
-    private function uploadScanReadData(array $data)
-    {
         $mediumNo=$data['qrcodeData'];
-        Utils::send($this->barrier,'显示+语音',['message'=>'扫码成功','voice'=>'扫码成功']);
         try{
             $service=false;
-            $barrier=ParkingBarrier::where(['id'=>$this->barrier->pid,'status'=>'normal'])->find();
-            if(!$barrier){
-                throw new \Exception('没有找到对应的道闸');
-            }
             $pay=ParkingRecordsPay::with(['records'])->where([
                 'barrier_id'=>$barrier->id,
                 'parking_id'=>$barrier->parking_id,
@@ -135,100 +101,36 @@ class Saifeimu extends BarrierService {
             if($service){
                 $service->destroy();
             }
-            Utils::send($this->barrier,'显示+语音',['message'=>$e->getMessage(),'voice'=>'支付失败']);
             ParkingScreen::sendRedMessage($barrier,'支付失败，'.$e->getMessage());
         }
     }
 
-    private function ivs_result(array $message)
-    {
-        return false;
-    }
+     public static function isOnline(ParkingBarrier $barrier):bool
+     {
+         $r=Utils::getVersion($barrier);
+         if($r){
+             return true;
+         }
+         return false;
+     }
 
-    public function havaNoEntryOpen(string $message,bool $open)
-    {
-
-    }
-
-    public function showLastSpace(int $last_space)
-    {
-
-    }
-
-    public function showPayQRCode()
-    {
-        $host=site_config("mqtt.mqtt_host");
-        $str='https://'.$host.'/qrcode/exit?serialno='.$this->barrier->serialno;
-        Utils::send($this->barrier,'显示付款码',['qrcode'=>$str]);
-        return true;
-    }
-
-    public function showEntryQRCode()
-    {
-        $config=[
-            'appid'=>site_config("addons.uniapp_mpapp_id"),
-            'appsecret'=>site_config("addons.uniapp_mpapp_secret"),
-        ];
-        $qrcode= QrcodeModel::createQrcode('parking-entry-qrcode',$this->barrier->serialno,60*15);
-        $wechat=new \WeChat\Qrcode($config);
-        $ticket = $wechat->create($qrcode->id,60*15)['ticket'];
-        $url=$wechat->url($ticket);
-        Utils::send($this->barrier,'显示入场码',['qrcode'=>$url]);
-    }
-
-    public static function getUniqidName(ParkingBarrier $barrier)
-    {
-        return 'msgId';
-    }
-
-    public static function getTopic(ParkingBarrier $barrier,string $name)
-    {
-        if($barrier->pid){
-            return '/gate/'.$barrier->serialno.'/command';
-        }else{
-            return '/camera/'.$barrier->serialno.'/command';
-        }
-    }
-
-    public static function getMessage(ParkingBarrier $barrier,string $name, array $param = [])
-    {
-        $action=self::ACTION[$name];
-        $result=[
-            'msgId'=>uniqid(),
-            'deviceNo'=>$barrier->serialno,
-            'actionName'=>$action,
-            'ack'=>1
-        ];
-        switch ($name){
-             case '显示付款码':
-                 $result['data']=[
-                    'voiceText'=>'',
-                    'paymentQrcode'=>$param['qrcode'],
-                    'qrcodeType'=>0,
-                    'topText'=>'支付请扫码',
-                    'displayPageTimeout'=>$barrier->limit_pay_time,
-                ];
-                break;
-            case '显示入场码':
-                $result['data']=[
-                    'voiceText'=>'',
-                    'paymentQrcode'=>$param['qrcode'],
-                    'qrcodeType'=>1,
-                    'topText'=>'入场请扫码',
-                    'displayPageTimeout'=>$barrier->limit_pay_time,
-                ];
-                break;
-            case '显示+语音':
-                $result['data']=[
-                    'voiceText'=>$param['voice'],
-                    'messageText'=>$param['message'],
-                    'displayPageTimeout'=>30
-                ];
-                break;
-            case '状态':
-                $result['ack']=0;
-                break;
-        }
-        return $result;
-    }
+     public static function getMessage(ParkingBarrier $barrier,string $name,array $param=[],mixed $data=''):array{
+         if($name=='获取版本号'){
+             $result=[
+                 'msgId'=>uniqid(),
+                 'deviceNo'=>$barrier->serialno,
+                 'actionName'=>'version',
+                 'ack'=>0
+             ];
+         }else{
+             $result=[
+                 'msgId'=>uniqid(),
+                 'deviceNo'=>$barrier->serialno,
+                 'actionName'=>$name,
+                 'ack'=>1,
+                 'data'=>$data
+             ];
+         }
+         return $result;
+     }
 }

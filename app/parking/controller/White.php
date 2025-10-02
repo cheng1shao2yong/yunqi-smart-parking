@@ -87,7 +87,7 @@ class White extends ParkingBase
         $cars=ParkingCars::where('id','in',$ids)->where(['parking_id'=>$this->parking->id])->select();
         $prefix=getDbPrefix();
         foreach ($barriers as $barrier){
-            Utils::send($barrier,'离线白名单',['cars'=>$cars,'action'=>'delete']);
+            Utils::setWhitelist($barrier,$cars);
             $ids=implode(',',$ids);
             $sql="update {$prefix}parking_cars set synch=null where parking_id={$this->parking->id} and id in ({$ids})";
             Db::execute($sql);
@@ -101,7 +101,7 @@ class White extends ParkingBase
         $barriers=ParkingBarrier::where(['parking_id'=>$this->parking->id,'status'=>'normal','pid'=>0])->select();
         $cars=ParkingCars::where('id','in',$ids)->where(['parking_id'=>$this->parking->id])->select();
         foreach ($barriers as $barrier){
-            Utils::send($barrier,'离线白名单',['cars'=>$cars,'action'=>'update_or_add']);
+            Utils::setWhitelist($barrier,$cars);
         }
         $prefix=getDbPrefix();
         $ids=implode(',',$ids);

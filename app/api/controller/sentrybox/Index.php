@@ -214,8 +214,7 @@ class Index extends BaseController
                     $service->destroy();
                 }
                 $message=$e->getMessage();
-                Utils::send($barrier,'开闸异常显示',['message'=>$message]);
-                Utils::send($barrier,'禁止通行语音');
+                Utils::openGateException($barrier,$message);
             }
         }else{
             try{
@@ -241,7 +240,7 @@ class Index extends BaseController
         if($barrier->status!='normal'){
             $this->error('通道已经被禁用');
         }
-        Utils::send($barrier,'关闸',[],function ($res) use ($barrier){
+        Utils::close($barrier,ParkingRecords::RECORDSTYPE('人工确认'),function ($res) use ($barrier){
             if($res){
                 ParkingScreen::sendBlackMessage($barrier,'岗亭-'.$this->sentrybox->title.'手动关闸');
                 $this->success('关闸成功');
@@ -264,12 +263,7 @@ class Index extends BaseController
             $this->error('通道已经被禁用');
         }
         try{
-            $photo='';
-            Utils::send($barrier,'主动识别',[],function($result) use (&$photo){
-                if($result){
-                    $photo=$result;
-                }
-            },3);
+            $photo=Utils::trigger($barrier);
         }catch (\Exception $e){
             $this->error($e->getMessage());
         }

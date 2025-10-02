@@ -21,6 +21,7 @@ use app\common\model\parking\ParkingScreen;
 use app\common\model\parking\ParkingStoredLog;
 use app\common\model\parking\ParkingTrafficRecords;
 use app\common\model\PayUnion;
+use app\common\service\barrier\Utils;
 use app\common\service\msg\WechatMsg;
 use think\facade\Cache;
 use think\facade\Db;
@@ -107,10 +108,7 @@ class ParkingService extends BaseService{
             }
         }
         if($allow){
-            /* @var BarrierService $barrierService*/
-            $barrierService=$this->barrier->getBarrierService();
-            $barrierService->setParam(['recordsType'=>$this->records_type,'plate'=>$plate,'rulesType'=>$rulesType]);
-            $barrierService->inFieldOpen();
+            Utils::inFieldOpen($this->barrier,$plate,$rulesType,$this->records_type);
             ParkingScreen::sendBlackMessage($this->barrier,$plate->plate_number.'内场开闸成功，'.ParkingRules::RULESTYPE[$rulesType]);
         }
         return $allow;
@@ -172,10 +170,7 @@ class ParkingService extends BaseService{
             }
         }
         if($allow){
-            /* @var BarrierService $barrierService*/
-            $barrierService=$this->barrier->getBarrierService();
-            $barrierService->setParam(['recordsType'=>$this->records_type,'plate'=>$plate,'rulesType'=>$rulesType]);
-            $barrierService->inFieldOpen();
+            Utils::inFieldOpen($this->barrier,$plate,$rulesType,$this->records_type);
             ParkingScreen::sendGreenMessage($this->barrier,$plate->plate_number.'内场开闸成功，'.ParkingRules::RULESTYPE[$rulesType]);
         }
         return $allow;
@@ -198,11 +193,8 @@ class ParkingService extends BaseService{
         //同一个通道，15分钟内存在入场，则直接开闸
         $records=ParkingRecords::where(['parking_id'=>$parking->id,'plate_number'=>$plate->plate_number])->whereIn('status',[0,1,6])->find();
         if($records && $records->entry_time+15*60>time()){
-            $barrierService=$this->barrier->getBarrierService();
-            $barrierService->setParam(['recordsType'=>$this->records_type,'plate'=>$plate,'rulesType'=>$rulesType]);
-            $barrierService->open();
-            $barrierService->screen('entry');
-            $barrierService->voice('entry');
+            Utils::open($this->barrier,$this->records_type);
+            Utils::entryVoiceAndScreen($this->barrier,$plate,$this->records_type,$rulesType);
             ParkingScreen::sendBlackMessage($this->barrier,$plate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType]);
             return true;
         }
@@ -240,77 +232,75 @@ class ParkingService extends BaseService{
                 }
                 $this->throwException($ruletitle.'禁止通行');
             }
-            /* @var BarrierService $barrierService*/
-            $barrierService=$this->barrier->getBarrierService();
-            $barrierService->setParam(['recordsType'=>$this->records_type,'plate'=>$plate,'rulesType'=>$rulesType]);
-            $isOpen=$barrierService->open();
-            if ($isOpen){
-                Db::startTrans();
-                try{
-                    $insert=[
-                        'parking_id'=>$parking->id,
-                        'parking_title'=>$parking->title,
-                        'rules_type'=>$rulesType,
-                        'rules_id'=>$rules?$rules->id:null,
-                        'plate_number'=>$plate->plate_number,
-                        'plate_type'=>$plate->plate_type,
-                        'special'=>$plate->special,
-                        'entry_type'=>$this->records_type,
-                        'entry_barrier'=>$this->barrier->id,
-                        'entry_time'=>$this->entry_time,
-                        'entry_photo'=>$this->photo,
-                        'cars_id'=>$plate->cars?$plate->cars->id:null,
-                        'remark'=>$this->remark,
-                        'status'=>ParkingRecords::STATUS('正在场内')
-                    ];
-                    $precords=new ParkingRecords();
-                    $precords->save($insert);
-                    //如果存在优惠券，则使用
-                    $couponlist=$this->getAllowCoupon($this->parking,$plate);
-                    if(!empty($couponlist)){
-                        ParkingMerchantCouponList::createRecordsCoupon($couponlist[0],$precords);
-                    }
-                    if($records){
-                        if($records->status==ParkingRecords::STATUS('未缴费等待')){
-                            $records->status=ParkingRecords::STATUS('未缴费出场');
-                            $records->save();
-                        }else{
-                            $records->status=ParkingRecords::STATUS('连续进场异常');
-                            $records->save();
-                        }
-                    }
-                    //自动更新车位总数
-                    ParkingRecords::parkingSpaceEntry($parking,'entry');
-                    //推动到交管平台
-                    if($setting->push_traffic && $precords->rules_type==ParkingRules::RULESTYPE('临时车')){
-                        (new ParkingTrafficRecords())->save([
+            Utils::open($this->barrier,$this->records_type,function($res) use ($parking,$setting,$records,$rules,$plate,$rulesType,$parking_space_entry){
+                if($res){
+                    Db::startTrans();
+                    try{
+                        $insert=[
                             'parking_id'=>$parking->id,
-                            'records_id'=>$precords->id,
-                            'traffic_type'=>'entry',
-                            'status'=>0
-                        ]);
-                        Cache::set('traffic_event',1);
+                            'parking_title'=>$parking->title,
+                            'rules_type'=>$rulesType,
+                            'rules_id'=>$rules?$rules->id:null,
+                            'plate_number'=>$plate->plate_number,
+                            'plate_type'=>$plate->plate_type,
+                            'special'=>$plate->special,
+                            'entry_type'=>$this->records_type,
+                            'entry_barrier'=>$this->barrier->id,
+                            'entry_time'=>$this->entry_time,
+                            'entry_photo'=>$this->photo,
+                            'cars_id'=>$plate->cars?$plate->cars->id:null,
+                            'remark'=>$this->remark,
+                            'status'=>ParkingRecords::STATUS('正在场内')
+                        ];
+                        $precords=new ParkingRecords();
+                        $precords->save($insert);
+                        //如果存在优惠券，则使用
+                        $couponlist=$this->getAllowCoupon($parking,$plate);
+                        if(!empty($couponlist)){
+                            ParkingMerchantCouponList::createRecordsCoupon($couponlist[0],$precords);
+                        }
+                        if($records){
+                            if($records->status==ParkingRecords::STATUS('未缴费等待')){
+                                $records->status=ParkingRecords::STATUS('未缴费出场');
+                                $records->save();
+                            }else{
+                                $records->status=ParkingRecords::STATUS('连续进场异常');
+                                $records->save();
+                            }
+                        }
+                        //自动更新车位总数
+                        ParkingRecords::parkingSpaceEntry($parking,'entry');
+                        //推动到交管平台
+                        if($setting->push_traffic){
+                            (new ParkingTrafficRecords())->save([
+                                'parking_id'=>$parking->id,
+                                'records_id'=>$precords->id,
+                                'traffic_type'=>'entry',
+                                'status'=>0
+                            ]);
+                            Cache::set('traffic_event',1);
+                        }
+                        Db::commit();
+                        Utils::entryVoiceAndScreen($this->barrier,$plate,$this->records_type,$rulesType);
+                        //计算余位
+                        if($this->barrier->show_last_space){
+                            $last_space=$setting->parking_space_total-$parking_space_entry-1;
+                            $last_space=$last_space>0?$last_space:0;
+                            Utils::showLastSpace($this->barrier,$this->records_type,$last_space);
+                        }
+                    }catch (\Exception $e){
+                        Db::rollback();
+                        throw $e;
                     }
-                    Db::commit();
-                    $barrierService->screen('entry')->voice('entry');
-                    //计算余位
-                    if($this->barrier->show_last_space){
-                        $last_space=$setting->parking_space_total-$parking_space_entry-1;
-                        $last_space=$last_space>0?$last_space:0;
-                        $barrierService->showLastSpace($last_space);
+                    //岗亭通知
+                    if($this->records_type!=ParkingRecords::RECORDSTYPE('手动操作')){
+                        ParkingScreen::sendBlackMessage($this->barrier,$plate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType]);
                     }
-                }catch (\Exception $e){
-                    Db::rollback();
-                    throw $e;
+                }else{
+                    $this->throwException('通道未正常开启');
                 }
-                //岗亭通知
-                if($this->records_type!=ParkingRecords::RECORDSTYPE('手动操作')){
-                    ParkingScreen::sendBlackMessage($this->barrier,$plate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType]);
-                }
-                return true;
-            }else{
-                $this->throwException('通道未正常开启');
-            }
+            });
+            return true;
         }
         $this->throwException('停车规则不支持，禁止入场');
     }
@@ -343,27 +333,23 @@ class ParkingService extends BaseService{
         }
         //追缴逃费情况
         $this->recovery('exit');
-        /* @var BarrierService $barrierService*/
-        $barrierService=$this->barrier->getBarrierService();
-        $barrierService->setParam(['recordsType'=>$this->records_type,'plate'=>$plate]);
         if(!$records){
             //没有入场记录，查看上次出场时间在15分钟内可以再开一次
             $exitRecords=ParkingRecords::where(['parking_id'=>$parking->id,'plate_number'=>$plate->plate_number])->whereIn('status',[3,4,9])->order('id desc')->find();
             if($exitRecords && $exitRecords->exit_time>time()-60*15){
-                $barrierService->setParam(['records'=>$exitRecords,'rulesType'=>$exitRecords->rules_type]);
                 //内场提前缴费
+                $recordsPay=null;
                 if($exitRecords->pay_fee>0){
                     $recordsPay=ParkingRecordsPay::where(['records_id'=>$exitRecords->id])->where('pay_id','>',0)->find();
-                    $barrierService->setParam(['recordsPay'=>$recordsPay]);
                 }
-                $barrierService->open();
-                $barrierService->screen('exit')->voice('exit');
+                Utils::open($this->barrier,$this->records_type);
+                Utils::exitScreenAndVoice($this->barrier,$plate,$exitRecords,$recordsPay,$this->records_type,$exitRecords->rules_type);
                 ParkingScreen::sendGreenMessage($this->barrier,$plate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$exitRecords->rules_type].'，'.ParkingRecords::STATUS[$exitRecords->status]);
                 return true;
             }
             //没有入场记录的自动出场车辆
             if($setting[$rulesType.'_no_entry']){
-                $barrierService->havaNoEntryOpen('无入场记录,免费出场');
+                Utils::havaNoEntryOpen($this->barrier,$this->records_type,true);
                 ParkingScreen::sendRedMessage($this->barrier,$plate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType].'，没有入场记录');
                 return true;
             }
@@ -402,7 +388,6 @@ class ParkingService extends BaseService{
         if($this->exit_time<$records->entry_time){
             $this->throwException('出场时间大于入场时间');
         }
-        $barrierService->setParam(['records'=>$records,'rulesType'=>$rulesType]);
         if($setting[$rulesType]){
             //查看15分钟内的计费情况
             $access=false;
@@ -412,69 +397,60 @@ class ParkingService extends BaseService{
             if(!$access){
                 $ispay=$this->createOrder($records);
                 if(!$ispay){
-                    $barrierService->setParam(['recordsPay'=>$this->recordsPay]);
-                    $barrierService->screen('exit')->voice('exit');
-                    //过道机显示支付二维码
-                    if($this->barrier->support_led){
-                        $barrierService->showPayQRCode();
-                    }
-                    $xbarrier=ParkingBarrier::where(['pid'=>$this->barrier->id,'support_led'=>1])->find();
-                    if($xbarrier){
-                        $xservice=$xbarrier->getBarrierService();
-                        $xservice->showPayQRCode();
-                    }
+                    Utils::exitScreenAndVoice($this->barrier,$plate,$records,$this->recordsPay,$this->records_type,$rulesType);
                     ParkingScreen::sendPayMessage($this->barrier,$records,ParkingRules::RULESTYPE[$rulesType],$this->recordsPay->pay_price);
                     return false;
                 }
             }
-            $isOpen=$barrierService->open();
-            if($isOpen){
-                $status=ParkingRecords::STATUS('免费出场');
-                if($this->records_type==ParkingRecords::RECORDSTYPE('手动操作')){
-                    $status=$this->pay_status;
-                }
-                if($this->records_type!=ParkingRecords::RECORDSTYPE('手动操作') && $records->pay_fee>0){
-                    $recordsPay=ParkingRecordsPay::where(['records_id'=>$records->id])->where('pay_id','>',0)->find();
-                    $barrierService->setParam(['recordsPay'=>$recordsPay]);
-                    $status=ParkingRecords::STATUS('缴费出场');
-                }
-                Db::startTrans();
-                try{
-                    $records->exit_time=$this->exit_time;
-                    $records->exit_type=$this->records_type;
-                    $records->exit_barrier=$this->barrier->id;
-                    $records->rules_type=$rulesType;
-                    $records->rules_id=$rules?$rules->id:null;
-                    $records->cars_id=$plate->cars?$plate->cars->id:null;
-                    $records->status=$status;
-                    $records->remark=$this->remark;
-                    $records->save();
-                    //更新车位总数
-                    ParkingRecords::parkingSpaceEntry($parking,'exit');
-                    //推动到交管平台
-                    if($setting->push_traffic && $records->rules_type==ParkingRules::RULESTYPE('临时车')){
-                        (new ParkingTrafficRecords())->save([
-                            'parking_id'=>$parking->id,
-                            'records_id'=>$records->id,
-                            'traffic_type'=>'exit',
-                            'status'=>0
-                        ]);
-                        Cache::set('traffic_event',1);
+            Utils::open($this->barrier,$this->records_type,function($res) use ($parking,$setting,$records,$rules,$plate,$rulesType){
+                if($res){
+                    $recordsPay=null;
+                    $status=ParkingRecords::STATUS('免费出场');
+                    if($this->records_type==ParkingRecords::RECORDSTYPE('手动操作')){
+                        $status=$this->pay_status;
                     }
-                    Db::commit();
-                    $barrierService->screen('exit')->voice('exit');
-                }catch (\Exception $e){
-                    Db::rollback();
-                    throw $e;
+                    if($this->records_type!=ParkingRecords::RECORDSTYPE('手动操作') && $records->pay_fee>0){
+                        $recordsPay=ParkingRecordsPay::where(['records_id'=>$records->id])->where('pay_id','>',0)->find();
+                        $status=ParkingRecords::STATUS('缴费出场');
+                    }
+                    Db::startTrans();
+                    try{
+                        $records->exit_time=$this->exit_time;
+                        $records->exit_type=$this->records_type;
+                        $records->exit_barrier=$this->barrier->id;
+                        $records->rules_type=$rulesType;
+                        $records->rules_id=$rules?$rules->id:null;
+                        $records->cars_id=$plate->cars?$plate->cars->id:null;
+                        $records->status=$status;
+                        $records->remark=$this->remark;
+                        $records->save();
+                        //更新车位总数
+                        ParkingRecords::parkingSpaceEntry($parking,'exit');
+                        //推动到交管平台
+                        if($setting->push_traffic){
+                            (new ParkingTrafficRecords())->save([
+                                'parking_id'=>$parking->id,
+                                'records_id'=>$records->id,
+                                'traffic_type'=>'exit',
+                                'status'=>0
+                            ]);
+                            Cache::set('traffic_event',1);
+                        }
+                        Db::commit();
+                        Utils::exitScreenAndVoice($this->barrier,$plate,$records,$recordsPay,$this->records_type,$rulesType);
+                    }catch (\Exception $e){
+                        Db::rollback();
+                        throw $e;
+                    }
+                    //岗亭通知
+                    if($this->records_type!=ParkingRecords::RECORDSTYPE('手动操作')){
+                        ParkingScreen::sendGreenMessage($this->barrier,$plate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType].'，'.ParkingRecords::STATUS[$records->status]);
+                    }
+                }else{
+                    $this->throwException('通道未正常开启');
                 }
-                //岗亭通知
-                if($this->records_type!=ParkingRecords::RECORDSTYPE('手动操作')){
-                    ParkingScreen::sendGreenMessage($this->barrier,$plate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType].'，'.ParkingRecords::STATUS[$records->status]);
-                }
-                return true;
-            }else{
-                $this->throwException('通道未正常开启');
-            }
+            });
+            return true;
         }
         $this->throwException('停车规则不支持，禁止出场');
     }

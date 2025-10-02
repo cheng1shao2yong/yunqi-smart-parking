@@ -261,7 +261,7 @@ class Recharge extends Api
     #[Post('monthrenew')]
     public function monthrenew()
     {
-        $pay_type=$this->request->post('pay_type');
+        $pay_type=$this->request->post('pay_type','wechat-miniapp');
         $cars_id=$this->request->post('cars_id');
         $month=$this->request->post('month');
         $change_type=$this->request->post('change_type');

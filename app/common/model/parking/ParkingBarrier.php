@@ -25,6 +25,13 @@ class ParkingBarrier extends Model
         'Saifeimu'=>'深圳赛菲姆',
     ];
 
+    const SCREEN_VOICE=[
+        'fk-rs485'=>'方控-RS485主板',
+        'sfm-rs485'=>'赛菲姆-RS485主板',
+        'sfm-android'=>'赛菲姆-通道机',
+        'none'=>'不支持'
+    ];
+
     const TRIGGERTYPE=[
         'infield'=>'内场',
         'outfield'=>'外场',
@@ -75,9 +82,8 @@ class ParkingBarrier extends Model
 
     public function getBarrierService()
     {
-        $classname='\\app\\common\\service\\barrier\\'.$this->camera;
-        $barrierService=$classname::newInstance(['barrier'=>$this],$this->serialno);
-        return $barrierService;
+        $barrierService='\\app\\common\\service\\barrier\\'.$this->camera;
+        return new $barrierService;
     }
 
     public function isOnline()
