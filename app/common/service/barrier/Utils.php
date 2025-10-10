@@ -15,8 +15,6 @@ use app\common\model\parking\ParkingBarrier;
 use app\common\model\parking\ParkingPlate;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecordsPay;
-use app\common\model\Qrcode;
-use app\common\service\board\FkRs485;
 use app\common\service\BoardService;
 use think\facade\Cache;
 use Swoole\Coroutine;
@@ -30,6 +28,11 @@ class Utils
     {
         if(BoardService::isScreenAction($name) || BoardService::isVoiceAction($name)){
             self::sendScreenOrVoice($barrier,$name,$param);
+            if(!empty($barrier->children)){
+                foreach ($barrier->children as $child){
+                    self::sendScreenOrVoice($child,$name,$param);
+                }
+            }
         }else{
             self::sendCameraAction($barrier,$name,$param,$callback,$timeout);
         }

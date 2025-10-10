@@ -49,28 +49,18 @@ class Charge extends ParkingBase
         return json($result);
     }
 
-    #[Route('GET,POST','setting')]
+    #[Route('POST','setting')]
     public function setting()
     {
-        if($this->request->isPost()){
-            $postdata=$this->request->post();
-            $postdata['rules_value']=json_encode($postdata['rules_value']);
-            $model=ParkingCharge::where('parking_id',$this->parking->id)->find();
-            if(!$model){
-                $model=new ParkingCharge();
-                $postdata['parking_id']=$this->parking->id;
-            }
-            $model->save($postdata);
-            $this->success();
+        $postdata=$this->request->post();
+        $postdata['rules_value']=json_encode($postdata['rules_value']);
+        $model=ParkingCharge::where('parking_id',$this->parking->id)->find();
+        if(!$model){
+            $model=new ParkingCharge();
+            $postdata['parking_id']=$this->parking->id;
         }
-        $charge=ParkingCharge::where('parking_id',$this->parking->id)->find();
-        if($charge){
-            $charge->merch_id=(string)$charge->merch_id;
-            $charge->rules_id=(string)$charge->rules_id;
-            $charge->channel=explode(',',$charge->channel);
-        }
-        $this->assign('charge',$charge);
-        return $this->fetch();
+        $model->save($postdata);
+        $this->success();
     }
 
     #[Route('GET,POST','add')]
