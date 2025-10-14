@@ -665,7 +665,7 @@ class ParkingService extends BaseService{
                 ['parking_id'=>$this->parking->id],
                 $records->plate_number.'停车缴费'.($this->remark?'，'.$this->remark:'')
             );
-            ParkingRecordsPay::createBarrierOrder($records,$payunion,$feeArr,$this->barrier?$this->barrier->id:null);
+            $this->recordsPay=ParkingRecordsPay::createBarrierOrder($records,$payunion,$feeArr,$this->barrier?$this->barrier->id:null);
             $records->pay_fee=$feeArr['pay_fee']+$pay_price;
             if($this->pay_status==ParkingRecords::STATUS('缴费未出场')){
                 $records->status=$this->pay_status;
@@ -691,7 +691,7 @@ class ParkingService extends BaseService{
                     ['parking_id'=>$this->parking->id],
                     $records->plate_number.'停车缴费'
                 );
-                ParkingRecordsPay::createBarrierOrder($records,$payunion,$feeArr,$this->barrier?$this->barrier->id:null);
+                $this->recordsPay=ParkingRecordsPay::createBarrierOrder($records,$payunion,$feeArr,$this->barrier?$this->barrier->id:null);
                 ParkingStoredLog::addRecordsLog($plate->cars,$pay_price,$remark);
                 $records->pay_fee=$feeArr['pay_fee']+$pay_price;
                 $records->status=ParkingRecords::STATUS('缴费未出场');

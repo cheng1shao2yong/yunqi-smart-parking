@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace app\common\service\barrier;
 
 use app\common\model\parking\ParkingBarrier;
+use app\common\model\parking\ParkingCars;
 use app\common\model\parking\ParkingPlate;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecordsPay;
@@ -147,7 +148,7 @@ class Utils
                     $dataStream=$boardClass::paySuccessVoice();
                     break;
                 case '支付成功显示':
-                    $dataStream=$boardClass::paySuccessScreen($barrier,$param['plate_number']);
+                    $dataStream=$boardClass::paySuccessScreen($barrier,$param['records']);
                     break;
                 case '禁止通行语音':
                     $dataStream=$boardClass::noEntryVoice();
@@ -194,6 +195,11 @@ class Utils
         return $photo;
     }
 
+    public static function test(ParkingBarrier $barrier)
+    {
+        self::send($barrier,'支付成功显示',['records'=>ParkingRecords::find(796)]);
+    }
+
     public static function trigger(ParkingBarrier $barrier)
     {
         $photo='';
@@ -211,6 +217,8 @@ class Utils
     {
         if($recordsType==ParkingRecords::RECORDSTYPE('自动识别') || $recordsType==ParkingRecords::RECORDSTYPE('人工确认')){
             self::send($barrier,'开闸',[],$callback);
+        }else{
+            $callback && $callback(true);
         }
     }
 
@@ -218,6 +226,8 @@ class Utils
     {
         if($recordsType==ParkingRecords::RECORDSTYPE('自动识别') || $recordsType==ParkingRecords::RECORDSTYPE('人工确认')){
             self::send($barrier,'关闸',[],$callback);
+        }else{
+            $callback && $callback(true);
         }
     }
 
@@ -232,7 +242,7 @@ class Utils
         self::send($barrier,'禁止通行语音');
     }
 
-    public static function payOpen(ParkingBarrier $barrier,string $plate_number)
+    public static function payOpen(ParkingBarrier $barrier,ParkingRecords $records)
     {
         self::send($barrier,'开闸',[],function($res) use ($barrier){
             //没开闸的情况下再开一次
@@ -241,7 +251,7 @@ class Utils
             }
         },2);
         self::send($barrier,'支付成功语音');
-        self::send($barrier,'支付成功显示',['plate_number'=>$plate_number]);
+        self::send($barrier,'支付成功显示',['records'=>$records]);
     }
 
     public static function confirm(ParkingBarrier $barrier,string $plate_number)
@@ -300,7 +310,7 @@ class Utils
         if($recordsType==ParkingRecords::RECORDSTYPE('自动识别') || $recordsType==ParkingRecords::RECORDSTYPE('人工确认')){
             if($recordsPay && $recordsPay->pay_id){
                 self::send($barrier,'支付成功语音');
-                self::send($barrier,'支付成功显示',['plate'=>$plate,'rulesType'=>$rulesType,'records'=>$records,'recordsPay'=>$recordsPay]);
+                self::send($barrier,'支付成功显示',['records'=>$records]);
             }else if($recordsPay && !$recordsPay->pay_id){
                 self::send($barrier,'请缴费语音',['plate'=>$plate,'rulesType'=>$rulesType,'records'=>$records,'recordsPay'=>$recordsPay]);
                 self::send($barrier,'请缴费显示',['plate'=>$plate,'rulesType'=>$rulesType,'records'=>$records,'recordsPay'=>$recordsPay]);

@@ -5,6 +5,7 @@ namespace app\common\service\board;
 
 use app\common\model\manage\Parking;
 use app\common\model\parking\ParkingBarrier;
+use app\common\model\parking\ParkingCars;
 use app\common\model\parking\ParkingPlate;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecordsPay;
@@ -132,15 +133,20 @@ class FkRs485 extends BoardService
         return $dataStream;
     }
     //支付成功显示
-    public static function paySuccessScreen(ParkingBarrier $barrier,ParkingPlate $plate,ParkingRecords $records,string $rulesType){
+    public static function paySuccessScreen(ParkingBarrier $barrier,ParkingRecords $records){
         $time=self::convertTimeToString(time()-$records->entry_time);
-        $l1=self::convertScreenline($barrier->screen_time,1,$plate->plate_number);
-        $l2=self::convertScreenline($barrier->screen_time,2,ParkingRules::RULESTYPE[$rulesType]);
+        $l1=self::convertScreenline($barrier->screen_time,1,$records->plate_number);
+        $l2=self::convertScreenline($barrier->screen_time,2,ParkingRules::RULESTYPE[$records->rules_type]);
         $l3=self::convertScreenline($barrier->screen_time,1,'已付款');
         $l4=self::convertScreenline($barrier->screen_time,2,$time);
-        if($rulesType==ParkingRules::RULESTYPE('储值车')){
+        if($records->rules_type==ParkingRules::RULESTYPE('储值车')){
             $fee=formatNumber($records->pay_fee);
-            $l3=self::convertScreenline($barrier->screen_time,2,'已付款'.$fee.'元，余额'.formatNumber($plate->cars->balance).'元');
+            $balance=0;
+            $cars=ParkingCars::find($records->cars_id);
+            if($cars){
+                $balance=$cars->balance;
+            }
+            $l3=self::convertScreenline($barrier->screen_time,2,'已付款'.$fee.'元，余额'.formatNumber($balance).'元');
         }
         $message=array_merge($l1,$l2,$l3,$l4);
         $data=self::convertArrayToHex($message,0x29);

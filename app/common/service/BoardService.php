@@ -73,7 +73,7 @@ abstract class BoardService{
     //支付成功语音
     abstract public static function paySuccessVoice();
     //支付成功显示
-    abstract public static function paySuccessScreen(ParkingBarrier $barrier,ParkingPlate $plate,ParkingRecords $records,string $rulesType);
+    abstract public static function paySuccessScreen(ParkingBarrier $barrier,ParkingRecords $records);
     //禁止通行语音
     abstract public static function noEntryVoice();
     //人工确认语音

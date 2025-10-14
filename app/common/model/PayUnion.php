@@ -368,7 +368,7 @@ class PayUnion extends Model{
             /* @var ParkingBarrier $barrier*/
             $barrier=ParkingBarrier::find($recordspay->barrier_id);
             if($barrier->trigger_type=='infield' || $barrier->trigger_type=='outfield'){
-                Utils::payOpen($barrier,$records->plate_number);
+                Utils::payOpen($barrier,$records);
                 //发送消息
                 ParkingScreen::sendGreenMessage($barrier,$records->plate_number.'，支付成功，开启道闸');
                 WechatMsg::exit($parking,$records->plate_number);

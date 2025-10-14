@@ -63,7 +63,7 @@ class SfmAndroid extends BoardService
     }
 
     //支付成功显示
-    public static function paySuccessScreen(ParkingBarrier $barrier,ParkingPlate $plate,ParkingRecords $records,string $rulesType){
+    public static function paySuccessScreen(ParkingBarrier $barrier,ParkingRecords $records){
         throw new \Exception('暂不支持此功能');
     }
 
