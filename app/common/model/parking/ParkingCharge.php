@@ -19,7 +19,8 @@ class ParkingCharge extends Model
         'xiaoju'=>'小橘充电',
         'jinglv'=>'鲸率充电',
         'xindiantu'=>'新电途',
-        'weilai'=>'蔚来'
+        'weilai'=>'蔚来',
+        'xingxing'=>'星星充电',
     ];
 
     const TRIGGER=[

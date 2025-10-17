@@ -13,6 +13,7 @@ use app\common\service\charge\Weilai;
 use app\common\service\charge\XiangQianChong;
 use app\common\service\charge\Xiaoju;
 use app\common\service\charge\XinDianTu;
+use app\common\service\charge\Xingxing;
 use think\annotation\route\Group;
 use think\annotation\route\Route;
 use think\facade\Config;
@@ -148,15 +149,15 @@ class Charge extends Api
     public function xingxing()
     {
         $postdata=$this->request->post();
-        $getdata=$this->request->get();
-        $inputdata=file_get_contents('php://input');
-        //将三部分内容合并，写入日志
-        $logpost='post数据:'.PHP_EOL.var_export($postdata,true);
-        $logget='get数据:'.PHP_EOL.var_export($getdata,true);
-        $loginput='input数据:'.PHP_EOL.$inputdata;
-        $content=$logpost.PHP_EOL.PHP_EOL.$logget.PHP_EOL.PHP_EOL.$loginput;
-        file_put_contents('xingxing.log',$content,FILE_APPEND);
-        return '{"result_code":"success","message":"减免成功"}';
+        if(intval($postdata['StartChargeSeqStat'])==4){
+            try{
+                Xingxing::run($postdata);
+                return '{"result_code":"success","message":"减免成功"}';
+            }catch (\Exception $e){
+                return '{"result_code":"failed","message":"'.$e->getMessage().'"}';
+            }
+        }
+        return '{"result_code":"failed","message":"充电未完成"}';
     }
 
     #[Route('POST','run')]

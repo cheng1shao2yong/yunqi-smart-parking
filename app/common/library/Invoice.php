@@ -9,17 +9,17 @@ use app\common\model\PayUnion;
 
 class Invoice
 {
-    const PRIVATE_KEY="MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBALIu6u+yDJoYNv+p0KfY7EhCe2cSHClIvGUPf/GdPILDeiSvP4Zu9roeev9SHcmkUXY3TcF1AM9IsrkEV7sYxs0dRsa4/nLrp4ryC0Ljs6XJ5pWV5oft9jwKGVvrXhvT4vAg82/V71fI3UYJiAxXAPqKc/XbUv+Ikbj+yNhX7yr7AgMBAAECgYAooaNIOmk+QFRWU4J1q/UheyuJsusCDQiM4Q5zacARL4MsV1wcizQu9+FjVHXfc91xoCXWfhhLrE+4+gEJdJpsbOfQBmrXleH2XRStmx/NWpM6U5Cf9D8SGf8LDUAfxQRO4OifgnufKWmVw9tvfy1rW8BDcW+qLlK5TYzxHZlpfQJBAMfNFkYLKUf2y5WYN2WAl4YB8fwSaKw7BIHxng5gLzgzuYw44vadOdhmEgjD8L0BrKDR7aUk0lNrm43DZ5lvIoUCQQDkTTZXlCxKsvHKj4U48+osntyLcuIP1vHLVjkkpwXuuJOaG4Zeozmp6Ut2rWMm3h9xx8zuAEZNp7FujOKFbk9/AkALbrrFi0HzcjW3+5u/3RnOezIDgHIo2L+rR84JeIt7JcqKMX8bKWfz7/M8OSn/RqdAFIMKng7C4zdlZzb4WpmZAkEAiOAyAHf5xh9bD9LUUL0MXQwxtfl+x3hbJ0neoLbyu5k2BWMTQJIj9FbGw7RYiekKeTENEHRhshUkL9+Pv+fPCQJBAJ3ybAdqnOgtTcXFIe4Ikr8Ma5F0H1ngP0a7/9Vx0QQrMv7ZNAojXtDcO32qKVz8a2QdaAFWDOXCEIMGkgdO2+A=";
+    const PRIVATE_KEY="";
     //const PUBLIC_KEY="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCyLurvsgyaGDb/qdCn2OxIQntnEhwpSLxlD3/xnTyCw3okrz+Gbva6Hnr/Uh3JpFF2N03BdQDPSLK5BFe7GMbNHUbGuP5y66eK8gtC47OlyeaVleaH7fY8Chlb614b0+LwIPNv1e9XyN1GCYgMVwD6inP121L/iJG4/sjYV+8q+wIDAQAB";
-    const PUBLIC_KEY="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJkx3HelhEm/U7jOCor29oHsIjCMSTyKbX5rpoAY8KDIs9mmr5Y9r+jvNJH8pK3u5gNnvleT6rQgJQW1mk0zHuPO00vy62tSA53fkSjtM+n0oC1Fkm4DRFd5qJgoP7uFQHR5OEffMjy2qIuxChY4Au0kq+6RruEgIttb7wUxy8TwIDAQAB";
+    const PUBLIC_KEY="";
     //测试地址
     const URL='http://fpkj.testnw.vpiaotong.cn/';
     //正式地址
     //const URL='https://fpkj.vpiaotong.com/';
     //测试平台编码
-    const PLATFORMCODE='yn3bR980';
-    const PLATFORMSHORT='GKZB';
-    const DES_KEY='4jM5Oes4EcUOn44E31sMWhL2';
+    const PLATFORMCODE='';
+    const PLATFORMSHORT='';
+    const DES_KEY='';
 
     //开票
     public static function doInvoice(

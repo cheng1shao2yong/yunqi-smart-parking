@@ -53,7 +53,7 @@ class Dougong extends PayService {
             'goods_desc'=>$this->order_body,
             'trade_type'=>'T_MINIAPP',
             'trans_amt'=> number_format((float)$union->pay_price,2, '.',''),
-            'notify_url'=>request()->domain().'/api/index/notify/dougong',
+            'notify_url'=>request()->domain().'/index/notify/dougong',
             'wx_data'=>json_encode([
                 'sub_appid'=>site_config("addons.uniapp_miniapp_id"),
                 'sub_openid'=>$third->openid,
@@ -119,7 +119,7 @@ class Dougong extends PayService {
             'trade_type'=>'A_JSAPI',
             'trans_amt'=> number_format((float)$union->pay_price,2, '.',''),
             'goods_desc'=>$this->order_body,
-            'notify_url'=>request()->domain().'/api/index/notify/dougong',
+            'notify_url'=>request()->domain().'/index/notify/dougong',
             'alipay_data'=>json_encode([
                 'op_app_id'=>site_config("addons.uniapp_alimini_id"),
                 'buyer_id'=>$third->openid,

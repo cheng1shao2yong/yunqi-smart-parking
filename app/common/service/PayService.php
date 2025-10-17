@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use app\common\model\PayUnion;
+use app\common\service\pay\Custom;
 use app\common\service\pay\Dougong;
 use app\common\service\pay\Yibao;
 use app\common\service\pay\Guotong;
@@ -41,6 +42,7 @@ abstract class PayService extends BaseService{
         'yibao'=>Yibao::class,
         'guotong'=>Guotong::class,
         'dougong'=>Dougong::class,
+        'custom'=>Custom::class,
     ];
 
     protected function getSubMerchNo()

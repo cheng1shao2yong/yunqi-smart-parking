@@ -61,6 +61,7 @@ class PayUnion extends Model{
     ];
 
     const PAY_TYPE_HANDLE=[
+        'custom'=>'微信支付宝商户支付',
         'yibao'=>'易宝支付',
         'guotong'=>'国通支付',
         'dougong'=>'斗拱支付'
