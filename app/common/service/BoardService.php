@@ -85,11 +85,11 @@ abstract class BoardService{
     //设置音量
     abstract public static function setVolume(int $step,int $voice);
     //无入场记录放行显示
-    abstract public static function noEntryRecordDisplay(ParkingBarrier $barrier);
+    abstract public static function noEntryRecordDisplay(ParkingBarrier $barrier,string $plate_number);
     //无入场记录放行语音
     abstract public static function noEntryRecordVoice();
     //内场放行显示
-    abstract public static function insidePassDisplay(ParkingBarrier $barrier);
+    abstract public static function insidePassDisplay(ParkingBarrier $barrier,string $plate_number);
     //显示出场付款码
     abstract public static function showPayQRCode(ParkingBarrier $barrier);
     //显示无牌车入场二维码
@@ -97,9 +97,9 @@ abstract class BoardService{
     //显示无牌车出场二维码
     abstract public static function showExitQRCode(ParkingBarrier $barrier);
     //无牌车语音
-    abstract public static function noPlateVoice();
+    abstract public static function noPlateVoice(ParkingBarrier $barrier);
     //无牌车显示
-    abstract public static function noPlateDisplay(ParkingBarrier $barrier,string $type);
+    abstract public static function noPlateDisplay(ParkingBarrier $barrier);
 
     public static function isScreenAction(string $name)
     {

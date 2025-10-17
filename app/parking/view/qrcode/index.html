@@ -70,16 +70,16 @@ export default{
     },
     methods: {
         changeUrl:function (type,serialno){
-            this.drawer.url=Yunqi.config.baseUrl+'qrcode/show?parking_id='+Yunqi.data.parking_id+'&background=1&name='+type+'&serialno='+serialno;
+            this.drawer.url=Yunqi.config.baseUrl+'xqrcode/show?parking_id='+Yunqi.data.parking_id+'&background=1&name='+type+'&serialno='+serialno;
         },
         del:function (row){
-            Yunqi.api.del('qrcode/del',row.id,function (){
+            Yunqi.api.del('xqrcode/del',row.id,function (){
                 location.reload();
             });
         },
         edit:function (e){
             Yunqi.api.open({
-                url:'qrcode/edit?name='+e.name,
+                url:'xqrcode/edit?name='+e.name,
                 title:'设置背景图 - '+e.title,
                 icon:'fa fa-image',
                 expand:true,
@@ -95,7 +95,7 @@ export default{
                 this.drawer.name=row.name;
                 this.drawer.title=row.title;
                 this.drawer.show=true;
-                let url=Yunqi.config.baseUrl+'qrcode/show?parking_id='+Yunqi.data.parking_id+'&background=1&name='+row.name;
+                let url=Yunqi.config.baseUrl+'xqrcode/show?parking_id='+Yunqi.data.parking_id+'&background=1&name='+row.name;
                 if(row.name=='entry'){
                     let keys=Object.keys(this.barrier_entry);
                     if(keys.length>0){
@@ -112,7 +112,7 @@ export default{
                 }
                 this.drawer.url=url;
             }else{
-                let url=Yunqi.config.baseUrl+'qrcode/download?size='+this.drawer.size+'&name='+this.drawer.name;
+                let url=Yunqi.config.baseUrl+'xqrcode/download?size='+this.drawer.size+'&name='+this.drawer.name;
                 if(this.drawer.name=='entry' || this.drawer.name=='exit'){
                     url+='&serialno='+this.drawer.serialno;
                 }

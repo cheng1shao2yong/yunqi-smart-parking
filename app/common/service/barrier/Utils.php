@@ -12,13 +12,13 @@ declare(strict_types=1);
 namespace app\common\service\barrier;
 
 use app\common\model\parking\ParkingBarrier;
-use app\common\model\parking\ParkingCars;
 use app\common\model\parking\ParkingPlate;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecordsPay;
 use app\common\service\BoardService;
 use think\facade\Cache;
 use Swoole\Coroutine;
+use think\model\Collection;
 
 class Utils
 {
@@ -57,7 +57,11 @@ class Utils
                     $callback(json_decode($result,true));
                     return;
                 }
-                Coroutine\System::sleep(0.1);
+                if (isset($_SERVER['HTTP_HOST'])) {
+                    usleep(100000);
+                } else {
+                    Coroutine\System::sleep(0.1);
+                }
                 $i++;
             }
             $callback(false);
@@ -109,10 +113,10 @@ class Utils
                     $dataStream=$boardClass::setAdvertisement($param['line'],$param['text']);
                     break;
                 case '无入场记录放行显示':
-                    $dataStream=$boardClass::noEntryRecordDisplay($barrier);
+                    $dataStream=$boardClass::noEntryRecordDisplay($barrier,$param['plate_number']);
                     break;
                 case '内场放行显示':
-                    $dataStream=$boardClass::insidePassDisplay($barrier);
+                    $dataStream=$boardClass::insidePassDisplay($barrier,$param['plate_number']);
                     break;
                 case '显示出场付款码':
                     $dataStream=$boardClass::showPayQRCode($param['qrcode'],$param['text']);
@@ -124,10 +128,10 @@ class Utils
                     $dataStream=$boardClass::showExitQRCode($param['qrcode'],$param['text']);
                     break;
                 case '无牌车语音':
-                    $dataStream=$boardClass::noPlateVoice();
+                    $dataStream=$boardClass::noPlateVoice($barrier);
                     break;
                 case '无牌车显示':
-                    $dataStream=$boardClass::noPlateDisplay($barrier,$param['type']);
+                    $dataStream=$boardClass::noPlateDisplay($barrier);
                     break;
                 case '入场语音':
                     $dataStream=$boardClass::entryVoice($barrier,$param['plate'],$param['rulesType']);
@@ -197,7 +201,17 @@ class Utils
 
     public static function test(ParkingBarrier $barrier)
     {
-        self::send($barrier,'支付成功显示',['records'=>ParkingRecords::find(796)]);
+        $plate=ParkingPlate::with(['cars'])->find(1389);
+        $recordspay=new ParkingRecordsPay();
+        $recordspay->pay_price=145.45;
+        $records=ParkingRecords::find(192);
+        self::send($barrier,'无牌车语音',[
+            'plate'=>$plate,
+            'rulesType'=>'monthly',
+            'recordsPay'=>$recordspay,
+            'records'=>$records,
+            'plate_number'=>$plate->plate_number,
+        ]);
     }
 
     public static function trigger(ParkingBarrier $barrier)
@@ -264,7 +278,7 @@ class Utils
     {
         if($recordsType==ParkingRecords::RECORDSTYPE('自动识别') || $recordsType==ParkingRecords::RECORDSTYPE('人工确认')){
             self::send($barrier,'开闸');
-            self::send($barrier,'内场放行显示');
+            self::send($barrier,'内场放行显示',['plate_number'=>$plate->plate_number]);
             if($barrier->barrier_type=='entry'){
                 self::send($barrier,'入场语音',['plate'=>$plate,'rulesType'=>$rulesType]);
             }
@@ -274,13 +288,13 @@ class Utils
         }
     }
 
-    public static function havaNoEntryOpen(ParkingBarrier $barrier,string $recordsType,bool $open)
+    public static function havaNoEntryOpen(ParkingBarrier $barrier,string $plate_number,string $recordsType,bool $open)
     {
         if($recordsType==ParkingRecords::RECORDSTYPE('自动识别') || $recordsType==ParkingRecords::RECORDSTYPE('人工确认')){
             if($open){
                 self::send($barrier,'开闸');
             }
-            self::send($barrier,'无入场记录放行显示');
+            self::send($barrier,'无入场记录放行显示',['plate_number'=>$plate_number]);
             self::send($barrier,'无入场记录放行语音');
         }
     }
@@ -325,7 +339,7 @@ class Utils
     //无牌车入场
     public static function noPlateEntry(ParkingBarrier $barrier)
     {
-        self::send($barrier,'无牌车显示',['type'=>'entry']);
+        self::send($barrier,'无牌车显示');
         self::send($barrier,'无牌车语音');
         self::send($barrier,'显示无牌车入场二维码');
     }
@@ -333,12 +347,12 @@ class Utils
     //无牌车出场
     public static function noPlateExit(ParkingBarrier $barrier)
     {
-        self::send($barrier,'无牌车显示',['type'=>'exit']);
+        self::send($barrier,'无牌车显示');
         self::send($barrier,'无牌车语音');
         self::send($barrier,'显示无牌车出场二维码');
     }
 
-    public static function setWhitelist(ParkingBarrier $barrier,array $cars)
+    public static function setWhitelist(ParkingBarrier $barrier,Collection $cars)
     {
         self::send($barrier,'离线白名单',['cars'=>$cars,'action'=>'update_or_add']);
     }
@@ -389,7 +403,7 @@ class Utils
 
     public static function checkPlate(string $photo)
     {
-        throw new \Exception('未定义车牌识别方法');
+        return [false,'',''];
     }
 
     public static function getVersion(ParkingBarrier $barrier)

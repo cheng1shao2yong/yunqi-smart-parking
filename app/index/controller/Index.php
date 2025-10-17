@@ -25,7 +25,8 @@ class Index extends BaseController
     #[Get('/test')]
     public function test()
     {
-        $barrier=ParkingBarrier::find(6);
+        $barrier=ParkingBarrier::find(26);
+        //$barrier=ParkingBarrier::find(11);
         Utils::test($barrier);
     }
 }

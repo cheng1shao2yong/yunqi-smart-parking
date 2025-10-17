@@ -20,8 +20,8 @@ class ParkingQrcode extends Model
         ['title'=>'储值卡申请与充值码','name'=>'stored'],
         ['title'=>'停车场小程序管理端入口码','name'=>'admin'],
         ['title'=>'停车场小程序商家端入口码','name'=>'merchant'],
-        ['title'=>'云起停车小程序用户端入口码','name'=>'miniapp'],
-        ['title'=>'云起停车关注公众号二维码','name'=>'mpapp']
+        ['title'=>'小程序用户端入口码','name'=>'miniapp'],
+        ['title'=>'关注公众号二维码','name'=>'mpapp']
     );
 
     public function parking()

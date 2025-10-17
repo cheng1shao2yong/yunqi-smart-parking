@@ -349,7 +349,7 @@ class ParkingService extends BaseService{
             }
             //没有入场记录的自动出场车辆
             if($setting[$rulesType.'_no_entry']){
-                Utils::havaNoEntryOpen($this->barrier,$this->records_type,true);
+                Utils::havaNoEntryOpen($this->barrier,$plate->plate_number,$this->records_type,true);
                 ParkingScreen::sendRedMessage($this->barrier,$plate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType].'，没有入场记录');
                 return true;
             }

@@ -157,21 +157,11 @@ class InsideService extends BaseService{
             $exitRecords=ParkingRecords::where(['parking_id'=>$this->insideParking->id,'plate_number'=>$this->insidePlate->plate_number])->whereIn('status',[3,4,9])->order('id desc')->find();
             if($exitRecords && $exitRecords->exit_time>time()-60*15){
                 $next=function () use ($exitRecords){
-                    /* @var BarrierService $barrierService*/
-                    $barrierService=$this->insideBarrier->getBarrierService();
-                    $barrierService->setParam([
-                        'recordsType'=>ParkingRecords::RECORDSTYPE('自动识别'),
-                        'rulesType'=>$exitRecords->rules_type,
-                        'plate'=>$this->insidePlate,
-                        'records'=>$exitRecords
-                    ]);
-                    //内场提前缴费
+                    $recordsPay=null;
                     if($exitRecords->pay_fee>0){
                         $recordsPay=ParkingRecordsPay::where(['records_id'=>$exitRecords->id])->where('pay_id','>',0)->find();
-                        $barrierService->setParam(['recordsPay'=>$recordsPay]);
                     }
-                    $barrierService->screen('exit');
-                    $barrierService->voice('exit');
+                    Utils::exitScreenAndVoice($this->insideBarrier,$this->insidePlate,$exitRecords,$recordsPay,ParkingRecords::RECORDSTYPE('自动识别'),$exitRecords->rules_type);
                     //岗亭通知
                     ParkingScreen::sendGreenMessage($this->insideBarrier,$this->insidePlate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$exitRecords->rules_type].'，'.ParkingRecords::STATUS[$exitRecords->status]);
                 };
@@ -180,12 +170,7 @@ class InsideService extends BaseService{
             //没有入场记录的自动出场车辆
             if($insideSetting[$rulesType.'_no_entry']){
                 $next=function () use ($exitRecords,$rulesType){
-                    /* @var BarrierService $barrierService*/
-                    $barrierService=$this->insideBarrier->getBarrierService();
-                    $barrierService->setParam([
-                        'recordsType'=>ParkingRecords::RECORDSTYPE('自动识别'),
-                    ]);
-                    $barrierService->havaNoEntryOpen(false);
+                    Utils::havaNoEntryOpen($this->insideBarrier,$this->insidePlate->plate_number,ParkingRecords::RECORDSTYPE('自动识别'),false);
                     ParkingScreen::sendRedMessage($this->insideBarrier,$this->insidePlate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType].'，没有入场记录');
                 };
                 return true;
@@ -234,16 +219,7 @@ class InsideService extends BaseService{
             if(!$access){
                 $ispay=$this->createOrder($this->insideParking,$records);
                 if(!$ispay){
-                    $barrierService=$this->insideBarrier->getBarrierService();
-                    $barrierService->setParam([
-                        'recordsType'=>ParkingRecords::RECORDSTYPE('自动识别'),
-                        'plate'=>$this->insidePlate,
-                        'records'=>$records,
-                        'recordsPay'=>$this->recordsPay,
-                        'rulesType'=>$rulesType
-                    ]);
-                    $barrierService->screen('exit');
-                    $barrierService->voice('exit');
+                    Utils::exitScreenAndVoice($this->insideBarrier,$this->insidePlate,$records,$this->recordsPay,ParkingRecords::RECORDSTYPE('自动识别'),$rulesType);
                     ParkingScreen::sendRedMessage($this->outsideBarrier,$this->outsidePlate->plate_number.'等待内场支付');
                     ParkingScreen::sendRedMessage($this->insideBarrier,$this->insidePlate->plate_number.ParkingRules::RULESTYPE[$rulesType].'，入场时间'.$records->entry_time_txt.'，待支付'.($this->recordsPay->pay_price).'元');
                     return false;
@@ -276,20 +252,11 @@ class InsideService extends BaseService{
                 }
             };
             $next=function () use ($records,$rulesType){
-                /* @var BarrierService $barrierService*/
-                $barrierService=$this->insideBarrier->getBarrierService();
-                $barrierService->setParam([
-                    'recordsType'=>ParkingRecords::RECORDSTYPE('自动识别'),
-                    'rulesType'=>$rulesType,
-                    'plate'=>$this->insidePlate,
-                    'records'=>$records,
-                ]);
+                $recordsPay=null;
                 if($records->pay_fee>0){
                     $recordsPay=ParkingRecordsPay::where(['records_id'=>$records->id])->where('pay_id','>',0)->find();
-                    $barrierService->setParam(['recordsPay'=>$recordsPay]);
                 }
-                $barrierService->screen('exit');
-                $barrierService->voice('exit');
+                Utils::exitScreenAndVoice($this->insideBarrier,$this->insidePlate,$records,$recordsPay,ParkingRecords::RECORDSTYPE('自动识别'),$rulesType);
                 //岗亭通知
                 ParkingScreen::sendGreenMessage($this->insideBarrier,$this->insidePlate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType].'，'.ParkingRecords::STATUS[$records->status]);
             };
@@ -419,6 +386,11 @@ class InsideService extends BaseService{
             $exitRecords=ParkingRecords::where(['parking_id'=>$this->outsideParking->id,'plate_number'=>$this->outsidePlate->plate_number])->whereIn('status',[3,4,9])->order('id desc')->find();
             if($exitRecords && $exitRecords->exit_time>time()-60*15){
                 $next=function () use ($exitRecords){
+                    $recordsPay=null;
+                    if($exitRecords->pay_fee>0){
+                        $recordsPay=ParkingRecordsPay::where(['records_id'=>$exitRecords->id])->where('pay_id','>',0)->find();
+                    }
+                    Utils::exitScreenAndVoice($this->outsideBarrier,$this->outsidePlate,$exitRecords,$recordsPay,ParkingRecords::RECORDSTYPE('自动识别'),$exitRecords->rules_type);
                     //岗亭通知
                     ParkingScreen::sendGreenMessage($this->outsideBarrier,$this->outsidePlate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$exitRecords->rules_type].'，'.ParkingRecords::STATUS[$exitRecords->status]);
                 };
@@ -427,6 +399,7 @@ class InsideService extends BaseService{
             //没有入场记录的自动出场车辆
             if($outsideSetting[$rulesType.'_no_entry']){
                 $next=function () use ($rulesType){
+                    Utils::havaNoEntryOpen($this->outsideBarrier,$this->outsidePlate->plate_number,ParkingRecords::RECORDSTYPE('自动识别'),false);
                     //岗亭通知
                     ParkingScreen::sendRedMessage($this->outsideBarrier,$this->outsidePlate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType].'，没有入场记录');
                 };
@@ -476,16 +449,8 @@ class InsideService extends BaseService{
             if(!$access){
                 $ispay=$this->createOrder($this->outsideParking,$records);
                 if(!$ispay){
-                    $barrierService=$this->outsideBarrier->getBarrierService();
-                    $barrierService->setParam([
-                        'recordsType'=>ParkingRecords::RECORDSTYPE('自动识别'),
-                        'plate'=>$this->outsidePlate,
-                        'records'=>$records,
-                        'rulesType'=>$rulesType,
-                        'recordsPay'=>$this->recordsPay
-                    ]);
-                    $barrierService->screen('exit');
-                    $barrierService->voice('exit');
+                    //屏幕与语音
+                    Utils::exitScreenAndVoice($this->outsideBarrier,$this->outsidePlate,$records,$this->recordsPay,ParkingRecords::RECORDSTYPE('自动识别'),$rulesType);
                     ParkingScreen::sendRedMessage($this->insideBarrier,$this->insidePlate->plate_number.'等待外场支付');
                     ParkingScreen::sendRedMessage($this->outsideBarrier,$this->outsidePlate->plate_number.ParkingRules::RULESTYPE[$rulesType].'，入场时间'.$records->entry_time_txt.'，待支付'.($this->recordsPay->pay_price).'元');
                     return false;
@@ -518,6 +483,11 @@ class InsideService extends BaseService{
                 }
             };
             $next=function () use ($records,$rulesType){
+                $recordsPay=null;
+                if($records->pay_fee>0){
+                    $recordsPay=ParkingRecordsPay::where(['records_id'=>$records->id])->where('pay_id','>',0)->find();
+                }
+                Utils::exitScreenAndVoice($this->outsideBarrier,$this->outsidePlate,$records,$recordsPay,ParkingRecords::RECORDSTYPE('自动识别'),$rulesType);
                 //岗亭通知
                 ParkingScreen::sendGreenMessage($this->outsideBarrier,$this->outsidePlate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType].'，'.ParkingRecords::STATUS[$records->status]);
             };
@@ -541,16 +511,6 @@ class InsideService extends BaseService{
         $records=ParkingRecords::where(['parking_id'=>$this->insideParking->id,'plate_number'=>$this->insidePlate->plate_number])->whereIn('status',[0,1,6])->find();
         if($records && $records->entry_time+15*60>time()){
             $next=function () use ($rulesType){
-                /* @var BarrierService $barrierService*/
-                $barrierService=$this->insideBarrier->getBarrierService();
-                $barrierService->setParam([
-                    'recordsType'=>ParkingRecords::RECORDSTYPE('自动识别'),
-                    'plate'=>$this->insidePlate,
-                    'rulesType'=>$rulesType,
-                ]);
-                //发送屏幕与语音消息
-                $barrierService->screen('entry');
-                $barrierService->voice('entry');
                 //岗亭通知
                 ParkingScreen::sendBlackMessage($this->insideBarrier,$this->insidePlate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType]);
             };
@@ -623,21 +583,11 @@ class InsideService extends BaseService{
                 }
             };
             $next=function () use ($parking_space_entry,$insideSetting,$rulesType){
-                /* @var BarrierService $barrierService*/
-                $barrierService=$this->insideBarrier->getBarrierService();
-                $barrierService->setParam([
-                    'recordsType'=>ParkingRecords::RECORDSTYPE('自动识别'),
-                    'plate'=>$this->insidePlate,
-                    'rulesType'=>$rulesType,
-                ]);
-                //发送屏幕与语音消息
-                $barrierService->screen('entry');
-                $barrierService->voice('entry');
                 //计算余位
                 if($this->insideBarrier->show_last_space){
                     $last_space=$insideSetting->parking_space_total-$parking_space_entry-1;
                     $last_space=$last_space>0?$last_space:0;
-                    $barrierService->showLastSpace($last_space);
+                    Utils::showLastSpace($this->barrier,$this->records_type,$last_space);
                 }
                 //岗亭通知
                 ParkingScreen::sendBlackMessage($this->insideBarrier,$this->insidePlate->plate_number.'开闸成功，'.ParkingRules::RULESTYPE[$rulesType]);

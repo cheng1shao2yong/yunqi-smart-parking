@@ -93,7 +93,7 @@ class SfmAndroid extends BoardService
     }
 
     //无入场记录放行显示
-    public static function noEntryRecordDisplay(ParkingBarrier $barrier){
+    public static function noEntryRecordDisplay(ParkingBarrier $barrier,string $plate_number){
         throw new \Exception('暂不支持此功能');
     }
 
@@ -103,7 +103,7 @@ class SfmAndroid extends BoardService
     }
 
     //内场放行显示
-    public static function insidePassDisplay(ParkingBarrier $barrier)
+    public static function insidePassDisplay(ParkingBarrier $barrier,string $plate_number)
     {
         throw new \Exception('暂不支持此功能');
     }
@@ -160,13 +160,13 @@ class SfmAndroid extends BoardService
     }
 
     //无牌车语音
-    public static function noPlateVoice()
+    public static function noPlateVoice(ParkingBarrier $barrier)
     {
         throw new \Exception('暂不支持此功能');
     }
 
     //无牌车显示
-    public static function noPlateDisplay(ParkingBarrier $barrier,string $type)
+    public static function noPlateDisplay(ParkingBarrier $barrier)
     {
         throw new \Exception('暂不支持此功能');
     }

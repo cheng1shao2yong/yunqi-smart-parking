@@ -9,8 +9,10 @@ use app\common\model\manage\Parking;
 use app\common\model\parking\ParkingCharge;
 use app\common\service\charge\FastCloudCharge;
 use app\common\service\charge\Telaidian;
+use app\common\service\charge\Weilai;
 use app\common\service\charge\XiangQianChong;
 use app\common\service\charge\Xiaoju;
+use app\common\service\charge\XinDianTu;
 use think\annotation\route\Group;
 use think\annotation\route\Route;
 use think\facade\Config;
@@ -116,6 +118,30 @@ class Charge extends Api
             $result['Ret']=4004;
         }
         return json_encode($result,JSON_UNESCAPED_UNICODE);
+    }
+
+    #[Route('GET,POST','xindiantu/chargePile/chargingRecord')]
+    public function xindiantu()
+    {
+        $postdata=$this->request->post();
+        try{
+            XinDianTu::run($postdata);
+            return '{"result":0}';
+        }catch (\Exception $e){
+            return '{"result":1, "description":"'.$e->getMessage().'"}';
+        }
+    }
+
+    #[Route('GET,POST','weilai/deduct')]
+    public function weilai()
+    {
+        $postdata=$this->request->post();
+        try{
+            Weilai::run($postdata);
+            return '{"result_code":"success","message":"减免成功"}';
+        }catch (\Exception $e){
+            return '{"result_code":"failed","message":"'.$e->getMessage().'"}';
+        }
     }
 
     #[Route('POST','run')]

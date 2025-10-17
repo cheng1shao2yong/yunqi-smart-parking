@@ -205,8 +205,8 @@ class FkRs485 extends BoardService
         }
     }
     //无入场记录放行显示
-    public static function noEntryRecordDisplay(ParkingBarrier $barrier){
-        $l1=self::convertScreenline($barrier->screen_time,1,'免费放行');
+    public static function noEntryRecordDisplay(ParkingBarrier $barrier,string $plate_number){
+        $l1=self::convertScreenline($barrier->screen_time,1,$plate_number);
         $l2=self::convertScreenline($barrier->screen_time,2,'无入场记录，直接放行');
         $l3=self::convertScreenline($barrier->screen_time,1,'一车一杆');
         $l4=self::convertScreenline($barrier->screen_time,2,'减速慢行');
@@ -224,9 +224,9 @@ class FkRs485 extends BoardService
     }
 
     //内场放行显示
-    public static function insidePassDisplay(ParkingBarrier $barrier)
+    public static function insidePassDisplay(ParkingBarrier $barrier,string $plate_number)
     {
-        $l1=self::convertScreenline($barrier->screen_time,1,'免费放行');
+        $l1=self::convertScreenline($barrier->screen_time,1,$plate_number);
         $l2=self::convertScreenline($barrier->screen_time,2,'内场通道，直接放行');
         $l3=self::convertScreenline($barrier->screen_time,1,'一车一杆');
         $l4=self::convertScreenline($barrier->screen_time,2,'减速慢行');
@@ -252,7 +252,7 @@ class FkRs485 extends BoardService
         throw new \Exception('不支持');
     }
     //无牌车语音
-    public static function noPlateVoice()
+    public static function noPlateVoice(ParkingBarrier $barrier)
     {
         $str=self::stringToGbkHexArray('请');
         $data=self::convertArrayToHex([0x7F,0x19,...$str,0x7F,0x1B],0x22);
@@ -260,12 +260,12 @@ class FkRs485 extends BoardService
         return $dataStream;
     }
     //无牌车显示
-    public static function noPlateDisplay(ParkingBarrier $barrier,string $type)
+    public static function noPlateDisplay(ParkingBarrier $barrier)
     {
-        if($type=='entry'){
+        if($barrier->barrier_type=='entry'){
             $text='入场';
         }
-        if($type=='exit'){
+        if($barrier->barrier_type=='exit'){
             $text='出场';
         }
         $l1=self::convertScreenline($barrier->screen_time,1,'无牌车');

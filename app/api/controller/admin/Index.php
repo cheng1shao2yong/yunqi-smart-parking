@@ -21,8 +21,8 @@ class Index extends Api
     {
         parent::_initialize();
         if(
-            $this->auth->id!=1
-            && $this->auth->id!=6
+            $this->auth->id!=9
+            && $this->auth->id!=19
         ){
             $this->error('没有权限');
         }

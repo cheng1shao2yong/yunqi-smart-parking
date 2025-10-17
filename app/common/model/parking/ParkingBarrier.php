@@ -27,6 +27,7 @@ class ParkingBarrier extends Model
 
     const SCREEN_VOICE=[
         'fk-rs485'=>'方控-RS485主板',
+        'kf-rs485'=>'科发-RS485主板',
         'sfm-rs485'=>'赛菲姆-RS485主板',
         'sfm-android'=>'赛菲姆-通道机',
         'none'=>'不支持'

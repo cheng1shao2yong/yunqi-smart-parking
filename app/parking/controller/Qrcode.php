@@ -18,7 +18,7 @@ use app\common\model\PlateTemporary;
 use think\annotation\route\Group;
 use think\annotation\route\Route;
 
-#[Group("qrcode")]
+#[Group("xqrcode")]
 class Qrcode extends ParkingBase
 {
 
@@ -121,7 +121,7 @@ class Qrcode extends ParkingBase
                 ];
                 $qrcode->text=json_encode($arr);
             }
-            $url=$this->request->domain().'/'.'qrcode/show?parking_id='.$this->parking->id.'&name='.$name;
+            $url=$this->request->domain().'/'.'xqrcode/show?parking_id='.$this->parking->id.'&name='.$name;
             $this->assign('url',$url);
             $this->assign('qrcode',$qrcode);
             return $this->fetch();
