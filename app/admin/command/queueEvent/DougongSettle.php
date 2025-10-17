@@ -21,6 +21,22 @@ class DougongSettle implements EventInterFace
     public static $usetime=true;
     public static function handle($output)
     {
-
+        $date=date('Y-m-d',time());
+        $sql="SELECT parking_id,date,net_income FROM parking_daily_cash_flow where date='{$date}' and parking_id in (SELECT id FROM yun_parking where pay_type_handle='dougong')";
+        $list=Db::query($sql);
+        $dougong=PayService::newInstance(['pay_type_handle'=>'dougong']);
+        foreach ($list as $item){
+            if($item['parking_id']==1){
+                continue;
+            }
+            $parking=Parking::find($item['parking_id']);
+            try{
+                $dougong->settle($parking,$date,floatval($item['net_income']));
+            }catch (\Exception $e){
+                $output->writeln($e->getMessage());
+                continue;
+            }
+            usleep(200000);
+        }
     }
 }

@@ -25,8 +25,8 @@ class DailyCashFlow implements EventInterFace
         $prefix=getDbPrefix();
         $sql="TRUNCATE TABLE {$prefix}parking_daily_cash_flow";
         Db::execute($sql);
-        $sql = "INSERT INTO {$prefix}parking_daily_cash_flow (parking_id, date, total_income, parking_income, parking_recovery, parking_monthly_income, parking_stored_income, merch_recharge_income, handling_fees, total_refund, net_income)
-               SELECT parking_id, date, total_income, parking_income, parking_recovery, parking_monthly_income, parking_stored_income, merch_recharge_income, handling_fees, total_refund, net_income
+        $sql = "INSERT INTO {$prefix}parking_daily_cash_flow (parking_id, date, total_income, parking_income, parking_monthly_income, parking_stored_income, merch_recharge_income, handling_fees, total_refund, net_income)
+               SELECT parking_id, date, total_income, parking_income, parking_monthly_income, parking_stored_income, merch_recharge_income, handling_fees, total_refund, net_income
                FROM parking_daily_cash_flow";
         Db::execute($sql);
         $date=date('Y-m-d',time()-24*3600);

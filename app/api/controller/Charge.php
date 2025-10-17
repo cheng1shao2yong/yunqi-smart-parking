@@ -144,6 +144,21 @@ class Charge extends Api
         }
     }
 
+    #[Route('GET,POST','xingxing/notification_parking_charge_result')]
+    public function xingxing()
+    {
+        $postdata=$this->request->post();
+        $getdata=$this->request->get();
+        $inputdata=file_get_contents('php://input');
+        //将三部分内容合并，写入日志
+        $logpost='post数据:'.PHP_EOL.var_export($postdata,true);
+        $logget='get数据:'.PHP_EOL.var_export($getdata,true);
+        $loginput='input数据:'.PHP_EOL.$inputdata;
+        $content=$logpost.PHP_EOL.PHP_EOL.$logget.PHP_EOL.PHP_EOL.$loginput;
+        file_put_contents('xingxing.log',$content,FILE_APPEND);
+        return '{"result_code":"success","message":"减免成功"}';
+    }
+
     #[Route('POST','run')]
     public function run()
     {

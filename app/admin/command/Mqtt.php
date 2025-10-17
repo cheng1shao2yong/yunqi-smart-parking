@@ -74,8 +74,15 @@ class Mqtt extends Command
 
     private function publish()
     {
-        $client=$this->getClient('mqtt-publish-server-'.rand(1000,9000));
-        $client->connect();
+        try{
+            $client=$this->getClient('mqtt-publish-server-'.rand(1000,9000));
+            $client->connect();
+        }catch (\Exception $e)
+        {
+            $this->output('mqtt连接失败，2秒后重试');
+            Coroutine\System::sleep(2);
+            $this->publish();
+        }
         $this->output('publish连接成功');
         $timeSincePing=time();
         while(true){
@@ -172,8 +179,15 @@ class Mqtt extends Command
 
     private function receive()
     {
-        $client=$this->getClient('mqtt-receive-server-'.rand(1000,9000));
-        $client->connect();
+        try{
+            $client=$this->getClient('mqtt-receive-server-'.rand(1000,9000));
+            $client->connect();
+        }catch (\Exception $e)
+        {
+            $this->output('mqtt连接失败，2秒后重试');
+            Coroutine\System::sleep(2);
+            $this->receive();
+        }
         $topcarr=$this->getSubscribe();
         if(!empty($topcarr)){
             $client->subscribe($topcarr);
@@ -199,38 +213,35 @@ class Mqtt extends Command
             }
             try {
                 $buffer = $client->recv();
-                if ($buffer && $buffer !== true){
-                    if ($buffer['type'] === Types::DISCONNECT) {
-                        $this->output('mqtt客户端断开连接');
-                        $client->close();
-                        $this->receive();
-                        break;
-                    }
-                    if (isset($buffer['topic']) && isset($buffer['message'])) {
-                        $topic=$buffer['topic'];
-                        $message=json_decode($buffer['message'],true);
-                        $this->output('收到消息,'.$topic);
-                        Coroutine::create(function() use ($topic,$message){
-                            try {
-                                /* @var ParkingBarrier $barrier */
-                                $barrier=BarrierService::getBarriers($topic,$message);
-                                if($barrier){
-                                    /* @var BarrierService $barrierService*/
-                                    $barrierService=$barrier->getBarrierService();
-                                    $callback=$barrierService::invoke($barrier,$message);
-                                    if($callback){
-                                        $uniqid=Utils::getUniqidName($barrier);
-                                        $this->redis->set($message[$uniqid],json_encode($message));
-                                        $this->reply[$message[$uniqid]]=time();
-                                    }
+                if (
+                    $buffer &&
+                    $buffer !== true &&
+                    isset($buffer['topic']) &&
+                    isset($buffer['message'])
+                ){
+                    $topic=$buffer['topic'];
+                    $message=json_decode($buffer['message'],true);
+                    $this->output('收到消息,'.$topic);
+                    Coroutine::create(function() use ($topic,$message){
+                        try {
+                            /* @var ParkingBarrier $barrier */
+                            $barrier=BarrierService::getBarriers($topic,$message);
+                            if($barrier){
+                                /* @var BarrierService $barrierService*/
+                                $barrierService=$barrier->getBarrierService();
+                                $callback=$barrierService::invoke($barrier,$message);
+                                if($callback){
+                                    $uniqid=Utils::getUniqidName($barrier);
+                                    $this->redis->set($message[$uniqid],json_encode($message));
+                                    $this->reply[$message[$uniqid]]=time();
                                 }
-                            }catch (\Exception $e){
-                                $this->output->info(date('Y-m-d H:i:s'));
-                                $this->output->error($e->getMessage());
-                                $this->output->error($e->getTraceAsString());
                             }
-                        });
-                    }
+                        }catch (\Exception $e){
+                            $this->output->info(date('Y-m-d H:i:s'));
+                            $this->output->error($e->getMessage());
+                            $this->output->error($e->getTraceAsString());
+                        }
+                    });
                 }
             }catch (\Exception $e) {
                 $message=$e->getMessage();
@@ -247,8 +258,15 @@ class Mqtt extends Command
     
     private function keepalive()
     {
-        $client=$this->getClient('mqtt-keepalive-server-'.rand(1000,9000));
-        $client->connect();
+        try{
+            $client=$this->getClient('mqtt-keepalive-server-'.rand(1000,9000));
+            $client->connect();
+        }catch (\Exception $e)
+        {
+            $this->output('mqtt连接失败，2秒后重试');
+            Coroutine\System::sleep(2);
+            $this->keepalive();
+        }
         $topcarr=$this->getKeepAlive();
         if(!empty($topcarr)){
             $client->subscribe($topcarr);
@@ -274,19 +292,11 @@ class Mqtt extends Command
             }
             try {
                 $buffer = $client->recv();
-                if ($buffer && $buffer !== true){
-                    if ($buffer['type'] === Types::DISCONNECT) {
-                        $this->output('mqtt客户端断开连接');
-                        $client->close();
-                        $this->keepalive();
-                        break;
-                    }
-                    if (isset($buffer['topic'])) {
-                        $topic=$buffer['topic'];
-                        $this->output('收到消息,'.$topic);
-                        $serialno=BarrierService::getSn($topic);
-                        Cache::set('barrier-online-'.$serialno,time());
-                    }
+                if ($buffer && $buffer !== true && isset($buffer['topic'])){
+                    $topic=$buffer['topic'];
+                    $this->output('收到消息,'.$topic);
+                    $serialno=BarrierService::getSn($topic);
+                    Cache::set('barrier-online-'.$serialno,time());
                 }
             }catch (\Exception $e){
                 $message=$e->getMessage();
@@ -300,6 +310,7 @@ class Mqtt extends Command
             }
         }
     }
+
     private function getClient(string $name)
     {
         $host=site_config("mqtt.mqtt_host");

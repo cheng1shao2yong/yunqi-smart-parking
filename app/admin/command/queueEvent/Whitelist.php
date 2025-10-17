@@ -44,7 +44,7 @@ class Whitelist implements EventInterFace
                     $cars=ParkingCars::whereRaw("parking_id={$row->parking_id} and (synch is null or synch<>CONCAT(starttime,',',endtime))")->whereIn('rules_id',$rules_id)->limit($offset,self::ROWNUM)->select();
                     if(count($cars)>0){
                         foreach ($barriers as $barrier){
-                            Utils::setWhitelist($barrier,$cars);
+                            Utils::send($barrier,'离线白名单',['cars'=>$cars,'action'=>'update_or_add']);
                         }
                         $ids=[];
                         foreach ($cars as $car){

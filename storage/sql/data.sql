@@ -4065,7 +4065,7 @@ INSERT INTO `yun_auth_rule` VALUES ('102', '101', 'app\\admin\\controller\\finan
 INSERT INTO `yun_auth_rule` VALUES ('103', '40', 'app\\parking\\controller\\Cars', '[\"recharge\",\"logview\",\"importplate\",\"listplate\",\"delplate\",\"addplate\"]', '[\"充值\",\"记录\",\"导车牌\",\"看车牌\",\"删车牌\",\"加车牌\"]', null, null, '0', '0', null, '69', null, null, '1719468569', '1733124088');
 INSERT INTO `yun_auth_rule` VALUES ('104', '37', 'app\\parking\\controller\\White', 'index', '离线白名单', 'fa fa-snowflake-o', 'tab', '1', '0', null, '896', null, 'normal', '1734410163', '1734410163');
 INSERT INTO `yun_auth_rule` VALUES ('105', '104', 'app\\parking\\controller\\White', '[\"index\",\"synch\",\"timer\",\"del\"]', '[\"查看\",\"同步\",\"定时设置\",\"删除\"]', null, null, '0', '0', null, '895', null, null, '1734410439', '1734584055');
-INSERT INTO `yun_auth_rule` VALUES ('106', '55', 'app\\parking\\controller\\Charge', 'setting', '充电减免', 'fa fa-plug', 'tab', '1', '0', null, '894', null, 'normal', '1735534192', '1735534192');
+INSERT INTO `yun_auth_rule` VALUES ('106', '55', 'app\\parking\\controller\\Charge', 'index', '充电减免', 'fa fa-plug', 'tab', '1', '0', null, '894', null, 'normal', '1735534192', '1735534192');
 INSERT INTO `yun_auth_rule` VALUES ('107', '55', 'app\\parking\\controller\\Charge', 'list', '充电记录', 'fa fa-th-list', 'tab', '1', '0', null, '893', null, 'normal', '1735534240', '1735534240');
 INSERT INTO `yun_auth_rule` VALUES ('108', '106', 'app\\parking\\controller\\Charge', '[\"setting\"]', '[\"设置\"]', null, null, '0', '0', null, '892', null, null, '1735534279', '1735534279');
 INSERT INTO `yun_auth_rule` VALUES ('109', '107', 'app\\parking\\controller\\Charge', '[\"list\"]', '[\"查看\"]', null, null, '0', '0', null, '891', null, null, '1735534298', '1735534298');
@@ -4776,28 +4776,29 @@ CREATE TABLE `yun_parking_infield_records` (
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_invoice`;
 CREATE TABLE `yun_parking_invoice` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `parking_id` int DEFAULT NULL,
-  `user_id` int DEFAULT NULL,
-  `pay_id` varchar(1200) DEFAULT NULL,
-  `invoice_type` varchar(30) DEFAULT NULL,
-  `title` varchar(50) DEFAULT NULL,
-  `name` varchar(50) DEFAULT NULL,
-  `code` varchar(30) DEFAULT NULL,
-  `address` varchar(255) DEFAULT NULL,
-  `phone` varchar(30) DEFAULT NULL,
-  `bank` varchar(30) DEFAULT NULL,
-  `bank_account` varchar(30) DEFAULT NULL,
-  `email` varchar(30) DEFAULT NULL,
-  `mobile` char(11) DEFAULT NULL,
-  `total_price` decimal(10,2) DEFAULT NULL,
-  `error` varchar(255) DEFAULT NULL,
-  `file` varchar(255) DEFAULT NULL,
-  `status` tinyint DEFAULT '0',
-  `createtime` int unsigned DEFAULT NULL,
-  `updatetime` int unsigned DEFAULT NULL,
-  `deletetime` int DEFAULT NULL,
-  PRIMARY KEY (`id`)
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `parking_id` int(11) DEFAULT NULL,
+    `user_id` int(11) DEFAULT NULL,
+    `pay_id` varchar(1200) DEFAULT NULL,
+    `invoice_send` varchar(30) DEFAULT NULL,
+    `invoice_type` varchar(30) DEFAULT NULL,
+    `title` varchar(50) DEFAULT NULL,
+    `name` varchar(50) DEFAULT NULL,
+    `code` varchar(30) DEFAULT NULL,
+    `address` varchar(255) DEFAULT NULL,
+    `phone` varchar(30) DEFAULT NULL,
+    `bank` varchar(30) DEFAULT NULL,
+    `bank_account` varchar(30) DEFAULT NULL,
+    `email` varchar(30) DEFAULT NULL,
+    `mobile` char(11) DEFAULT NULL,
+    `total_price` decimal(10,2) DEFAULT NULL,
+    `error` varchar(255) DEFAULT NULL,
+    `file` varchar(1255) DEFAULT NULL,
+    `status` tinyint(4) DEFAULT '0',
+    `createtime` int(10) unsigned DEFAULT NULL,
+    `updatetime` int(10) unsigned DEFAULT NULL,
+    `deletetime` int(11) unsigned DEFAULT NULL,
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
