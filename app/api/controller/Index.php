@@ -204,7 +204,7 @@ class Index extends Api
             }else{
                 $total_fee=$service->getTotalFee($records,$exittime);
             }
-            if($total_fee<=0){
+            if($total_fee<0){
                 continue;
             }
             [$activities_fee]=$service->getActivitiesFee($records,$total_fee);
@@ -539,6 +539,7 @@ class Index extends Api
         $third=Third::where(['user_id'=>$this->auth->id,'platform'=>'miniapp'])->find();
         $subscribe=MpSubscribe::where(['unionid'=>$third->unionid])->find();
         $notice->subscribe=$subscribe?1:0;
+        $notice->mpappname=site_config('basic.sitename');
         $this->success('',$notice);
     }
 }

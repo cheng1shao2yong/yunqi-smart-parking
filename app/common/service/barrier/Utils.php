@@ -352,7 +352,7 @@ class Utils
         self::send($barrier,'显示无牌车出场二维码');
     }
 
-    public static function setWhitelist(ParkingBarrier $barrier,Collection $cars)
+    public static function setWhitelist(ParkingBarrier $barrier,Collection|array $cars)
     {
         self::send($barrier,'离线白名单',['cars'=>$cars,'action'=>'update_or_add']);
     }

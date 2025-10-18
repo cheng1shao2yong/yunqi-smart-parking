@@ -38,7 +38,7 @@ class PropertyAdmin Extends Model
         if (!Validate::is($admin['password'], '\S{6,30}')) {
             throw new \Exception('密码长度不对');
         }
-        $username=$property->uniqid.'-'.$admin['username'];
+        $username=$admin['username'];
         $has=Admin::where('username', $username)->find();
         if ($has) {
             throw new \Exception('用户名已存在');
@@ -59,7 +59,7 @@ class PropertyAdmin Extends Model
 
     public static function editAdmin(Property $property, PropertyAdmin $propertyadmin, array $admin)
     {
-        $username=$property->uniqid.'-'.$admin['username'];
+        $username=$admin['username'];
         $has=Admin::where(function ($query) use ($username,$propertyadmin){
             $query->where('id','<>',$propertyadmin->admin_id);
             $query->where('username', $username);

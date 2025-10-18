@@ -56,34 +56,6 @@ class Property extends Backend
         return $this->_add();
     }
 
-    #[Route('GET,POST','import')]
-    public function import()
-    {
-         $this->error('暂不支持导入');
-         $this->importFields=[
-            'plate_number'=>'车牌号码',
-            'entry_time'=>'入场时间'
-        ];
-        $this->callback=function ($row,&$success,&$error){
-            $row['entry_time']=Date::excelToDateTimeObject($row['entry_time']);
-            $row['entry_time']=strtotime($row['entry_time']->format('Y-m-d H:i:s'));
-            $row['parking_id']=73;
-            $row['parking_title']='中民七号院停车场';
-            $row['plate_number']=trim($row['plate_number']);
-            $row['plate_type']='blue';
-            $row['rules_type']='provisional';
-            $row['rules_id']=318;
-            $row['entry_type']='normal';
-            $row['entry_barrier']=243;
-            $row['status']=0;
-            $row['createtime']=1734588888;
-            $row['updatetime']=1734588888;
-            ParkingRecords::create($row);
-            return false;
-       };
-       return $this->_import();
-    }
-
     #[Route('GET,POST','edit')]
     public function edit()
     {
@@ -101,7 +73,7 @@ class Property extends Backend
             if($properadmin){
                 $row->admin=$properadmin->admin;
                 $row->admin->musername=$row->admin->username;
-                $row->admin->username=str_replace($row->uniqid.'-', '', $row->admin->username);
+                $row->admin->username=$row->admin->username;
             }else{
                 $row->admin=[];
             }

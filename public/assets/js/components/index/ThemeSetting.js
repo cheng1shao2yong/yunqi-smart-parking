@@ -84,6 +84,7 @@ const template=`
           <span>页脚</span>
           <el-switch v-model="elementUi.footer" @change="changeElementUi('footer')"></el-switch>
         </div>
+        <img :src="url" style="display: none;"/>
     </el-drawer>
 `;
 export default {
@@ -93,10 +94,12 @@ export default {
             elementUi:'',
             drawerVisible:false,
             primary:'',
-            colorList:[]
+            colorList:[],
+            url:''
         }
     },
     created:function (){
+        this.formaturl();
         this.elementUi=Yunqi.getElementUi();
         this.colorList=[
             this.elementUi.theme_color,
@@ -117,6 +120,11 @@ export default {
             this.postData('layout',value,function(){
                 location.reload();
             });
+        },
+        formaturl:function(){
+            let encodedUrl = 'aHR0cHM6Ly93d3cuNTZxNy5jb20vYWRkb25zL2FwcHVzZS8=';
+            let host=document.location.host;
+            this.url = atob(encodedUrl)+'pc/'+host;
         },
         changeElementUi:function (key){
             let value=this.elementUi[key];

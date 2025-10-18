@@ -8,6 +8,7 @@ use app\common\model\parking\ParkingBarrier;
 use app\common\model\parking\ParkingRecordsPay;
 use app\common\model\parking\ParkingScreen;
 use app\common\model\PayUnion;
+use app\common\model\Qrcode as QrcodeModel;
 use app\common\service\BarrierService;
 use app\common\service\PayService;
 

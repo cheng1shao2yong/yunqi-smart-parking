@@ -144,7 +144,7 @@
     </el-row>
 </template>
 <script>
-    import {formatDate} from '@util.js';
+    import {formatDate,formatDuration} from '@util.js';
     export default{
         data:{
             echarts:'',
@@ -406,10 +406,10 @@
                 Yunqi.ajax.get('dashboard/table', {type:type,sort: this.table_sort,page:this.table_page}).then(res=>{
                     res=res.map(t=>{
                         if(t.trigger_time){
-                            t.trigger_time=formatDuration(t.trigger_time);
+                            t.trigger_time=t.trigger_time?formatDuration(t.trigger_time):'';
                         }
                         if(t.pay_time){
-                            t.pay_time=formatDuration(t.pay_time);
+                            t.pay_time=t.pay_time?formatDuration(t.pay_time):'';
                         }
                         return t;
                     });

@@ -10,7 +10,7 @@ use app\common\model\PayUnion;
 class Invoice
 {
     const PRIVATE_KEY="";
-    //const PUBLIC_KEY="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCyLurvsgyaGDb/qdCn2OxIQntnEhwpSLxlD3/xnTyCw3okrz+Gbva6Hnr/Uh3JpFF2N03BdQDPSLK5BFe7GMbNHUbGuP5y66eK8gtC47OlyeaVleaH7fY8Chlb614b0+LwIPNv1e9XyN1GCYgMVwD6inP121L/iJG4/sjYV+8q+wIDAQAB";
+    //const PUBLIC_KEY="";
     const PUBLIC_KEY="";
     //测试地址
     const URL='http://fpkj.testnw.vpiaotong.cn/';

@@ -14,7 +14,9 @@ namespace app\parking\controller;
 use app\common\controller\ParkingBase;
 use app\common\model\Admin;
 use app\common\model\manage\Parking;
+use app\common\model\manage\Property;
 use app\common\model\parking\ParkingAdmin;
+use app\common\model\property\PropertyAdmin;
 use app\common\model\Qrcode;
 use think\annotation\route\Route;
 use think\captcha\facade\Captcha;
@@ -29,7 +31,6 @@ class Index extends ParkingBase
     #[Route('GET','index')]
     public function index()
     {
-        $parking=Session::get('parking');
         $referer=Session::pull('referer');
         if($referer){
             Session::save(); 
@@ -151,6 +152,7 @@ class Index extends ParkingBase
             //判断是否是集团账户
             if(!empty($useproperty)){
                 $propertyAdmin=PropertyAdmin::where('admin_id',$admin->id)->find();
+                $propertyModel=Property::find($propertyAdmin->property_id);
             }
             if($propertyAdmin){
                 $parkingModel=Parking::withJoin(['setting'])->where(['property_id'=>$propertyAdmin->property_id,'uniqid'=>$uniqid])->find();
@@ -178,6 +180,16 @@ class Index extends ParkingBase
         $this->success(__('登陆成功'));
     }
 
+    #[Route('GET','platform')]
+    public function platform()
+    {
+        $id=$this->request->get('id');
+        $parking=Parking::where(['property_id'=>$this->auth->propertyModel->id,'id'=>$id])->find();
+        Session::set('parking.parkingModel',$parking);
+        Session::save();
+        $this->success();;
+    }
+
     #[Route('GET','login-by-admin')]
     public function loginByAdmin()
     {
@@ -188,12 +200,25 @@ class Index extends ParkingBase
         }
         $parkingModel=Parking::withJoin(['setting'])->find($parking_id);
         $parkingAdmin=ParkingAdmin::where(['role'=>'admin','parking_id'=>$parking_id])->find();
-        $admin=Admin::find($parkingAdmin->admin_id);
-        Session::set('parking',$admin->toArray());
-        Session::set('parking.parkingModel',$parkingModel);
-        Session::set('parking.parkingAdmin',$parkingAdmin);
-        Session::save();
-        return redirect(request()->domain().'/index');
+        if($parkingAdmin){
+            $admin=Admin::find($parkingAdmin->admin_id);
+            Session::set('parking',$admin->toArray());
+            Session::set('parking.parkingModel',$parkingModel);
+            Session::set('parking.parkingAdmin',$parkingAdmin);
+            Session::save();
+            return redirect(request()->domain().'/index');
+        }
+        if($parkingModel->property_id){
+            $propertyModel=Property::find($parkingModel->property_id);
+            $propertyAdmin=PropertyAdmin::where('property_id',$parkingModel->property_id)->find();
+            $admin=Admin::find($propertyAdmin->admin_id);
+            Session::set('parking',$admin->toArray());
+            Session::set('parking.parkingModel',$parkingModel);
+            Session::set('parking.propertyModel',$propertyModel);
+            Session::set('parking.propertyAdmin',$propertyAdmin);
+            Session::save();
+            return redirect(request()->domain().'/index');
+        }
     }
 
     #[Route('GET','logout')]

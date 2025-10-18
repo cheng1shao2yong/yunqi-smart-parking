@@ -3,6 +3,8 @@ declare(strict_types=1);
 namespace app\common\service;
 
 use app\common\model\parking\ParkingBarrier;
+use app\common\model\parking\ParkingPlate;
+use app\common\model\parking\ParkingRecords;
 use app\common\service\barrier\Zhenshi;
 use think\facade\Cache;
 

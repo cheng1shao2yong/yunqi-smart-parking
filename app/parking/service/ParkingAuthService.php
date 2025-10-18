@@ -354,11 +354,16 @@ class ParkingAuthService extends AuthService{
                 $adminMenuList=[];
                 $platformList=[];
                 //集团账户
-                if($this->groupids==2 && $this->PropertyAdmin){
+                if($this->groupids==2 && $this->propertyAdmin){
                     $adminRuleList='*';
                     $adminMenuList='*';
-                    $property_id=$this->propertyModel;
+                    $property_id=$this->propertyModel->id;
                     $platformList=Parking::where('property_id',$property_id)->field('id,title')->select();
+                    foreach ($platformList as $key=>$platform){
+                        if($platform->id==$this->parkingModel->id){
+                            $platformList[$key]->active=true;
+                        }
+                    }
                 }
                 //停车场账户
                 if($this->groupids==3 && $this->parkingAdmin){

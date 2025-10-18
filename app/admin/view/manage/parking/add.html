@@ -79,7 +79,7 @@ export default{
                 return row.use_property==='0';
             }},
             {field:"pay_type_handle",tab:2,title:"支付接口",edit: {form:'select'},searchList:Yunqi.data.pay_type_handle,rules:'required'},
-            {field:"sub_merch_no",tab:2,title:"子商户编号",edit:'text',rules:"required",visible:function (row){
+            {field:"sub_merch_no",tab:2,title:"子商户编号",edit:'text',visible:function (row){
                 return row.pay_type_handle!=='custom';
             }},
             {field:"split_merch_no",tab:2,title:"分账商户编号",edit:'text',visible:function (row){
@@ -93,7 +93,7 @@ export default{
             {field:"etc_able",tab:4,title:"支持ETC",edit:'radio',searchList:{0:'否',1:'是'}},
             {field:"etc_appid",tab:4,title:"车场APPID",edit:'text'},
         ],
-        row:Yunqi.data.row || {inside:0,uniqid:uniqid,etc_able:0,split_merch_no:'20017228',plate_begin:'贵A',admin:{third_id:null,musername:uniqid+'-'}}
+        row:Yunqi.data.row || {inside:0,uniqid:uniqid,etc_able:0,split_merch_no:'20017228',plate_begin:'浙A',admin:{third_id:null,musername:uniqid+'-'}}
     },
     methods: {
         changValue:function (e){
