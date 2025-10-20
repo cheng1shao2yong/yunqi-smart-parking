@@ -40,12 +40,12 @@
             },
             refuse:function (){
                 Yunqi.ajax.post('plate/auth',{ids:this.row.id,auth:0}).then(res=>{
-                    Yunqi.api.closelayer(Yunqi.config.window.id,true);
+                    Yunqi.api.closelayer(Yunqi.app.window.id,true);
                 });
             },
             approved:function (){
                 Yunqi.ajax.post('plate/auth',{ids:this.row.id,auth:1}).then(res=>{
-                    Yunqi.api.closelayer(Yunqi.config.window.id,true);
+                    Yunqi.api.closelayer(Yunqi.app.window.id,true);
                 });
             }
         }

@@ -59,7 +59,7 @@ export default{
                 name:this.name,
                 text:this.text
             }).then(res=>{
-                Yunqi.api.closelayer(Yunqi.config.window.id,true);
+                Yunqi.api.closelayer(Yunqi.app.window.id,true);
             });
         },
         changeColor:function (val){

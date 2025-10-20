@@ -254,7 +254,8 @@ class Mpapp extends Api{
     private function scanQrcode($openid,$unionid,$qrcode_id)
     {
         $qrcode=Qrcode::find($qrcode_id);
-        $str="尊敬客户您好：\n\n感谢您使用【".site_config('basic.sitename')."】公众号平台！\n\n";
+        $sitename=site_config('basic.sitename');
+        $str="尊敬客户您好：\n\n感谢您使用【".$sitename."】公众号平台！\n\n";
         if(!$qrcode){
             return $str;
         }
@@ -294,7 +295,7 @@ class Mpapp extends Api{
                 return $str;
             case 'backend-login':
             case 'parking-login':
-                $str="{$str}您正在使用微信扫码授权登录【云起停车】管理后台\n\n";
+                $str="{$str}您正在使用微信扫码授权登录【'.$sitename.'】管理后台\n\n";
                 $third=Third::where(['platform'=>Third::PLATFORM('微信公众号'),'openid'=>$openid])->find();
                 if(!$third){
                     return "{$str}您的微信没有绑定管理员！";
@@ -305,7 +306,7 @@ class Mpapp extends Api{
                 }
                 return "{$str}扫码成功！";
             case 'merchant-login':
-                $str="{$str}您正在使用微信扫码授权登录【云起停车】商户端\n\n";
+                $str="{$str}您正在使用微信扫码授权登录【'.$sitename.'】商户端\n\n";
                 $path=$this->request->domain()."/mpapp/connect?action=binduser";
                 $end="<a href=\"{$path}\">👉👉点击这里授权👈️👈️</a>";
                 return "{$str}{$end}";

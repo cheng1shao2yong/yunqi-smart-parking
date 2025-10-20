@@ -136,6 +136,9 @@ class ParkingAuthService extends AuthService{
             $admin->token = '';
             $admin->save();
         }
+        Cache::delete('admin_rule_list_'.$this->id);
+        Cache::delete('admin_menu_list_'.$this->id);
+        Cache::delete('admin_platform_list_'.$this->id);
         Session::delete("parking");
         Session::save();
         return true;
@@ -359,11 +362,6 @@ class ParkingAuthService extends AuthService{
                     $adminMenuList='*';
                     $property_id=$this->propertyModel->id;
                     $platformList=Parking::where('property_id',$property_id)->field('id,title')->select();
-                    foreach ($platformList as $key=>$platform){
-                        if($platform->id==$this->parkingModel->id){
-                            $platformList[$key]->active=true;
-                        }
-                    }
                 }
                 //停车场账户
                 if($this->groupids==3 && $this->parkingAdmin){

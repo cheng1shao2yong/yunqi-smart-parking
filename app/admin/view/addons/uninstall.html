@@ -49,7 +49,7 @@ export default {
             let key=this.$refs.yunform.getValue('key');
             let actions=this.$refs.yunform.getValue('actions');
             Yunqi.ajax.post('addons/uninstall',{key:key,actions:actions}).then(res=>{
-                Yunqi.api.closelayer(Yunqi.config.window.id,true);
+                Yunqi.api.closelayer(Yunqi.app.window.id,true);
             });
         },
     }

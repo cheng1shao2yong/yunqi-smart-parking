@@ -76,7 +76,7 @@
             },
             submit:function (){
                 Yunqi.ajax.post('barrier/tjtc',{value:this.value,times:this.times}).then(res=>{
-                    Yunqi.api.closelayer(Yunqi.config.window.id);
+                    Yunqi.api.closelayer(Yunqi.app.window.id);
                 });
             },
             reset:function (){

@@ -144,11 +144,11 @@ export default{
     },
     methods: {
         cancel:function (){
-            let id=Yunqi.config.window.id;
+            let id=Yunqi.app.window.id;
             Yunqi.api.closelayer(id);
         },
         save:function (){
-            let id=Yunqi.config.window.id;
+            let id=Yunqi.app.window.id;
             for(let i=0;i<this.coupon.length;i++){
                 let row=this.coupon[i];
                 if(row.limit_send>=1 && row.limit_send<=3 && !row.limit_type){

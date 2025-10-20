@@ -11,6 +11,7 @@ declare (strict_types = 1);
 
 namespace app\parking\controller;
 
+use app\common\model\manage\Parking;
 use app\parking\traits\Actions;
 use app\common\controller\ParkingBase;
 use app\common\model\parking\ParkingSentrybox;

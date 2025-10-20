@@ -36,6 +36,13 @@ class Index extends ParkingBase
             Session::save(); 
         }
         list($platform,$menulist, $selected, $referer) = $this->auth->getSidebar($referer);
+        if(count($platform)>0){
+            foreach ($platform as $key=>$value){
+                if($value->id==$this->auth->parkingModel->id){
+                    $platform[$key]->active=true;
+                }
+            }
+        }
         $this->assign('site',site_config('basic'));
         $this->assign('platform',$platform);
         $this->assign('menulist',$menulist);

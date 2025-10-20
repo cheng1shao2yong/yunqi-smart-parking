@@ -78,7 +78,7 @@ export default{
         },
         refuse:function (){
             Yunqi.ajax.post('apply/shenhe',{ids:this.row.id,status:2}).then(res=>{
-                Yunqi.api.closelayer(Yunqi.config.window.id,true);
+                Yunqi.api.closelayer(Yunqi.app.window.id,true);
             });
         },
         approved:function (){
@@ -109,7 +109,7 @@ export default{
                 mobile:mobile,
                 status:1
             }).then(res=>{
-                Yunqi.api.closelayer(Yunqi.config.window.id,true);
+                Yunqi.api.closelayer(Yunqi.app.window.id,true);
             });
         }
     }

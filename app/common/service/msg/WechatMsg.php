@@ -21,17 +21,17 @@ class WechatMsg extends MsgService{
     protected $msg_type='wechat';
 
     //模板列表
-    const 入场通知='';
-    const 出场通知='';
-    const 开票申请='';
-    const 开票完成='';
-    const 欠费车辆入场='';
-    const 月租到期通知='';
-    const 车牌认证成功='';
-    const 月租车申请审批='';
-    const 月租车申请审核结果='';
-    const 预约车申请审批='';
-    const 预约车申请审核结果='';
+    const 入场通知='X79ZcW3IScBPtdNUGHnUbTMs5ks5-VWPku92RHMS_3A';
+    const 出场通知='dwfuTquswfRvhapSjedzeEcaKJSEnAR4QEqrCSDBPtU';
+    const 开票申请='UKF16ySisN1Hi0RkzTmPAD5V4M0EnETrNGstoy5rGIE';
+    const 开票完成='47n0VjbGFsJuQsFhfO6S9z-jS5I1hp6YUx24uJ6edYo';
+    const 欠费车辆入场='_dVvJAJMva1GZNTueDDmVd6W1-dgJsV92vItg9CiPBg';
+    const 月租到期通知='5_zvwv2pY9yRx6xpHGUgKVun4fbqgk3sarowSaH-UCc';
+    const 车牌认证成功='B2KRNrFdR1UXvDNswHVhWYZueNydi2E5TR1FhwGVViE';
+    const 月租车申请审批='yEJqFPGywr9Zf7DmKvi0WEVMC9Y0TAtV2qG5g9N5iKM';
+    const 月租车申请审核结果='3vVD42Yvo2GIf2EoEGXClGVUxsj20vOzvFPWxHrB7vk';
+    const 预约车申请审批='rddxESqY_y8XVkqcX2-gXUNv7MP5nEiSrMostBMKEh4';
+    const 预约车申请审核结果='dOFFRJqDr2UTSHIROvwO20kgoUJb53HVZT_dIWr48mQ';
 
     protected function sendEvent(Msg $msg): bool
     {
