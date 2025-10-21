@@ -168,13 +168,24 @@ class Index extends Base
     #[Get('merchant')]
     public function merchant()
     {
+        $sql="
+            SELECT ROUND(SUM(activities_time/60)) AS activities_time,ROUND(SUM(activities_fee/60)) AS activities_fee FROM `yun_parking_records` 
+            WHERE 
+            parking_id = {$this->parking_id}
+            and `status` in (3,4,5)
+            and activities_time>0
+            AND deletetime IS NULL;
+        ";
+        $list=Db::query($sql);
+        $activities_fee=$list[0]['activities_fee'];
+        $activities_time=$list[0]['activities_time'];
         $info=[
             'total'=>ParkingMerchant::where(['parking_id'=>$this->parking_id])->count(),
             'total_coupon_type'=>ParkingMerchantCoupon::where(['parking_id'=>$this->parking_id,'status'=>'normal'])->count(),
             'total_coupon'=>ParkingMerchantCouponList::where(['parking_id'=>$this->parking_id])->count(),
             'total_coupon_active'=>ParkingMerchantCouponList::where(['parking_id'=>$this->parking_id,'status'=>1])->count(),
-            'total_activities_fee'=>ParkingRecords::where(['parking_id'=>$this->parking_id])->sum('activities_fee'),
-            'total_activities_time'=>ParkingRecords::where(['parking_id'=>$this->parking_id])->sum('activities_time'),
+            'total_activities_fee'=>$activities_fee*60,
+            'total_activities_time'=>$activities_time*60,
             'balance_bill'=>ParkingMerchant::where(['parking_id'=>$this->parking_id,'settle_type'=>'after'])->sum('balance'),
             'balance_fee'=>ParkingMerchant::where(['parking_id'=>$this->parking_id,'settle_type'=>'before'])->sum('balance'),
             'balance_time'=>ParkingMerchant::where(['parking_id'=>$this->parking_id,'settle_type'=>'time'])->sum('balance'),

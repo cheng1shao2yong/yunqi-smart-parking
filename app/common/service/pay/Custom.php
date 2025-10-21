@@ -33,11 +33,11 @@ class Custom extends PayService {
                     // 「必填」商户私钥 字符串或路径
                     // 即 API证书 PRIVATE KEY，可在 账户中心->API安全->申请API证书 里获得
                     // 文件名形如：apiclient_key.pem
-                    'mch_secret_cert' => __DIR__.'/cert/apiclient_key.pem',
+                    'mch_secret_cert' => root_path().'cert/apiclient_key.pem',
                     // 「必填」商户公钥证书路径
                     // 即 API证书 CERTIFICATE，可在 账户中心->API安全->申请API证书 里获得
                     // 文件名形如：apiclient_cert.pem
-                    'mch_public_cert_path' => __DIR__.'/cert/apiclient_cert.pem',
+                    'mch_public_cert_path' => root_path().'cert/apiclient_cert.pem',
                     // 「必填」微信回调url
                     // 不能有参数，如?号，空格等，否则会无法正确回调
                     'notify_url' => request()->domain().'/index/notify/custom',
@@ -59,7 +59,7 @@ class Custom extends PayService {
                     // 「选填」（适用于 2024-11 及之前开通微信支付的老商户）微信支付平台证书序列号及证书路径，强烈建议 php-fpm 模式下配置此参数
                     // 「必填」微信支付公钥ID及证书路径，key 填写形如 PUB_KEY_ID_0000000000000024101100397200000006 的公钥id，见 https://pay.weixin.qq.com/doc/v3/merchant/4013053249
                     'wechat_public_cert_path' => [
-                        'PUB_KEY_ID_0117144830462025101700382080002403' => __DIR__.'/cert/pub_key.pem',
+                        'PUB_KEY_ID_0117144830462025101700382080002403' => root_path().'cert/pub_key.pem',
                     ],
                     // 「选填」默认为正常模式。可选为： MODE_NORMAL, MODE_SERVICE
                     'mode' => Pay::MODE_NORMAL,

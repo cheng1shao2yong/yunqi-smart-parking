@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace app\index\controller;
 
+use app\admin\command\queueEvent\traffic\Hangzhou;
 use app\common\controller\BaseController;
 use app\common\library\ParkingTestAccount;
-use app\common\model\parking\ParkingBarrier;
-use app\common\service\barrier\Utils;
+use app\common\model\parking\ParkingTraffic;
 use think\annotation\route\Get;
 
 class Index extends BaseController
@@ -21,20 +21,12 @@ class Index extends BaseController
     {
 
     }
-    
-    #[Get('/index/info')]
-    public function info()
-    {
-        echo 111;
-        exit;
-    }
-
 
     #[Get('/test')]
     public function test()
     {
-        $barrier=ParkingBarrier::find(26);
-        //$barrier=ParkingBarrier::find(11);
-        Utils::test($barrier);
+        $traffic=new ParkingTraffic();
+        $traffic->filings_code='01001';
+        (new Hangzhou())->heartbeat($traffic);
     }
 }

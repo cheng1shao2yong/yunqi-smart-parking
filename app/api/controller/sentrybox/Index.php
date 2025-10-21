@@ -99,6 +99,7 @@ class Index extends BaseController
         $tips=$this->sentrybox->remark;
         $parking=Parking::cache('parking_'.$this->sentrybox->parking_id,24*3600)->withJoin(['setting'])->find($this->sentrybox->parking_id);
         $parking->sentrybox=$this->sentrybox->title;
+        $parking->open_set=$this->sentrybox->open_set;
         $this->success('',compact('parking','screen','mqttConfig','clientId','tips'));
     }
     #[Get('client')]
@@ -107,7 +108,8 @@ class Index extends BaseController
         $update=[
             'v1.0.0'=>false,
             'v1.0.1'=>false,
-            'v1.0.2'=>false
+            'v1.0.2'=>false,
+            'v1.0.3'=>false
         ];
         $screen=ParkingBarrier::with(['fuji'=>function ($query) {
             $query->where('status','normal');
@@ -135,7 +137,8 @@ class Index extends BaseController
         $tips=$this->sentrybox->remark;
         $hide_window=$this->sentrybox->hide_window;
         $title=Parking::where('id',$this->sentrybox->parking_id)->value("title")." - ".$this->sentrybox->title;
-        $this->success('',compact('title','screen','mqttConfig','tips','update','hide_window'));
+        $open_set=$this->sentrybox->open_set;
+        $this->success('',compact('title','open_set','screen','mqttConfig','tips','update','hide_window'));
     }
 
     #[Post('open')]

@@ -9,18 +9,11 @@ use app\common\model\parking\ParkingTraffic;
 use Rtgm\sm\RtSm2;
 use Rtgm\sm\RtSm4;
 
-//停车场配置地址 https://docs.qq.com/sheet/DYmxaSU9YeEtzblBJ?tab=BB08J2
-class Guiyang implements BaseTraffic
+class Hangzhou implements BaseTraffic
 {
-    const APP_ID="";
-    //测试地址
-    //const URL="http://jieshun.zcreate.com.cn:8888";
-    //正式地址
-    const URL="http://weixinapp.gyszhjt.com:50001";
-
-    const SM4_KEY='';
-    const PUBLIC_KEY='';
-    const PRIVATE_KEY='';
+    const ACCESSID="A00001";
+    const URL="http://220.191.209.248:9100";
+    const PRIVATE_KEY='MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBALHHnteMDckJNlPxZ7eMzxSDmH4lTMeD6I3EvpVKad8Sw4apQvIG9ZY7ZHeUKKTOlsU0yBOp432BheP74EdU1aljnMqXpFNn+bEgTXpXCzaIdJlij9H4y/2m//mGE9l1OX2EVHZKSmeMY/GihZlMD6tP3yJ8QdolBZI/3CgH7BLDAgMBAAECgYAvkQioBXoeww89MIcerlct1vPzNImxjFKps+2GRk3DeOLF4f3eggwtsSB1ejfRuNDQXQn3cOpER2aKlHbyvvkXkNhrd/lCjpk6wtDYQsq/eeQ7wC8Am6hQ2d8cKySCl5LrpHHzkGkTv1DHw7rNKrMR03ahJWXsyPcqrbhvBMwrMQJBAPlh95E8wPSsqqYA/74o7Iqxa7nq9osXT6t5xrJc2CpI2go4OK1Da1zOI+mCbNpnuA7PnWu9xam2cCmNAsTHGskCQQC2f0L3no9mtGmuB7M7xN4Me5pUlZqVRWzLKDUK3IPEHzUZs7WDQ77RqOJBrvdHxFpY3ZS+bDFYouUbck39vHsrAkEAiIgCKhnA6jO+GbRiT5HILwaDm/3vjKbuj0rUZcI+9qd7+CxfmzxWAzE4qBcn0UsHkdRIszvqg8fGEHmLEoCPQQJAZWT3lBRooCuEu8hTcNXEeTMDYBNuu5jDBWzla49xNjoQiqMqKjAtiNdIPi4z/Y++krkpt1LtZ825dTJg2qUp2QJAMdlZbhYPL99fjhsbUS+xNisTczoi9Y+PEh+expEvfnTIj/YqKHtVdCdIPxktews831vU14GF+UwWFEZQYLt65w==';
 
     const PLATE_COLOR=[
         'blue'=>1,
@@ -32,16 +25,13 @@ class Guiyang implements BaseTraffic
 
     public function heartbeat(ParkingTraffic $traffic)
     {
-        $url=self::URL."/open-server/api/mercury/park/heartbeat";
+        $url=self::URL."/tcjg/api/uploadHeartbeat";
         $package=$this->pack([
-            'park_id'=>$traffic->filings_code,
-            'total_parking_number'=>$traffic->total_parking_number,
-            'remain_parking_number'=>$traffic->remain_parking_number,
-            'open_parking_number'=>$traffic->open_parking_number,
-            'reserved_parking_number'=>$traffic->reserved_parking_number,
-            'event_time'=>date('Y-m-d H:i:s',time()),
+            'parkingCode'=>$traffic->filings_code,
+            'uploadTime'=>date('Y-m-d H:i:s',time()),
         ]);
-        $response=Http::post($url,$package,'',['Content-Type: application/json','Content-Length: '.strlen($package)]);
+        $url=$url.'?accessID='.self::ACCESSID.'&sign='.$this->sign($package).'&cipher='.$package;
+        $response=Http::post($url);
         if(!$response->isSuccess()){
             throw new \Exception($response->errorMsg);
         }
@@ -165,71 +155,108 @@ class Guiyang implements BaseTraffic
 
     private function getOrderNo(ParkingRecords $records)
     {
-        $orderNo=md5($records->id.$records->parking_id.$records->rules_id.$records->createtime).date('YmdHis',strtotime($records->createtime));
+        $orderNo=md5($records->id.$records->parking_id.$records->rules_id.$records->createtime);
         return $orderNo;
     }
 
     private function pack($data)
     {
-        $package=[
-            'app_id'=>self::APP_ID,
-            'timestamp'=>date('yyyyMMddHHmmss',time()),
-            'data'=>$this->SM4Encrypt(json_encode($data,JSON_UNESCAPED_UNICODE)),
-        ];
-        $sign=trim($this->sign($data));
-        $package['sign']=$sign;
-        return json_encode($package);
+        return $this->encrypt($data);
     }
 
-    private function sign($data)
+    /**
+     * 用私钥对信息生成数字签名
+     *
+     * @param string $content 待签名数据
+     * @param string $privateKey 私钥(BASE64编码，PKCS8格式)
+     * @return string 签名结果(BASE64编码)
+     * @throws \Exception
+     */
+    private function sign(string $content): string {
+        $private_key = "-----BEGIN PRIVATE KEY-----\n" . wordwrap(self::PRIVATE_KEY, 64, "\n", true) . "\n-----END PRIVATE KEY-----";
+        $privateKeyId = openssl_pkey_get_private($private_key);
+        $signature = '';
+        $success = openssl_sign(
+            $content,
+            $signature,
+            $privateKeyId
+        );
+        if (!$success) {
+            throw new \Exception('签名生成失败: ' . openssl_error_string());
+        }
+        return $this->encryptBASE64($signature);
+    }
+
+    /**
+     * 私钥加密
+     *
+     * @param string $content 源数据
+     * @param string $privateKey 私钥(BASE64编码，PKCS8格式)
+     * @return string 加密结果(BASE64编码)
+     * @throws \Exception
+     */
+    private function encrypt(array $params)
     {
-        ksort($data);
-        $str='';
-        foreach ($data as $k=>$v){
-            $str.=$k.'='.$v.'&';
+        $data=json_encode($params);
+        $private_key = "-----BEGIN PRIVATE KEY-----\n" . wordwrap(self::PRIVATE_KEY, 64, "\n", true) . "\n-----END PRIVATE KEY-----";
+        $privateKeyId = openssl_pkey_get_private($private_key);
+        $encryptResult = "";
+        foreach (str_split($data, 117) as $chunk) {
+            $encrypted='';
+            $r=openssl_private_encrypt($chunk,$encrypted,$privateKeyId);
+            if($r){
+                $encryptResult.=$encrypted;
+            }else{
+                throw new \Exception(openssl_error_string());
+            }
         }
-        //去掉最后一个&
-        $str=substr($str,0,-1);
-        $sm2 = new RtSm2('base64',true);
-        $sign=$sm2->doSignOutKey($str, __DIR__.DIRECTORY_SEPARATOR.'private_pkcs1.pem');
-        return $sign;
+        return base64_encode($encryptResult);
     }
 
-    private function verifySign($data,$sign)
-    {
-        ksort($data);
-        $str='';
-        foreach ($data as $k=>$v){
-            $str.=$k.'='.$v.'&';
+    /**
+     * BASE64解密
+     *
+     * @param string $key BASE64编码字符串
+     * @return string 解密结果
+     * @throws \Exception
+     */
+    private function decryptBASE64(string $key): string {
+        $decoded = base64_decode($key, true) ?? throw new \Exception('BASE64解码失败');
+        return $decoded;
+    }
+
+    /**
+     * BASE64加密
+     *
+     * @param string $key 原始数据
+     * @return string BASE64编码结果
+     */
+    private function encryptBASE64(string $key): string {
+        return base64_encode($key);
+    }
+
+    /**
+     * 格式化私钥，确保包含PEM头尾部并修正换行
+     *
+     * @param string $key 解码后的私钥内容
+     * @return string 格式化后的PEM私钥
+     * @throws \Exception
+     */
+    private function formatPrivateKey(string $key): string {
+        // 移除所有空白字符（处理可能的空格、制表符等）
+        $key = preg_replace('/\s+/', '', $key);
+
+        // 检查是否已包含PEM头部，如无则添加（PKCS8格式）
+        if (!str_contains($key, '-----BEGIN PRIVATE KEY-----')) {
+            $key = "-----BEGIN PRIVATE KEY-----\n" . $key;
         }
-        //去掉最后一个&
-        $str=substr($str,0,-1);
-        $sm2 = new RtSm2('base64',true);
-        return $sm2->verifySignOutKey($str, $sign, __DIR__.DIRECTORY_SEPARATOR.'public_pkcs1.pem');
-    }
-
-    private function SM4Encrypt($plaintext) {
-        $plaintext = $this->pkcs7Padding($plaintext);
-        $key=base64_decode(self::SM4_KEY);
-        $sm4 = new RtSm4($key);
-        $iv=str_repeat("\x00", 16);
-        $hex = $sm4->encrypt($plaintext,'sm4',$iv,'base64');
-        return $hex;
-    }
-
-    private function SM4Decrypt($hex) {
-        $key=base64_decode(self::SM4_KEY);
-        $sm4 = new RtSm4($key);
-        $iv=str_repeat("\x00", 16);
-        $result = $sm4->decrypt($hex,'sm4',$iv,'base64');
-        return $result;
-    }
-
-    private function pkcs7Padding($data, $blockSize = 16) {
-        $padLength = $blockSize - (strlen($data) % $blockSize);
-        if ($padLength == 0) {
-            $padLength = $blockSize; // 若长度正好是块大小的倍数，补一个完整块
+        if (!str_contains($key, '-----END PRIVATE KEY-----')) {
+            $key = $key . "\n-----END PRIVATE KEY-----";
         }
-        return $data . str_repeat(chr($padLength), $padLength);
+
+        // 按PEM格式要求，每64个字符换行（避免过长行导致解析失败）
+        $formatted = chunk_split($key, 64, "\n");
+        // 移除可能的末尾多余换行
+        return trim($formatted);
     }
 }

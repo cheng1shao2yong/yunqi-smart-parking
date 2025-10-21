@@ -10,12 +10,12 @@ use app\common\model\parking\ParkingTraffic;
 //停车场配置地址 https://docs.qq.com/sheet/DYmxaSU9YeEtzblBJ?tab=BB08J2
 class Kunming implements BaseTraffic
 {
-    const APP_ID="1727228753626";
+    const APP_ID="";
     //测试地址
     const URL="http://test.kcsmkj.cn";
     //正式地址
     //const URL="http://www.yzparking.cn";
-    const AES_KEY="e7bac5b9a1474ba7b14c8c5746a67c8a";
+    const AES_KEY="";
 
     const PLATE_COLOR=[
         'blue'=>1,
