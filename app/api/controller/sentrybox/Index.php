@@ -166,6 +166,9 @@ class Index extends BaseController
             if(!$trigger || $trigger->createtime < time()-5*60){
                 $this->error('时间超过5分钟，请重新识别');
             }
+            if($trigger->plate_number=='_无_' || $trigger->plate_number=='无牌车'){
+                $trigger_id=false;
+            }
         }
         if($recovery_id){
             $recovery=ParkingRecovery::find($recovery_id);
@@ -286,13 +289,12 @@ class Index extends BaseController
             $this->error('通道已经被禁用');
         }
         try{
-            $photo=Utils::makePhoto($barrier);
-            [$isplate,$plate_number,$plate_type]=Utils::checkPlate($photo);
+            $result=Utils::makePhoto($barrier);
             sleep(1);
         }catch (\Exception $e){
             $this->error($e->getMessage());
         }
-        $this->success('',compact('isplate','plate_number','plate_type','photo'));
+        $this->success('',$result);
     }
 
     #[Post('entry')]

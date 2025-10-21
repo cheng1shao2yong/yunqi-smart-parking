@@ -181,50 +181,24 @@ class Utils
 
     public static function makePhoto(ParkingBarrier $barrier)
     {
-        Cache::set('barrier-photo-'.$barrier->serialno,'');
-        Utils::send($barrier,'主动拍照');
+        Cache::set('barrier-photo-'.$barrier->serialno,true,5);
+        Utils::send($barrier,'主动识别');
         $i=0;
-        $photo=false;
         while($i<50){
-            $photo=Cache::get('barrier-photo-'.$barrier->serialno);
-            if($photo){
-                break;
+            $result=Cache::get('barrier-photo-'.$barrier->serialno);
+            if($result && $result!==true){
+                Cache::delete('barrier-photo-'.$barrier->serialno);
+                return $result;
             }
             usleep(100000);
             $i++;
         }
-        if(!$photo){
-            throw new \Exception('主动拍照失败');
-        }
-        return $photo;
-    }
-
-    public static function test(ParkingBarrier $barrier)
-    {
-        $plate=ParkingPlate::with(['cars'])->find(1389);
-        $recordspay=new ParkingRecordsPay();
-        $recordspay->pay_price=145.45;
-        $records=ParkingRecords::find(192);
-        self::send($barrier,'无牌车语音',[
-            'plate'=>$plate,
-            'rulesType'=>'monthly',
-            'recordsPay'=>$recordspay,
-            'records'=>$records,
-            'plate_number'=>$plate->plate_number,
-        ]);
+        throw new \Exception('主动拍照失败');
     }
 
     public static function trigger(ParkingBarrier $barrier)
     {
-        $photo='';
-        self::send($barrier,'主动识别',[],function($result) use (&$photo){
-            if($result){
-                $photo=$result;
-            }else{
-                throw new \Exception('主动识别失败');
-            }
-        },3);
-        return $photo;
+        self::send($barrier,'主动识别');
     }
 
     public static function open(ParkingBarrier $barrier,string $recordsType,\Closure|null $callback = null)

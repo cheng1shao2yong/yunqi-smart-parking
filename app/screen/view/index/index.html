@@ -227,7 +227,7 @@
                     custom-class="dialog-body"
                     width="650">
                 <div style="width: 100%;margin-bottom: 10px;">{{dialog.message}}</div>
-                <div v-if="dialog.photo" style="width: 100%;margin-bottom: 10px;text-align: center;"><img :src="dialog.photo" style="width: 60%;"></div>
+                <div v-if="dialog.photo" style="width: 100%;margin-bottom: 10px;text-align: center;height: 300px;"><img :src="dialog.photo" style="width: 100%;height: 100%"></div>
                 <template v-if="tips && tips.length>0">
                     <el-select v-model="dialog.remark" placeholder="请选择开闸原因：" style="width: 100%">
                         <template v-if="dialog.barrier.barrier_type=='exit'">
@@ -461,7 +461,7 @@
                 requestPost('index/photo',{
                     barrier_id:barrier.id,
                 },true,false).then(res=>{
-                    let {isplate,plate_number,plate_type,photo}=res;
+                    let {trigger_id,isplate,plate_number,plate_type,photo}=res;
                     let msg = "未检测到车辆";
                     if (isplate && plate_number)
                     {
@@ -469,6 +469,7 @@
                             "blue": "蓝色",
                             "green": "绿色",
                             "yellow": "黄色",
+                            "yellow-green": "黄绿色",
                             "black": "黑色",
                             "white": "白色"
                         }
@@ -483,6 +484,7 @@
                         show:true,
                         photo:photo,
                         message:msg,
+                        trigger_id:trigger_id,
                         remark:'填写原因'
                     };
                 });

@@ -368,6 +368,27 @@ class Zhenshi extends BarrierService {
             'image'=>$imageUrl,
             'createtime'=>time(),
         ];
+        //判断是否为主动拍照
+        $isphoto=Cache::get('barrier-photo-'.$barrier->serialno);
+        if($isphoto && $isphoto===true){
+            $usetime=round(microtime(true)-$starttime,5);
+            $triggerData['usetime']=$usetime;
+            $triggerData['message']='主动拍照';
+            $trigger->save($triggerData);
+            $isplate=false;
+            if($plate_number!='_无_'){
+                $isplate=true;
+            }
+            $result=[
+                'trigger_id'=>$trigger->id,
+                'isplate'=>$isplate,
+                'plate_number'=>$plate_number,
+                'plate_type'=>$plate_type,
+                'photo'=>$imageUrl,
+            ];
+            Cache::set('barrier-photo-'.$barrier->serialno,$result,5);
+            return false;
+        }
         if($barrier->tjtc){
             $tjtclist=ParkingBarrierTjtc::cache('barrier_tjtc_'.$barrier->parking_id)->where(['parking_id'=>$barrier->parking_id])->select();
             foreach ($tjtclist as $tjtc){
