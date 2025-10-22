@@ -289,8 +289,7 @@ class Index extends BaseController
             $this->error('通道已经被禁用');
         }
         try{
-            $result=Utils::makePhoto($barrier);
-            sleep(1);
+            $result=Utils::makePhoto($barrier,false);
         }catch (\Exception $e){
             $this->error($e->getMessage());
         }

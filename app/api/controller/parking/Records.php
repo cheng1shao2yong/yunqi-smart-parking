@@ -12,6 +12,7 @@ use app\common\model\parking\ParkingPlate;
 use app\common\model\parking\ParkingQrcode;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecovery;
+use app\common\model\parking\ParkingScreen;
 use app\common\model\parking\ParkingTemporary;
 use app\common\service\barrier\Utils;
 use app\common\service\ParkingService;
@@ -172,7 +173,7 @@ class Records extends Base
     public function photo()
     {
         $url=$this->request->get('url');
-        [$isplate,$plate_number,$plate_type]=Utils::checkPlate($url);
+        [$isplate,$plate_number,$plate_type]=ParkingScreen::checkPlate($url);
         if(!$isplate){
             $this->error('没有检测到车辆');
         }

@@ -179,21 +179,41 @@ class Utils
         $redis->rpush('mqtt_publish_queue',json_encode($body));
     }
 
-    public static function makePhoto(ParkingBarrier $barrier)
+    public static function makePhoto(ParkingBarrier $barrier,bool $onlyphoto=true)
     {
-        Cache::set('barrier-photo-'.$barrier->serialno,true,5);
-        Utils::send($barrier,'主动识别');
-        $i=0;
-        while($i<50){
-            $result=Cache::get('barrier-photo-'.$barrier->serialno);
-            if($result && $result!==true){
-                Cache::delete('barrier-photo-'.$barrier->serialno);
-                return $result;
+        if($onlyphoto){
+            Cache::set('barrier-photo-'.$barrier->serialno,'');
+            Utils::send($barrier,'主动拍照');
+            $i=0;
+            $photo=false;
+            while($i<50){
+                $photo=Cache::get('barrier-photo-'.$barrier->serialno);
+                if($photo){
+                    break;
+                }
+                usleep(100000);
+                $i++;
             }
-            usleep(100000);
-            $i++;
+            if(!$photo){
+                throw new \Exception('主动拍照失败');
+            }
+            return $photo;
+        }else{
+            Cache::set('barrier-photo-'.$barrier->serialno,true,5);
+            Utils::send($barrier,'主动识别');
+            $i=0;
+            while($i<50){
+                $result=Cache::get('barrier-photo-'.$barrier->serialno);
+                if($result && $result!==true){
+                    Cache::delete('barrier-photo-'.$barrier->serialno);
+                    sleep(1);
+                    return $result;
+                }
+                usleep(100000);
+                $i++;
+            }
+            throw new \Exception('主动拍照失败');
         }
-        throw new \Exception('主动拍照失败');
     }
 
     public static function trigger(ParkingBarrier $barrier)

@@ -120,8 +120,7 @@ class Screen extends ParkingBase
         try{
             $photo=Utils::makePhoto($barrier);
             if($photo){
-                sleep(1);
-                ParkingScreen::sendRedMessage($barrier,'<br><img style="width:95%;" src="'.$photo.'"/>');
+                ParkingScreen::sendRedMessage($barrier,'<br><img style="width:95%;" src="'.$photo.'"/><br>');
             }
         }catch (\Exception $e){
             $this->error($e->getMessage());

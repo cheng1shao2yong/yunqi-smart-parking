@@ -198,6 +198,39 @@ class ParkingScreen extends Model
         }
     }
 
+    public static function checkPlate(string $photourl)
+    {
+        $photo=base64_encode(file_get_contents($photourl));
+        $path='/openapi/v1/prs_cn/plates/detect';
+        $data=[
+            'image_type'=>'BASE64',
+            'image'=>$photo
+        ];
+        $url=self::getUrl('POST',$path,$data);
+        $data=json_encode($data);
+        $response=Http::post($url,$data,'',["Content-Type:application/json","Content-Length:".strlen($data)]);
+        if($response->isSuccess()){
+            $result_list=$response->content['result_list'];
+            if(count($result_list)>0){
+                $color=[
+                    '未知' => 'unknown',
+                    '蓝色' => 'blue',
+                    '黄色' => 'yellow',
+                    '白色' => 'white',
+                    '黑色' => 'black',
+                    '绿色' => 'green',
+                    '黄绿色' => 'yellow-green'
+                ];
+                $plate_color=isset($color[$result_list[0]['plate_color']])?$color[$result_list[0]['plate_color']]:'unknown';
+                $plate_number=$result_list[0]['license'];
+                return [true,$plate_number,$plate_color];
+            }
+            return [false,'',''];
+        }else{
+            throw new \Exception($response->errorMsg);
+        }
+    }
+
     public static function getTolkingUrl(ParkingBarrier $barrier)
     {
         if($barrier->camera==ParkingBarrier::CAMERA('成都臻识科技')){

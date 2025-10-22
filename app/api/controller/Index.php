@@ -136,15 +136,15 @@ class Index extends Api
         $r=false;
         try{
             $endtime=time() - $barrier->limit_pay_time;
-            $trigger=ParkingTrigger::whereRaw("serialno='{$barrier->serialno}' and (plate_number='无牌车' or plate_number='_无_') and createtime>{$endtime}")->find();
-            if($trigger){
+            $trigger=ParkingTrigger::where('serialno',$barrier->serialno)->order('id desc')->find();
+            if($trigger && $trigger->plate_number=='无牌车' && $trigger->createtime>$endtime){
                 $photo=$trigger->image;
             }else{
-                $photo=Utils::makePhoto($barrier);
                 $temporary_check_cars=$parking->setting->temporary_check_cars;
                 if($temporary_check_cars){
                     $this->error('没有识别到无牌车，请退后重试');
                 }
+                $photo=Utils::makePhoto($barrier);
             }
             $service=ParkingService::newInstance([
                 'parking' => $parking,
@@ -488,15 +488,15 @@ class Index extends Api
         }
         $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
         $endtime=time() - $barrier->limit_pay_time;
-        $trigger=ParkingTrigger::whereRaw("serialno='{$barrier->serialno}' and (plate_number='无牌车' or plate_number='_无_') and createtime>{$endtime}")->find();
-        if($trigger){
+        $trigger=ParkingTrigger::where('serialno',$barrier->serialno)->order('id desc')->find();
+        if($trigger && $trigger->plate_number=='无牌车' && $trigger->createtime>$endtime){
             $photo=$trigger->image;
         }else{
-            $photo=Utils::makePhoto($barrier);
             $temporary_check_cars=$parking->setting->temporary_check_cars;
             if($temporary_check_cars){
                 $this->error('没有识别到无牌车，请退后重试');
             }
+            $photo=Utils::makePhoto($barrier);
         }
         try{
             $parkingService=ParkingService::newInstance([

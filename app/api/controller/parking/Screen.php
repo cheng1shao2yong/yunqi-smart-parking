@@ -122,4 +122,23 @@ class Screen extends Base
         }
         $this->success('',$photo);
     }
+
+    #[Post('trigger')]
+    public function trigger()
+    {
+        $barrier_id=$this->request->post('barrier_id');
+        $barrier=ParkingBarrier::where(['parking_id'=>$this->parking->id,'id'=>$barrier_id])->find();
+        if(!$barrier){
+            $this->error('通道不存在');
+        }
+        if($barrier->status!='normal'){
+            $this->error('通道已经被禁用');
+        }
+        try{
+            Utils::trigger($barrier);
+        }catch (\Exception $e){
+            $this->error($e->getMessage());
+        }
+        $this->success('识别成功');
+    }
 }
