@@ -128,12 +128,11 @@ class Yibao extends PayService {
         if($response->isSuccess()){
             $content=json_decode($response->content,true);
             if($content['code']=='000000'){
-                $r=[];
-                $r['orderId']=$union->out_trade_no;
-                $r['payInfo']=[
-                    'tradeNO'=>json_decode($content['data']['payInfo'],true)['tradeNo'],
-                ];
-                return $r;
+                $result=[];
+                $result['payInfo']=['tradeNO'=>json_decode($content['data']['payInfo'],true)['tradeNo']];
+                $result['orderId']=$union->out_trade_no;
+                $result['payType']='yibao';
+                return $result;
             }else{
                 throw new \Exception($content['msg']);
             }
@@ -208,7 +207,52 @@ class Yibao extends PayService {
 
     public function wechatMpappPay()
     {
-        throw new \Exception('暂不支持');
+        $time=time();
+        [$splitBillDetail,$handling_fees]=$this->getPayDetail();
+        $user=[
+            'user_id'=>$this->user_id,
+            'parking_id'=>$this->parking_id,
+            'property_id'=>$this->property_id,
+        ];
+        $union=PayUnion::wechatmpapp(PayUnion::PAY_TYPE_HANDLE('易宝'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
+        $third=Third::where(['platform'=>'mpapp','user_id'=>$this->user_id])->find();
+        $data = array(
+            'merAccount' => $this->config['mer_account'],
+            'merNo' =>  $this->config['mer_no'],
+            'time' => (string)$time,
+            'orderId' => $union->out_trade_no,//订单号
+            'amount' => (string)($this->pay_price*100),//交易金额(分)
+            'product' => PayUnion::ORDER_TYPE[$this->order_type],//商品
+            'productDesc' => $this->order_body,//商品描述
+            'payWay' => 'WEIXIN',
+            'payType' => 'JSAPI_WEIXIN',
+            'openId' => $third->openid,
+            'splitBillDetail'=>json_encode($splitBillDetail),
+            'userIp' => request()->ip(),
+            'returnUrl' => request()->domain().'/h5/#/pages/index/orderdetail?out_trade_no='.$union->out_trade_no,
+            'notifyUrl' => request()->domain().'/index/notify/yibao'
+        );
+        if($this->attach){
+            $data['attach']=$this->attach;
+        }
+        $data['sign'] = $this->getSign($data,$this->config['private_key']);
+        $encrypt=$this->encryptData($data);
+        $response=Http::post(self::MBPAYORDER,[
+            'merAccount'=>$this->config['mer_account'],
+            'data'=>$encrypt
+        ]);
+        if($response->isSuccess()){
+            $content=json_decode($response->content,true);
+            if($content['code']=='000000'){
+                $result=[];
+                $result['payInfo']=json_decode($content['data']['payInfo'],true);
+                $result['orderId']=$union->out_trade_no;
+                $result['payType']='yibao';
+                return $result;
+            }else{
+                throw new \Exception($content['msg']);
+            }
+        }
     }
 
     private function getPayDetail()

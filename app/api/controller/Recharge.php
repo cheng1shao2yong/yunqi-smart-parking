@@ -49,7 +49,7 @@ class Recharge extends Api
     #[Post('storedapply')]
     public function storedapply()
     {
-        $pay_type=$this->request->post('pay_type');
+        $pay_platform=$this->request->post('pay_platform','wechat-miniapp');
         $rules_id=$this->request->post('rules_id');
         $plate_number=$this->request->post('plate_number');
         $mobile=$this->request->post('mobile');
@@ -82,6 +82,7 @@ class Recharge extends Api
             'user_id'=>$this->auth->id,
             'parking_id'=>$parking->id,
             'sub_merch_no'=>$parking->sub_merch_no,
+            'sub_merch_key'=>$parking->sub_merch_key,
             'split_merch_no'=>$parking->split_merch_no,
             'persent'=>$parking->parking_recharge_persent,
             'pay_price'=>$totalfee,
@@ -96,10 +97,10 @@ class Recharge extends Api
                 'remark'=>$remark
             ],JSON_UNESCAPED_UNICODE)
         ]);
-        if($pay_type=='wechat-miniapp'){
+        if($pay_platform=='wechat-miniapp'){
             $r=$service->wechatMiniappPay();
         }
-        if($pay_type=='mp-alipay'){
+        if($pay_platform=='mp-alipay'){
             $r=$service->mpAlipay();
         }
         $this->success('',$r);
@@ -108,7 +109,7 @@ class Recharge extends Api
     #[Post('storedrenew')]
     public function storedrenew()
     {
-        $pay_type=$this->request->post('pay_type');
+        $pay_platform=$this->request->post('pay_platform','wechat-miniapp');
         $cars_id=$this->request->post('cars_id');
         $plate_number=$this->request->post('plate_number');
         $totalfee=$this->request->post('totalfee');
@@ -131,6 +132,7 @@ class Recharge extends Api
             'user_id'=>$this->auth->id,
             'parking_id'=>$parking->id,
             'sub_merch_no'=>$parking->sub_merch_no,
+            'sub_merch_key'=>$parking->sub_merch_key,
             'split_merch_no'=>$parking->split_merch_no,
             'persent'=>$parking->parking_recharge_persent,
             'pay_price'=>$totalfee,
@@ -142,10 +144,10 @@ class Recharge extends Api
                 'plate_number'=>$plate_number,
             ],JSON_UNESCAPED_UNICODE)
         ]);
-        if($pay_type=='wechat-miniapp'){
+        if($pay_platform=='wechat-miniapp'){
             $r=$service->wechatMiniappPay();
         }
-        if($pay_type=='mp-alipay'){
+        if($pay_platform=='mp-alipay'){
             $r=$service->mpAlipay();
         }
         $this->success('',$r);
@@ -261,7 +263,7 @@ class Recharge extends Api
     #[Post('monthrenew')]
     public function monthrenew()
     {
-        $pay_type=$this->request->post('pay_type','wechat-miniapp');
+        $pay_platform=$this->request->post('pay_platform','wechat-miniapp');
         $cars_id=$this->request->post('cars_id');
         $month=$this->request->post('month');
         $change_type=$this->request->post('change_type');
@@ -299,6 +301,7 @@ class Recharge extends Api
             'user_id'=>$this->auth->id,
             'parking_id'=>$parking->id,
             'sub_merch_no'=>$parking->sub_merch_no,
+            'sub_merch_key'=>$parking->sub_merch_key,
             'split_merch_no'=>$parking->split_merch_no,
             'persent'=>$parking->parking_recharge_persent,
             'pay_price'=>$pay_price,
@@ -312,10 +315,10 @@ class Recharge extends Api
                 'remark'=>$remark
             ],JSON_UNESCAPED_UNICODE)
         ]);
-        if($pay_type=='wechat-miniapp'){
+        if($pay_platform=='wechat-miniapp'){
             $r=$service->wechatMiniappPay();
         }
-        if($pay_type=='mp-alipay'){
+        if($pay_platform=='mp-alipay'){
             $r=$service->mpAlipay();
         }
         $this->success('',$r);
@@ -324,7 +327,7 @@ class Recharge extends Api
     #[Post('monthapply')]
     public function monthapply()
     {
-        $pay_type=$this->request->post('pay_type');
+        $pay_platform=$this->request->post('pay_platform','wechat-miniapp');
         $rules_id=$this->request->post('rules_id');
         $mobile=$this->request->post('mobile');
         $contact=$this->request->post('contact');
@@ -358,6 +361,7 @@ class Recharge extends Api
             'user_id'=>$this->auth->id,
             'parking_id'=>$parking->id,
             'sub_merch_no'=>$parking->sub_merch_no,
+            'sub_merch_key'=>$parking->sub_merch_key,
             'split_merch_no'=>$parking->split_merch_no,
             'persent'=>$parking->parking_recharge_persent,
             'pay_price'=>$pay_price,
@@ -372,10 +376,10 @@ class Recharge extends Api
                 'remark'=>$remark
             ],JSON_UNESCAPED_UNICODE)
         ]);
-        if($pay_type=='wechat-miniapp'){
+        if($pay_platform=='wechat-miniapp'){
             $r=$service->wechatMiniappPay();
         }
-        if($pay_type=='mp-alipay'){
+        if($pay_platform=='mp-alipay'){
             $r=$service->mpAlipay();
         }
         $this->success('',$r);

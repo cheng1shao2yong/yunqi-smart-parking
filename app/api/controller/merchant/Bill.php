@@ -69,8 +69,7 @@ class Bill extends Base
         if($pay_price<=0){
             $this->error('充值金额必须大于0');
         }
-        $pay_type=$this->request->post('pay_type');
-        $pay_type = preg_replace_callback('/-(.?)/',function($matches){return strtoupper($matches[1]);},$pay_type).'Pay';
+        $pay_platform=$this->request->post('pay_platform','wechat-miniapp');
         $parking=Parking::find($this->parking_id);
         $merch=ParkingMerchant::find($this->merch_id);
         $service=PayService::newInstance([
@@ -78,6 +77,7 @@ class Bill extends Base
             'user_id'=>$this->auth->id,
             'parking_id'=>$parking->id,
             'sub_merch_no'=>$parking->sub_merch_no,
+            'sub_merch_key'=>$parking->sub_merch_key,
             'split_merch_no'=>$parking->split_merch_no,
             'persent'=>$parking->parking_merch_persent,
             'pay_price'=>$pay_price,
@@ -89,7 +89,12 @@ class Bill extends Base
             ])
         ]);
         try{
-            $r=$service->$pay_type();
+            if($pay_platform=='wechat-miniapp'){
+                $r=$service->wechatMiniappPay();
+            }
+            if($pay_platform=='mp-alipay'){
+                $r=$service->mpAlipay();
+            }
         }catch (\Exception $e){
             $this->error($e->getMessage());
         }

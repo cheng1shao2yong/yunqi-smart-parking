@@ -19,7 +19,7 @@
 <script>
 import form from "@components/Form.js";
 import third from "@components/Third.js";
-import {getUniqid} from "@util.js";
+import {getUniqid,inArray} from "@util.js";
 const uniqid = getUniqid();
 export default{
     components:{
@@ -80,10 +80,16 @@ export default{
             }},
             {field:"pay_type_handle",tab:2,title:"支付接口",edit: {form:'select'},searchList:Yunqi.data.pay_type_handle,rules:'required'},
             {field:"sub_merch_no",tab:2,title:"子商户编号",edit:'text',visible:function (row){
-                return row.pay_type_handle!=='custom';
+                let pay_type_params=Yunqi.data.pay_type_params[row.pay_type_handle];
+                return inArray(pay_type_params,'sub_merch_no');
+            }},
+            {field:"sub_merch_key",tab:2,title:"子商户密钥",edit:'text',visible:function (row){
+                let pay_type_params=Yunqi.data.pay_type_params[row.pay_type_handle];
+                return inArray(pay_type_params,'sub_merch_key');
             }},
             {field:"split_merch_no",tab:2,title:"分账商户编号",edit:'text',visible:function (row){
-                return row.pay_type_handle==='yibao';
+                let pay_type_params=Yunqi.data.pay_type_params[row.pay_type_handle];
+                return inArray(pay_type_params,'split_merch_no');
             }},
             {field:"parking_records_persent",tab:2,title:"停车临停费率",edit:{form:'input',type:'text',value:6,append:'‰'},rules:`range(0~100)`},
             {field:"parking_recharge_persent",tab:2,title:"停车充值费率",edit:{form:'input',type:'text',value:6,append:'‰'},rules:`range(0~100)`},

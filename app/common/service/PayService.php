@@ -5,6 +5,7 @@ namespace app\common\service;
 use app\common\model\PayUnion;
 use app\common\service\pay\Custom;
 use app\common\service\pay\Dougong;
+use app\common\service\pay\Shouqianba;
 use app\common\service\pay\Yibao;
 use app\common\service\pay\Guotong;
 use app\common\middleware\MerchantCheck;
@@ -16,6 +17,8 @@ abstract class PayService extends BaseService{
     protected $pay_type_handle;
     //收款商户号
     protected $sub_merch_no;
+    //收款商户密钥
+    protected $sub_merch_key;
     //分账商户号
     protected $split_merch_no;
     //费率
@@ -43,6 +46,7 @@ abstract class PayService extends BaseService{
         'guotong'=>Guotong::class,
         'dougong'=>Dougong::class,
         'custom'=>Custom::class,
+        'shouqianba'=>Shouqianba::class,
     ];
 
     protected function getSubMerchNo()

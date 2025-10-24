@@ -177,6 +177,7 @@ class Orders extends Api
     public function detail()
     {
         $out_trade_no=$this->request->get('out_trade_no');
+        $time=5;
         while(true){
             $union=PayUnion::where(['out_trade_no'=>$out_trade_no,'user_id'=>$this->auth->id])->find();
             if(!$union){
@@ -185,6 +186,11 @@ class Orders extends Api
             }
             if($union->pay_status==1){
                 break;
+            }
+            $time--;
+            if($time<=0){
+                $this->error('订单处理超时');
+                return;
             }
             sleep(1);
         }
@@ -198,7 +204,8 @@ class Orders extends Api
             if(!$records){
                 $this->error('停车记录已经被删除');
             }
-            $records->parking_time=$records->exit_time-$records->entry_time;
+            $endtime=$records->exit_time?$records->exit_time:time();
+            $records->parking_time=$endtime-$records->entry_time;
             if($records->coupon_id){
                 $coupon=ParkingMerchantCouponList::with(['coupon'])->where('id',$records->coupon_id)->find();
                 $records->coupon=$coupon['coupon']->title;
@@ -254,6 +261,7 @@ class Orders extends Api
             'user_id'=>$this->auth->id,
             'parking_id'=>$parking->id,
             'sub_merch_no'=>$parking->sub_merch_no,
+            'sub_merch_key'=>$parking->sub_merch_key,
             'split_merch_no'=>$parking->split_merch_no,
             'persent'=>$parking->parking_records_persent,
             'pay_price'=>$totalfee,

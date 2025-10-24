@@ -172,6 +172,9 @@ class Index extends Api
             $parking_id=$this->request->get('parking_id');
             $plate_number=$this->request->get('plate_number');
             $records_id=$this->request->get('records_id');
+            if(!$parking_id && !$plate_number && !$records_id){
+                $this->error('请选择停车场或车牌');
+            }
             if($parking_id){
                 $query->where('parking_id','=',$parking_id);
             }
@@ -231,7 +234,7 @@ class Index extends Api
     {
         $records_id=$this->request->post('records_id');
         $records_pay_id=$this->request->post('records_pay_id');
-        $pay_type=$this->request->post('pay_type');
+        $pay_platform=$this->request->post('pay_platform','wechat-miniapp');
         $records=ParkingRecords::find($records_id);
         if(!$records){
             $this->error('记录不存在');
@@ -277,6 +280,7 @@ class Index extends Api
                 'user_id'=>$this->auth->id,
                 'parking_id'=>$parking->id,
                 'sub_merch_no'=>$parking->sub_merch_no,
+                'sub_merch_key'=>$parking->sub_merch_key,
                 'split_merch_no'=>$parking->split_merch_no,
                 'persent'=>$parking->parking_records_persent,
                 'pay_price'=>$recordspay->pay_price,
@@ -289,10 +293,10 @@ class Index extends Api
                     'parking_title'=>$parking->title
                 ],JSON_UNESCAPED_UNICODE)
             ]);
-            if($pay_type=='wechat-miniapp'){
+            if($pay_platform=='wechat-miniapp'){
                 $r=$service->wechatMiniappPay();
             }
-            if($pay_type=='mp-alipay'){
+            if($pay_platform=='mp-alipay'){
                 $r=$service->mpAlipay();
             }
             Cache::set('records_pay_'.$records_pay_id,[

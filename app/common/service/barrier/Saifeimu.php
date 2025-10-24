@@ -81,6 +81,7 @@ class Saifeimu extends BarrierService {
                 'pay_type_handle'=>$parking->pay_type_handle,
                 'parking_id'=>$parking->id,
                 'sub_merch_no'=>$parking->sub_merch_no,
+                'sub_merch_key'=>$parking->sub_merch_key,
                 'split_merch_no'=>$parking->split_merch_no,
                 'persent'=>$parking->parking_records_persent,
                 'pay_price'=>$pay->pay_price,

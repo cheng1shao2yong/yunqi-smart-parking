@@ -65,9 +65,11 @@ class Dougong extends PayService {
         if($response->isSuccess()){
             $content=$response->content;
             if($content['data']['trans_stat']=='P'){
-                $content['data']['payInfo']=json_decode($content['data']['pay_info'],true);
-                $content['data']['orderId']=$union->out_trade_no;
-                return $content['data'];
+                $result=[];
+                $result['payInfo']=json_decode($content['data']['pay_info'],true);
+                $result['orderId']=$union->out_trade_no;
+                $result['payType']='dougong';
+                return $result;
             }else{
                 throw new \Exception($content['data']['resp_desc']);
             }
@@ -130,9 +132,11 @@ class Dougong extends PayService {
         if($response->isSuccess()){
             $content=$response->content;
             if($content['data']['trans_stat']=='P'){
-                $content['data']['payInfo']=json_decode($content['data']['pay_info'],true);
-                $content['data']['orderId']=$union->out_trade_no;
-                return $content['data'];
+                $result=[];
+                $result['payInfo']=json_decode($content['data']['pay_info'],true);
+                $result['orderId']=$union->out_trade_no;
+                $result['payType']='dougong';
+                return $result;
             }else{
                 throw new \Exception($content['data']['resp_desc']);
             }
@@ -146,7 +150,42 @@ class Dougong extends PayService {
 
     public function wechatMpappPay()
     {
-        // TODO: Implement wechatMpappPay() method.
+        $user=[
+            'user_id'=>$this->user_id,
+            'parking_id'=>$this->parking_id,
+            'property_id'=>$this->property_id,
+        ];
+        $handling_fees=$this->handlingFee();
+        $union=PayUnion::wechatmpapp(PayUnion::PAY_TYPE_HANDLE('斗拱'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
+        $third=Third::where(['platform'=>'mpapp','user_id'=>$this->user_id])->find();
+        $postdata=[
+            'req_date'=>date('Ymd'),
+            'req_seq_id'=>'DG'.$union->out_trade_no,
+            'huifu_id'=>$this->config['sys_id'],
+            'goods_desc'=>$this->order_body,
+            'trade_type'=>'T_JSAPI',
+            'trans_amt'=> number_format((float)$union->pay_price,2, '.',''),
+            'notify_url'=>request()->domain().'/index/notify/dougong',
+            'wx_data'=>json_encode([
+                'sub_appid'=>site_config("addons.uniapp_mpapp_id"),
+                'sub_openid'=>$third->openid,
+                'body'=>$this->order_body,
+            ],JSON_UNESCAPED_UNICODE)
+        ];
+        $postdata=$this->parseData($postdata);
+        $response=Http::post(self::URL,$postdata,'',['Content-Type: application/json','Content-Length: '.strlen($postdata)]);
+        if($response->isSuccess()){
+            $content=$response->content;
+            if($content['data']['trans_stat']=='P'){
+                $result=[];
+                $result['payInfo']=json_decode($content['data']['pay_info'],true);
+                $result['orderId']=$union->out_trade_no;
+                $result['payType']='dougong';
+                return $result;
+            }else{
+                throw new \Exception($content['data']['resp_desc']);
+            }
+        }
     }
 
     public function qrcodePay()

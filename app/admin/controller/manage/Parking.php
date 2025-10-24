@@ -43,6 +43,7 @@ class Parking extends Backend
             "phone"=>"text",
         ];
         $this->assign('pay_type_handle',PayUnion::PAY_TYPE_HANDLE);
+        $this->assign('pay_type_params',PayUnion::PAY_TYPE_PARAMS);
     }
 
     #[Route('GET,JSON','index')]

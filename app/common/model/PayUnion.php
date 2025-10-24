@@ -64,7 +64,16 @@ class PayUnion extends Model{
         'custom'=>'微信支付宝商户支付',
         'yibao'=>'易宝支付',
         'guotong'=>'国通支付',
-        'dougong'=>'斗拱支付'
+        'dougong'=>'斗拱支付',
+        'shouqianba'=>'收钱吧支付'
+    ];
+
+    const PAY_TYPE_PARAMS=[
+        'custom'=>[],
+        'yibao'=>['sub_merch_no','split_merch_no'],
+        'guotong'=>['sub_merch_no'],
+        'dougong'=>['sub_merch_no'],
+        'shouqianba'=>['sub_merch_no','sub_merch_key']
     ];
 
     const ORDER_TYPE=[
@@ -246,6 +255,7 @@ class PayUnion extends Model{
             'pay_type_handle'=>$pay_type_handle,
             'pay_union'=>$this,
             'sub_merch_no'=>$parking->sub_merch_no,
+            'sub_merch_key'=>$parking->sub_merch_key,
             'refund_price'=>$refund_price,
             'refund_cause'=>$refund_cause,
         ]);
@@ -402,6 +412,7 @@ class PayUnion extends Model{
                 }else{
                     $service->entry();
                 }
+                return;
             }
         }
         //更新车位总数

@@ -395,9 +395,15 @@ class Utils
         self::send($barrier,'余额不足语音');
     }
 
-    public static function checkPlate(string $photo)
+    public static function test()
     {
-        return [false,'',''];
+        $barrier1=ParkingBarrier::find(17);
+        $barrier2=ParkingBarrier::find(18);
+        $barrier3=ParkingBarrier::find(19);
+        $records=ParkingRecords::find(111);
+        self::send($barrier1,'支付成功显示',['barrier'=>$barrier1,'records'=>$records]);
+        self::send($barrier2,'支付成功显示',['barrier'=>$barrier2,'records'=>$records]);
+        self::send($barrier3,'支付成功显示',['barrier'=>$barrier3,'records'=>$records]);
     }
 
     public static function getVersion(ParkingBarrier $barrier)

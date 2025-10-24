@@ -4369,6 +4369,7 @@ CREATE TABLE `yun_parking` (
   `uniqid` varchar(50) DEFAULT NULL,
   `pay_type_handle` varchar(30) DEFAULT NULL,
   `sub_merch_no` varchar(30) DEFAULT NULL,
+  `sub_merch_key` varchar(50) DEFAULT NULL,
   `split_merch_no` varchar(30) DEFAULT NULL,
   `etc_able` tinyint DEFAULT '0',
   `etc_appid` varchar(30) DEFAULT NULL,

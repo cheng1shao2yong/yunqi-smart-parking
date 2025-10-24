@@ -91,9 +91,11 @@ class Custom extends PayService {
         ];
         Pay::config($this->config);
         $pay =  Pay::wechat()->mini($order);
-        $content['data']['payInfo']=$pay;
-        $content['data']['orderId']=$union->out_trade_no;
-        return $content['data'];
+        $result=[];
+        $result['payInfo']=$pay;
+        $result['orderId']=$union->out_trade_no;
+        $result['payType']='custom';
+        return $result;
     }
 
     public function refund()
