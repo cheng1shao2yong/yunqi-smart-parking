@@ -220,6 +220,7 @@ class Shouqianba extends PayService {
         $persent=bcdiv($this->persent,'1000',4);
         $payprice=(string)($this->pay_price*100);
         $handling_fees=bcmul($payprice,$persent,1);
+        $handling_fees=round(floatval($handling_fees));
         return $handling_fees;
     }
 }

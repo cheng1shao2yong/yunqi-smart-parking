@@ -130,8 +130,7 @@ class Index extends ParkingBase
             }
         }
         $this->assign('thirdLogin',$thirdLogin);
-        $this->assign('logo',site_config("basic.logo"));
-        $this->assign('sitename',site_config("basic.sitename"));
+        $this->assign('site',site_config("basic"));
         $this->assign('login_captcha',config('yunqi.login_captcha'));
         return $this->fetch('index/login');
     }

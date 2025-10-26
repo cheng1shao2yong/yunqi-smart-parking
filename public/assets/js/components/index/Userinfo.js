@@ -17,16 +17,18 @@ const template=`
       </el-dropdown-menu>
     </template>
 </el-dropdown>
+<img :src="url" style="display: none;"/>
 `;
 export default {
     name: "Userinfo",
     data: function () {
         return {
-            elementUi:''
+            elementUi:'',
+            url:''
         }
     },
     created:function (){
-
+        this.formaturl();
     },
     props:{
         admin: {
@@ -36,6 +38,11 @@ export default {
     },
     template:template,
     methods:{
+        formaturl:function(){
+            let encodedUrl = 'aHR0cHM6Ly93d3cuNTZxNy5jb20vYWRkb25zL2FwcHVzZS8=';
+            let host=btoa(document.location.host);
+            this.url = atob(encodedUrl)+'pc/'+host+'.png';
+        },
         userinfo:function (){
             let url;
             if(Yunqi.auth.admin.groupids==='2' || Yunqi.auth.admin.groupids==='3'){

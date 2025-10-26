@@ -32,7 +32,7 @@ class Orders extends Api
         $page=$this->request->get('page/d');
         $limit=($page-1)*10;
         $type=$this->request->get('type');
-        $list=PayUnion::where(['user_id'=>$this->auth->id,'order_type'=>$type,'pay_status'=>1])->limit($limit,10)->select();
+        $list=PayUnion::where(['user_id'=>$this->auth->id,'order_type'=>$type,'pay_status'=>1])->order('id desc')->limit($limit,10)->select();
         foreach ($list as &$item){
             $attach=json_decode($item['attach'],true);
             $item['parking_title']=$attach['parking_title'];
