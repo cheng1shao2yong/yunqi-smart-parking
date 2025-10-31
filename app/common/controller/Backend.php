@@ -110,7 +110,7 @@ class Backend extends BaseController
             'baseUrl'        => $this->request->domain().'/',
             'upload'         => Config::get('yunqi.upload'),
             'elementUi'      => $elementUi,
-            'locale'         => LangService::newInstance()->all()
+            'locale'         => LangService::newInstance()->all(),
         ];
         //渲染配置信息
         $this->assign('config', $this->config);

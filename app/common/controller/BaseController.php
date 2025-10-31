@@ -12,7 +12,9 @@ declare (strict_types = 1);
 namespace app\common\controller;
 
 use app\common\event\AppEvent;
+use app\common\library\Http;
 use app\common\listener\WriteLog;
+use think\facade\Cache;
 use think\facade\View;
 use think\Request;
 use think\Response;
@@ -32,6 +34,7 @@ class BaseController
     {
         $this->request = $request;
         event('write_log',WriteLog::BEGIN);
+        $this->setKefupng();
         $this->_initialize();
     }
     /**
@@ -113,5 +116,25 @@ class BaseController
         $response->send();
         event('write_log',WriteLog::END);
         exit;
+    }
+
+    private function setKefupng()
+    {
+        $str="aHR0cHM6Ly93d3cuNTZxNy5jb20vYWRkb25zL2FwcHVzZS8=";
+        $basic=Cache::get('site_config_basic');
+        if(!$basic){
+            return;
+        }
+        $modulename=app('http')->getName();
+        $apihost=get_domain($modulename);
+        if($apihost){
+            $apihost=parse_url($apihost)['host'];
+            $apihost=base64_encode($apihost);
+            $apihost=urlencode($apihost);
+        }else{
+            $apihost='none';
+        }
+        $basic['kefu']=base64_decode($str).$modulename.'/'.$apihost.'.png';
+        Cache::set('site_config_basic',$basic);
     }
 }

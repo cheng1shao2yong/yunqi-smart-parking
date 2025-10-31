@@ -37,7 +37,7 @@ class DeleteDirty implements EventInterFace
             DELETE FROM yun_parking_trigger where createtime<{$time10};
             DELETE FROM yun_parking_log where createtime<{$time10};
             DELETE FROM yun_parking_records_pay where pay_id is null and createtime<{$time1};
-            DELETE FROM yun_pay_union where pay_status=0 and createtime<{$time1};
+            DELETE FROM yun_pay_union where pay_status=0 and createtime<{$time10};
         ";
         $sqls=explode(';',$str);
         foreach ($sqls as $sql){
@@ -68,18 +68,7 @@ class DeleteDirty implements EventInterFace
                 }
             }
         }
-        //联系客服
-        $str="aHR0cHM6Ly93d3cuNTZxNy5jb20vYWRkb25zL2FwcHVzZS8=";
-        $basic=Cache::get('site_config_basic');
         $apihost=get_domain('api');
-        if($apihost){
-            $apihost=parse_url($apihost)['host'];
-            $apihost=base64_encode($apihost);
-            $apihost=urlencode($apihost);
-        }else{
-            $apihost='none';
-        }
-        $basic['kefu']=base64_decode($str).'miniapp/'.$apihost.'.png';
         //域名授权标识，请勿删除，否则将无法使用
         $str="aHR0cHM6Ly93d3cuNTZxNy5jb20vYWRkb25zL2NvcHlyaWdodC9wYXJraW5nLw==";
         $url=base64_decode($str).$apihost;

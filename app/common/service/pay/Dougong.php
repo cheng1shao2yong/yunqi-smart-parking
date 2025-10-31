@@ -44,7 +44,7 @@ class Dougong extends PayService {
             'property_id'=>$this->property_id,
         ];
         $handling_fees=$this->handlingFee();
-        $union=PayUnion::wechatminiapp(PayUnion::PAY_TYPE_HANDLE('斗拱'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
+        $union=PayUnion::wechatminiapp(PayUnion::PAY_TYPE_HANDLE('斗拱支付'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
         $third=Third::where(['platform'=>'miniapp','user_id'=>$this->user_id])->find();
         $postdata=[
             'req_date'=>date('Ymd'),
@@ -112,7 +112,7 @@ class Dougong extends PayService {
             'property_id'=>$this->property_id,
         ];
         $handling_fees=$this->handlingFee();
-        $union=PayUnion::wechatminiapp(PayUnion::PAY_TYPE_HANDLE('斗拱'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
+        $union=PayUnion::wechatminiapp(PayUnion::PAY_TYPE_HANDLE('斗拱支付'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
         $third=Third::where(['platform'=>'alipay-mini','user_id'=>$this->user_id])->find();
         $postdata=[
             'req_date'=>date('Ymd'),
@@ -156,7 +156,7 @@ class Dougong extends PayService {
             'property_id'=>$this->property_id,
         ];
         $handling_fees=$this->handlingFee();
-        $union=PayUnion::wechatmpapp(PayUnion::PAY_TYPE_HANDLE('斗拱'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
+        $union=PayUnion::wechatmpapp(PayUnion::PAY_TYPE_HANDLE('斗拱支付'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
         $third=Third::where(['platform'=>'mpapp','user_id'=>$this->user_id])->find();
         $postdata=[
             'req_date'=>date('Ymd'),
@@ -196,7 +196,7 @@ class Dougong extends PayService {
             'property_id'=>$this->property_id,
         ];
         $handling_fees=$this->handlingFee();
-        $union=PayUnion::qrcodePay(PayUnion::PAY_TYPE_HANDLE('斗拱'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
+        $union=PayUnion::qrcodePay(PayUnion::PAY_TYPE_HANDLE('斗拱支付'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
         $domain=get_domain('api');
         [$type,$trade_type,$payinfo]=$this->getQrcodePayType();
         $postdata=[
@@ -278,6 +278,68 @@ class Dougong extends PayService {
         }
     }
 
+    public function payOne(Parking $parking,float $price)
+    {
+        //数据加锁
+        $out_trade_no=create_out_trade_no();
+        $postdata=[
+            'req_seq_id'=>$out_trade_no,
+            'req_date'=>date('Ymd'),
+            'out_huifu_id'=>$this->config['sys_id'],
+            'ord_amt'=>number_format($price,2, '.',''),
+            'risk_check_data'=>json_encode([
+                'sub_product'=>'1',
+                'transfer_type'=>'05'
+            ],JSON_UNESCAPED_UNICODE),
+            'acct_split_bunch'=>json_encode([
+                'acct_infos'=>array([
+                    'div_amt'=>number_format($price,2, '.',''),
+                    'huifu_id'=>$parking->sub_merch_no,
+                ])
+            ],JSON_UNESCAPED_UNICODE)
+        ];
+        $postdata=$this->parseData($postdata);
+        $response=Http::post(self::BALANCEPAY,$postdata,'',['Content-Type: application/json','Content-Length: '.strlen($postdata)]);
+        if($response->isSuccess()){
+            $content=$response->content;
+            if($content['data']['trans_stat']=='S'){
+                echo 'SUCCESS';
+                return;
+            }
+        }
+        echo 'FAIL';
+    }
+
+    public function payMerch(string $sub_merch_no,float $price)
+    {
+        //数据加锁
+        $out_trade_no=create_out_trade_no();
+        $postdata=[
+            'req_seq_id'=>$out_trade_no,
+            'req_date'=>date('Ymd'),
+            'out_huifu_id'=>$this->config['sys_id'],
+            'ord_amt'=>number_format($price,2, '.',''),
+            'risk_check_data'=>json_encode([
+                'sub_product'=>'1',
+                'transfer_type'=>'05'
+            ],JSON_UNESCAPED_UNICODE),
+            'acct_split_bunch'=>json_encode([
+                'acct_infos'=>array([
+                    'div_amt'=>number_format($price,2, '.',''),
+                    'huifu_id'=>$sub_merch_no,
+                ])
+            ],JSON_UNESCAPED_UNICODE)
+        ];
+        $postdata=$this->parseData($postdata);
+        $response=Http::post(self::BALANCEPAY,$postdata,'',['Content-Type: application/json','Content-Length: '.strlen($postdata)]);
+        if($response->isSuccess()){
+            $content=$response->content;
+            if($content['data']['trans_stat']=='S'){
+                return;
+            }
+        }
+    }
+
     public function notify()
     {
         $res=request()->post();
@@ -339,6 +401,7 @@ class Dougong extends PayService {
         $persent=bcdiv($this->persent,'1000',4);
         $payprice=(string)($this->pay_price*100);
         $handling_fees=bcmul($payprice,$persent,1);
+        $handling_fees=round(floatval($handling_fees));
         return $handling_fees;
     }
 
