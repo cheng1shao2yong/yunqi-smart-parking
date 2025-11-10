@@ -135,6 +135,9 @@ class Hzcbparking extends Command
         if(key_exists($plate_number,$this->inrecord)){
             return;
         }
+        if($plate_number!='浙ACT1772'){
+            return;
+        }
         $this->inrecord[$plate_number]=time();
         $parking_code=$data['parkingCode'];
         $no_sense=intval($data['noSense']);

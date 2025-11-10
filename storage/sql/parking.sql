@@ -173,6 +173,20 @@ CREATE TABLE `yun_parking_cars_apply` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `yun_parking_contactless`;
+CREATE TABLE `yun_parking_contactless` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `parking_id` int DEFAULT NULL,
+  `property_id` int DEFAULT NULL,
+  `parking_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '停车场标识',
+  `handle` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `money_limit` int DEFAULT NULL COMMENT '无感支付签约额度 ，单位分',
+  `records_id` int DEFAULT NULL,
+  `createtime` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `records_id` (`records_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=677 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 -- ----------------------------
 -- Table structure for yun_parking_cars_logs
 -- ----------------------------
