@@ -19,6 +19,9 @@
             columns:[
                 {field:"id",title:"ID",edit:"hidden"},
                 {field:"parking_id",title:"备案停车场",edit:{form:"selectpage",placeholder:"请选择停车场",url:"manage/parking/index",labelField:"title",keyField:"id",disabled:Yunqi.data.row?true:false},rules:"required"},
+                {field:"parking_type",title:"停车场类型",searchList:Yunqi.data.parkingType,edit:"radio",visible:function (row){
+                    return row.area=='Hangzhou';
+                }},
                 {field:"area",title:"备案区域",edit:"select",rules:"required",searchList:Yunqi.data.area},
                 {field:"rule_info",title:"收费规则",edit:"textarea",visible:function (row){
                     return row.area=='Kunming';
@@ -29,7 +32,7 @@
                 {field:"reserved_parking_number",title:"保留车位",edit:"number",rules:"required;integer(+0)"},
                 {field:"status",title:"状态",edit:'radio',searchList:{normal:"正常",hidden:"隐藏"}},
             ],
-            row:Yunqi.data.row || {status:'normal'}
+            row:Yunqi.data.row || {status:'normal',parking_type:'1'}
         },
         methods: {
         }

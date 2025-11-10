@@ -58,14 +58,15 @@ class Index extends Base
                     $show_last_space=json_decode($barrier->show_last_space,true);
                     $line=$show_last_space['line'];
                     $text=str_replace('{剩余车位}',(string)$parking_space_last,$show_last_space['text']);
-                    Cache::set('parking_space_entry_'.$this->parking_id,$parking_space_total-$parking_space_last);
                     Utils::setScreentextAd($barrier,$text,$line);
                 }
             }
+            Cache::set('parking_space_entry_'.$this->parking_id,$parking_space_total-$parking_space_last);
             $this->success('校准完成');
         }else{
+            $parking=Parking::cache('parking_'.$this->parking_id,24*3600)->withJoin(['setting'])->find($this->parking_id);
             $parking_space_total=ParkingSetting::where('parking_id',$this->parking_id)->value('parking_space_total');
-            $parking_space_entry=ParkingRecords::where(['parking_id'=>$this->parking_id])->whereIn('status',[0,1])->count();
+            $parking_space_entry=ParkingRecords::parkingSpaceEntry($parking);
             $parking_space_last=($parking_space_total-$parking_space_entry)>0?$parking_space_total-$parking_space_entry:0;
             $this->success('',[
                 'parking_space_total'=>$parking_space_total,
@@ -93,8 +94,9 @@ class Index extends Base
     #[Get('records')]
     public function records()
     {
+        $parking=Parking::cache('parking_'.$this->parking_id,24*3600)->withJoin(['setting'])->find($this->parking_id);
         $parking_space_total=ParkingSetting::where('parking_id',$this->parking_id)->value('parking_space_total');
-        $parking_space_active=ParkingRecords::where('parking_id',$this->parking_id)->whereIn('status',[0,1])->count();
+        $parking_space_active=ParkingRecords::parkingSpaceEntry($parking);
         $parking_space_last=($parking_space_total-$parking_space_active>0)?$parking_space_total-$parking_space_active:0;
         $provisional=ParkingRecords::where(['parking_id'=>$this->parking_id,'rules_type'=>'provisional'])->whereIn('status',[0,1])->count();
         $monthly=ParkingCars::where(['parking_id'=>$this->parking_id,'rules_type'=>'monthly','status'=>'normal'])->count();

@@ -17,7 +17,6 @@ use app\common\service\barrier\Utils;
 use app\common\service\BarrierService;
 use Simps\MQTT\Config\ClientConfig;
 use Simps\MQTT\Client;
-use Simps\MQTT\Protocol\Types;
 use think\facade\Cache;
 use think\console\Command;
 use think\console\Input;

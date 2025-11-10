@@ -63,9 +63,11 @@ class WriteLog
                     Log::record("----------{$modulename}----------{$controllername}----------{$actionname}----------");
                     break;
                 case self::END:
-                    $usetime=round(microtime(true)-self::$starttime,5);
-                    Log::record("请求完成，耗时：".$usetime."秒\n");
-                    Log::save();
+                    if(self::$starttime){
+                        $usetime=round(microtime(true)-self::$starttime,5);
+                        Log::record("请求完成，耗时：".$usetime."秒\n");
+                        Log::save();
+                    }
                     break;
                 case self::ADMIN:
                     $this->writeAdminLog();

@@ -6,6 +6,7 @@ use app\common\library\Http;
 use app\common\model\parking\ParkingBarrier;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingTraffic;
+use app\common\model\PayUnion;
 
 //停车场配置地址 https://docs.qq.com/sheet/DYmxaSU9YeEtzblBJ?tab=BB08J2
 class Kunming implements BaseTraffic
@@ -137,6 +138,11 @@ class Kunming implements BaseTraffic
         if($response->content['rspData']['code']==500){
             throw new \Exception($response->content['rspData']['message']);
         }
+        return true;
+    }
+
+    public function order(ParkingTraffic $traffic,ParkingRecords $records,PayUnion $union):bool
+    {
         return true;
     }
 

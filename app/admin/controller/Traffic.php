@@ -30,6 +30,7 @@ class Traffic extends Backend
         $this->model = new ParkingTraffic();
         $this->relationField=['parking'];
         $this->assign('area',ParkingTraffic::AREA);
+        $this->assign('parkingType',ParkingTraffic::PARKING_TYPE);
     }
 
     #[Route('GET,JSON','index')]

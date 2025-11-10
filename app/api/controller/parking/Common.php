@@ -7,6 +7,7 @@ use app\common\model\Admin;
 use app\common\model\manage\Parking;
 use app\common\model\parking\ParkingAdmin;
 use app\common\model\parking\ParkingLog;
+use app\common\model\parking\ParkingScreen;
 use app\common\model\property\PropertyAdmin;
 use app\common\model\Third;
 use think\annotation\route\Get;
@@ -191,6 +192,17 @@ class Common extends Base
         ->limit(($page-1)*15,15)
         ->select();
         $this->success('',$list);
+    }
+
+    #[Get('photo')]
+    public function photo()
+    {
+        $url=$this->request->get('url');
+        [$isplate,$plate_number,$plate_type]=ParkingScreen::checkPlate($url);
+        if(!$isplate){
+            $this->error('没有检测到车辆');
+        }
+        $this->success('',compact('plate_number','plate_type'));
     }
 
     #[Get('logout')]

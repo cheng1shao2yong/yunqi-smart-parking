@@ -316,6 +316,11 @@ class Utils
     public static function exitScreenAndVoice(ParkingBarrier $barrier,ParkingPlate $plate,ParkingRecords $records,ParkingRecordsPay|null $recordsPay,string $recordsType,string $rulesType)
     {
         if($recordsType==ParkingRecords::RECORDSTYPE('自动识别') || $recordsType==ParkingRecords::RECORDSTYPE('人工确认')){
+            if($records->status==ParkingRecords::STATUS('先离后付出场')){
+                self::send($barrier,'支付成功语音');
+                self::send($barrier,'支付成功显示',['records'=>$records]);
+                return;
+            }
             if($recordsPay && $recordsPay->pay_id){
                 self::send($barrier,'支付成功语音');
                 self::send($barrier,'支付成功显示',['records'=>$records]);

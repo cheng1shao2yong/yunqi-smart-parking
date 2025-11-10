@@ -6,6 +6,7 @@ use app\common\library\Http;
 use app\common\model\parking\ParkingBarrier;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingTraffic;
+use app\common\model\PayUnion;
 use Rtgm\sm\RtSm2;
 use Rtgm\sm\RtSm4;
 
@@ -107,7 +108,7 @@ class Guiyang implements BaseTraffic
             'remain_parking_number'=>$traffic->remain_parking_number,
             'open_parking_number'=>$traffic->open_parking_number,
             'reserved_parking_number'=>$traffic->reserved_parking_number,
-            'exception_parking_number'=>0,
+            'exception_parking_number'=>0
         ];
         $package=$this->pack($data);
         $response=Http::post($url,$package,'',['Content-Type: application/json','Content-Length: '.strlen($package)]);
@@ -115,16 +116,13 @@ class Guiyang implements BaseTraffic
             if(intval($response->content['code'])!==0){
                 throw new \Exception($response->content['message']);
             }
-            if($records->pay_fee){
-                $this->order($traffic,$records);
-            }
             return true;
         }else{
             throw new \Exception($response->errorMsg);
         }
     }
 
-    public function order(ParkingTraffic $traffic,ParkingRecords $records)
+    public function order(ParkingTraffic $traffic,ParkingRecords $records,PayUnion $union):bool
     {
         $url=self::URL."/open-server/api/v1/park/add/order";
         $data=[

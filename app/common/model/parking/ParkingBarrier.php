@@ -76,6 +76,14 @@ class ParkingBarrier extends Model
         return explode(',',$data);
     }
 
+    public function getManualConfirmTimePeriodAttr($data)
+    {
+        if(!$data){
+            return array(['period_begin'=>'08:00','period_end'=>'12:00']);
+        }
+        return json_decode($data,true);
+    }
+
     public function fuji()
     {
         return $this->hasMany(ParkingBarrier::class,'pid','id');

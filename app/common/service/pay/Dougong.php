@@ -112,7 +112,7 @@ class Dougong extends PayService {
             'property_id'=>$this->property_id,
         ];
         $handling_fees=$this->handlingFee();
-        $union=PayUnion::wechatminiapp(PayUnion::PAY_TYPE_HANDLE('斗拱支付'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
+        $union=PayUnion::alipay(PayUnion::PAY_TYPE_HANDLE('斗拱支付'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
         $third=Third::where(['platform'=>'alipay-mini','user_id'=>$this->user_id])->find();
         $postdata=[
             'req_date'=>date('Ymd'),
@@ -225,56 +225,66 @@ class Dougong extends PayService {
         }
     }
 
-    public function settle(Parking $parking,string $date)
+    public function settle(Parking $parking,string $date,float $net_income)
     {
         $settle=ParkingDailySettle::where(['parking_id'=>$parking->id,'date'=>$date,'pay_depart'=>'dougong','status'=>1])->find();
         if($settle){
             return;
         }
-        $flow=ParkingDailyCashFlow::where(['parking_id'=>$parking->id,'date'=>$date])->find();
-        if($flow && $flow->net_income>0){
-            $out_trade_no=create_out_trade_no();
-            $savedata=[
-                'parking_id'=>$parking->id,
-                'out_trade_no'=>$out_trade_no,
-                'date'=>$date,
-                'price'=>$flow->net_income,
-                'pay_depart'=>'dougong',
-                'createtime'=>time()
-            ];
-            $postdata=[
-                'req_seq_id'=>$out_trade_no,
-                'req_date'=>date('Ymd'),
-                'out_huifu_id'=>$this->config['sys_id'],
-                'ord_amt'=>number_format(floatval($flow->net_income),2, '.',''),
-                'risk_check_data'=>json_encode([
-                    'sub_product'=>'1',
-                    'transfer_type'=>'05'
-                ],JSON_UNESCAPED_UNICODE),
-                'acct_split_bunch'=>json_encode([
-                    'acct_infos'=>array([
-                        'div_amt'=>number_format(floatval($flow->net_income),2, '.',''),
-                        'huifu_id'=>$parking->sub_merch_no,
-                    ])
-                ],JSON_UNESCAPED_UNICODE)
-            ];
-            $postdata=$this->parseData($postdata);
-            $response=Http::post(self::BALANCEPAY,$postdata,'',['Content-Type: application/json','Content-Length: '.strlen($postdata)]);
-            if($response->isSuccess()){
-                $content=$response->content;
-                if($content['data']['trans_stat']=='S'){
-                    $savedata['status']=1;
-                    (new ParkingDailySettle())->save($savedata);
-                }else{
-                    $savedata['status']=2;
-                    $savedata['error']=$content['data']['resp_desc'];
-                    (new ParkingDailySettle())->save($savedata);
-                }
+        if($net_income<=0){
+            return;
+        }
+        $out_trade_no=create_out_trade_no();
+        $savedata=[
+            'parking_id'=>$parking->id,
+            'out_trade_no'=>$out_trade_no,
+            'date'=>$date,
+            'price'=>$net_income,
+            'pay_depart'=>'dougong',
+            'createtime'=>time()
+        ];
+        if(strlen($parking->sub_merch_no)<10){
+            $savedata['status']=2;
+            $savedata['error']='商户号不正确';
+            (new ParkingDailySettle())->save($savedata);
+            return;
+        }
+        $postdata=[
+            'req_seq_id'=>$out_trade_no,
+            'req_date'=>date('Ymd'),
+            'out_huifu_id'=>$this->config['sys_id'],
+            'ord_amt'=>number_format($net_income,2, '.',''),
+            'risk_check_data'=>json_encode([
+                'sub_product'=>'1',
+                'transfer_type'=>'05'
+            ],JSON_UNESCAPED_UNICODE),
+            'acct_split_bunch'=>json_encode([
+                'acct_infos'=>array([
+                    'div_amt'=>number_format($net_income,2, '.',''),
+                    'huifu_id'=>$parking->sub_merch_no,
+                ])
+            ],JSON_UNESCAPED_UNICODE)
+        ];
+        $postdata=$this->parseData($postdata);
+        $response=Http::post(self::BALANCEPAY,$postdata,'',['Content-Type: application/json','Content-Length: '.strlen($postdata)]);
+        if($response->isSuccess()){
+            $content=$response->content;
+            if(
+                isset($content['data']) &&
+                isset($content['data']['trans_stat']) &&
+                $content['data']['trans_stat']=='S'
+            ){
+                $savedata['status']=1;
+                (new ParkingDailySettle())->save($savedata);
             }else{
                 $savedata['status']=2;
-                $savedata['error']=$response->errorMsg;
+                $savedata['error']=json_encode($content,JSON_UNESCAPED_UNICODE);
                 (new ParkingDailySettle())->save($savedata);
             }
+        }else{
+            $savedata['status']=2;
+            $savedata['error']=$response->errorMsg;
+            (new ParkingDailySettle())->save($savedata);
         }
     }
 

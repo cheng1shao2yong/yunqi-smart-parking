@@ -30,6 +30,7 @@ class Pay extends ParkingBase
     {
         parent::_initialize();
         $this->assign('orderType',PayUnion::ORDER_TYPE);
+        $this->assign('payType',PayUnion::PAYTYPE);
         $this->model=new PayUnion();
     }
 

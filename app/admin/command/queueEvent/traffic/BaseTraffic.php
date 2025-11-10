@@ -4,6 +4,7 @@ namespace app\admin\command\queueEvent\traffic;
 
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingTraffic;
+use app\common\model\PayUnion;
 
 interface BaseTraffic
 {
@@ -16,6 +17,9 @@ interface BaseTraffic
 
     //出场记录
     public function outrecord(ParkingTraffic $traffic,ParkingRecords $records):bool;
+
+    //订单
+    public function order(ParkingTraffic $traffic,ParkingRecords $records,PayUnion $union):bool;
 
     //剩余车位情况
     public function restberth(ParkingTraffic $traffic);

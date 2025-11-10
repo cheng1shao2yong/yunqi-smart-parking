@@ -36,6 +36,7 @@ class ParkingRecords extends BaseModel
         '7'=>'未缴费出场',
         '8'=>'手动开闸出场',
         '9'=>'现金缴费出场',
+        '10'=>'先离后付出场'
     ];
 
     public function getEntryTypeTxtAttr($data,$row)

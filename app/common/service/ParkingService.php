@@ -6,6 +6,7 @@ namespace app\common\service;
 use app\common\model\parking\ParkingBarrier;
 use app\common\model\parking\ParkingBlack;
 use app\common\model\parking\ParkingCars;
+use app\common\model\parking\ParkingContactless;
 use app\common\model\parking\ParkingException;
 use app\common\model\parking\ParkingInfield;
 use app\common\model\parking\ParkingInfieldRecords;
@@ -404,13 +405,11 @@ class ParkingService extends BaseService{
             }
             Utils::open($this->barrier,$this->records_type,function($res) use ($parking,$setting,$records,$rules,$plate,$rulesType){
                 if($res){
-                    $recordsPay=null;
                     $status=ParkingRecords::STATUS('免费出场');
                     if($this->records_type==ParkingRecords::RECORDSTYPE('手动操作')){
                         $status=$this->pay_status;
                     }
                     if($this->records_type!=ParkingRecords::RECORDSTYPE('手动操作') && $records->pay_fee>0){
-                        $recordsPay=ParkingRecordsPay::where(['records_id'=>$records->id])->where('pay_id','>',0)->find();
                         $status=ParkingRecords::STATUS('缴费出场');
                     }
                     Db::startTrans();
@@ -437,7 +436,7 @@ class ParkingService extends BaseService{
                             Cache::set('traffic_event',1);
                         }
                         Db::commit();
-                        Utils::exitScreenAndVoice($this->barrier,$plate,$records,$recordsPay,$this->records_type,$rulesType);
+                        Utils::exitScreenAndVoice($this->barrier,$plate,$records,$this->recordsPay,$this->records_type,$rulesType);
                     }catch (\Exception $e){
                         Db::rollback();
                         throw $e;
@@ -667,9 +666,7 @@ class ParkingService extends BaseService{
             );
             $this->recordsPay=ParkingRecordsPay::createBarrierOrder($records,$payunion,$feeArr,$this->barrier?$this->barrier->id:null);
             $records->pay_fee=$feeArr['pay_fee']+$pay_price;
-            if($this->pay_status==ParkingRecords::STATUS('缴费未出场')){
-                $records->status=$this->pay_status;
-            }
+            $records->status=$this->pay_status;
             $records->save();
             return true;
         }
@@ -678,6 +675,27 @@ class ParkingService extends BaseService{
         }
         if($this->records_type==ParkingRecords::RECORDSTYPE('手动操作') && $this->pay_status==ParkingRecords::STATUS('未缴费出场')){
             return true;
+        }
+        //无感支付检查
+        $contactless=ParkingContactless::where('records_id',$records->id)->find();
+        if($contactless && !$contactless->status && $contactless->money_limit>=intval($pay_price*100)){
+            $recordsPay=ParkingRecordsPay::createBarrierOrder($records,null,$feeArr);
+            $user=[
+                'parking_id'=>$contactless->parking_id,
+                'property_id'=>$contactless->property_id,
+                'user_id'=>null
+            ];
+            $attach=json_encode([
+                'records_id'=>$records->id,
+                'records_pay_id'=>$recordsPay->id,
+                'plate_number'=>$records->plate_number,
+                'parking_title'=>$this->parking->title
+            ],JSON_UNESCAPED_UNICODE);
+            $union=PayUnion::contactless($user,$pay_price,0,$attach,$records->plate_number.'停车缴费');
+            if($contactless->pay($records,$union)){
+                $this->$recordsPay=$recordsPay;
+                return true;
+            }
         }
         if($rulesType==ParkingRules::RULESTYPE('储值车')){
             $plate=$this->getObj(ParkingPlate::class);

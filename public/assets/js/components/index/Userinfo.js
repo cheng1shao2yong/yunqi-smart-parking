@@ -26,7 +26,6 @@ export default {
         }
     },
     created:function (){
-        this.formaturl();
     },
     props:{
         admin: {

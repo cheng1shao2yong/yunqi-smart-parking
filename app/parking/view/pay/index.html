@@ -36,6 +36,7 @@ export default{
             {field:"out_trade_no",title:"商户单号",operate:"="},
             {field:"transaction_id",title:"渠道流水号",operate:"="},
             {field:"order_type",title:"订单类型",operate:"select",searchList:Yunqi.data.orderType},
+            {field:"pay_type",title:"支付方式",operate:"select",searchList:Yunqi.data.payType},
             {field:"pay_price",title:"订单金额",operate:'between'},
             {field:"plate_number",title:"车牌号",operate:{form:'input',type:'text',filter:false},visible:'none'},
             {field:"handling_fees",title:"手续费",operate:false,formatter:function (data){

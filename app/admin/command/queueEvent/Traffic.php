@@ -15,11 +15,13 @@ namespace app\admin\command\queueEvent;
 use app\common\model\parking\ParkingTraffic;
 use app\common\model\parking\ParkingTrafficRecords;
 use app\admin\command\queueEvent\traffic\BaseTraffic;
+use app\common\model\PayUnion;
 use think\facade\Cache;
 
 class Traffic implements EventInterFace
 {
-    public static $usetime=false;
+    public static $usetime=true;
+
     private static $invent_time=0;
 
     private static $parking=[];
@@ -28,11 +30,11 @@ class Traffic implements EventInterFace
     {
         self::$invent_time++;
         //5分钟更新一次列表
-        if(empty(self::$parking) || self::$invent_time%30===0){
+        if(empty(self::$parking) || self::$invent_time%5===0){
             self::$parking=ParkingTraffic::with(['parking'])->where(['status'=>'normal'])->select();
         }
-        //贵阳3分钟一次心跳
-        if(self::$invent_time%18===0){
+        //杭州10分钟一次心跳
+        if(self::$invent_time%10===0){
             foreach (self::$parking as $traffic){
                 $area=$traffic->area;
                 $class="\\app\\admin\\command\\queueEvent\\traffic\\".$area;
@@ -86,6 +88,20 @@ class Traffic implements EventInterFace
                                 $traffic->remain_parking_number++;
                                 $traffic->save();
                             }
+                        }
+                    }catch (\Exception $e){
+                        $trar->status=-1;
+                        $trar->error=date('Y-m-d H:i:s').'-'.$e->getMessage();
+                        $trar->save();
+                        $output->error(date('Y-m-d H:i:s').'-'.$e->getMessage());
+                    }
+                }
+                if($trar->traffic_type=='order'){
+                    try{
+                        $order=PayUnion::find($trar->pay_id);
+                        if($order && $object->order($traffic,$trar->records,$order)){
+                            $trar->status=1;
+                            $trar->save();
                         }
                     }catch (\Exception $e){
                         $trar->status=-1;

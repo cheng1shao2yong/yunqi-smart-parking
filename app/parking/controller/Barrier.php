@@ -216,6 +216,14 @@ class Barrier extends ParkingBase
                 $this->postParams['barrier_type']=$parent->barrier_type;
                 $this->postParams['title']=$parent->title.'-辅机';
             }
+            $manual_confirm=$this->request->post('row.manual_confirm/d');
+            $manual_confirm_time=$this->request->post('row.manual_confirm_time');
+            if($manual_confirm && $manual_confirm_time=='check_time'){
+                $manual_confirm_time_period=$this->request->post('row.manual_confirm_time_period');
+                $this->postParams['manual_confirm_time_period']=json_encode($manual_confirm_time_period,JSON_UNESCAPED_UNICODE);
+            }else{
+                $this->postParams['manual_confirm_time_period']=null;
+            }
         }
         if(!$this->request->isPost() && $row->pid){
             $parent=ParkingBarrier::where(['parking_id'=>$this->parking->id,'pid'=>0])->column('title','id');
@@ -245,6 +253,14 @@ class Barrier extends ParkingBase
                 $parent=ParkingBarrier::find($pid);
                 $this->postParams['barrier_type']=$parent->barrier_type;
                 $this->postParams['title']=$parent->title.'-辅机';
+            }
+            $manual_confirm=$this->request->post('row.manual_confirm/d');
+            $manual_confirm_time=$this->request->post('row.manual_confirm_time');
+            if($manual_confirm && $manual_confirm_time=='check_time'){
+                $manual_confirm_time_period=$this->request->post('row.manual_confirm_time_period');
+                $this->postParams['manual_confirm_time_period']=json_encode($manual_confirm_time_period,JSON_UNESCAPED_UNICODE);
+            }else{
+                $this->postParams['manual_confirm_time_period']=null;
             }
         }
         $fuji=$this->request->get('fuji');

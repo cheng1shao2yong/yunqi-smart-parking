@@ -237,7 +237,7 @@ class Orders extends Api
     #[Post('recovery-pay')]
     public function recoveryPay()
     {
-        $pay_type=$this->request->post('pay_type');
+        $pay_platform=$this->request->post('pay_platform','wechat-miniapp');
         $recovery_id=$this->request->post('recovery_id');
         $barrier_id=$this->request->post('barrier_id');
         $plate_number=$this->request->post('plate_number');
@@ -273,10 +273,10 @@ class Orders extends Api
                 'barrier_id'=>$barrier_id
             ],JSON_UNESCAPED_UNICODE)
         ]);
-        if($pay_type=='wechat-miniapp'){
+        if($pay_platform=='wechat-miniapp'){
             $r=$service->wechatMiniappPay();
         }
-        if($pay_type=='mp-alipay'){
+        if($pay_platform=='mp-alipay'){
             $r=$service->mpAlipay();
         }
         if($barrier_id){

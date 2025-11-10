@@ -92,6 +92,7 @@ class PayUnion extends Model{
         'etc'=>'ETC支付',
         'wechat-h5'=>'微信H5支付',
         'alipay'=>'支付宝支付',
+        'contactless'=>'无感支付',
     ];
 
     public function getPayTypeTextAttr($value,$data){
@@ -125,6 +126,24 @@ class PayUnion extends Model{
         $payunion->pay_price=$pay_price;
         $payunion->handling_fees=$handling_fees;
         $payunion->order_type=$order_type;
+        $payunion->pay_status=0;
+        $payunion->detail=$detail;
+        $payunion->save();
+        return $payunion;
+    }
+
+    public static function contactless($user,$pay_price,$handling_fees,$attach,$detail)
+    {
+        $payunion=new PayUnion();
+        $payunion->user_id=isset($user['user_id'])?$user['user_id']:null;
+        $payunion->parking_id=isset($user['parking_id'])?$user['parking_id']:null;
+        $payunion->property_id=isset($user['property_id'])?$user['property_id']:null;
+        $payunion->out_trade_no=create_out_trade_no();
+        $payunion->attach=$attach;
+        $payunion->pay_type=self::PAYTYPE('无感支付');
+        $payunion->pay_price=$pay_price;
+        $payunion->handling_fees=$handling_fees;
+        $payunion->order_type='parking';
         $payunion->pay_status=0;
         $payunion->detail=$detail;
         $payunion->save();
@@ -346,14 +365,8 @@ class PayUnion extends Model{
             }
             $records->exit_type=ParkingRecords::RECORDSTYPE('自动识别');
         }
-        //可能属于追缴
-        if($records->status==ParkingRecords::STATUS('未缴费出场') || $records->status==ParkingRecords::STATUS('未缴费等待')){
-            $recovery=ParkingRecovery::where(['records_id'=>$records->id])->find();
-            if($recovery){
-                $recovery->pay_id=$this->id;
-                $recovery->save();
-                $status=ParkingRecords::STATUS('追缴补缴出场');
-            }
+        if($records->status==ParkingRecords::STATUS('先离后付出场')){
+            $status=ParkingRecords::STATUS('先离后付出场');
         }
         if($recordspay->activities_fee){
             $records->activities_fee=$recordspay->activities_fee;
@@ -373,9 +386,32 @@ class PayUnion extends Model{
             $coupon_type=$recordscoupon[0]->coupon_type;
             ParkingMerchantCouponList::settleCoupon($records,$coupon_type,$couponlist);
         }
+        $traffic=array(
+            [
+                'parking_id'=>$records->parking_id,
+                'records_id'=>$records->id,
+                'traffic_type'=>'order',
+                'pay_id'=>$this->id,
+                'status'=>0
+            ]
+        );
         //过滤支付
         ParkingRecordsFilter::where('records_pay_id',$records_pay_id)->update(['pay_id'=>$this->id]);
+        //推送到交管平台
+        if(
+            ($status==ParkingRecords::STATUS('缴费未出场') || $status==ParkingRecords::STATUS('先离后付出场'))
+            && $parking->setting->push_traffic
+        ){
+            (new ParkingTrafficRecords())->saveAll($traffic);
+            Cache::set('traffic_event',1);
+        }
         if($status==ParkingRecords::STATUS('缴费出场')){
+            $traffic[]=[
+                'parking_id'=>$records->parking_id,
+                'records_id'=>$records->id,
+                'traffic_type'=>'exit',
+                'status'=>0
+            ];
             /* @var ParkingBarrier $barrier*/
             $barrier=ParkingBarrier::find($recordspay->barrier_id);
             if($barrier->trigger_type=='infield' || $barrier->trigger_type=='outfield'){
@@ -383,6 +419,13 @@ class PayUnion extends Model{
                 //发送消息
                 ParkingScreen::sendGreenMessage($barrier,$records->plate_number.'，支付成功，开启道闸');
                 WechatMsg::exit($parking,$records->plate_number);
+                //更新车位总数
+                ParkingRecords::parkingSpaceEntry($parking,'exit');
+                //推送到交管平台
+                if($parking->setting->push_traffic){
+                    (new ParkingTrafficRecords())->saveAll($traffic);
+                    Cache::set('traffic_event',1);
+                }
             }
             if($barrier->trigger_type=='inside' || $barrier->trigger_type=='outside'){
                 ParkingScreen::sendGreenMessage($barrier,$records->plate_number.'，支付成功');
@@ -412,20 +455,7 @@ class PayUnion extends Model{
                 }else{
                     $service->entry();
                 }
-                return;
             }
-        }
-        //更新车位总数
-        ParkingRecords::parkingSpaceEntry($parking,'exit');
-        //推动到交管平台
-        if($parking->setting->push_traffic && $records->rules_type==ParkingRules::RULESTYPE('临时车')){
-            (new ParkingTrafficRecords())->save([
-                'parking_id'=>$records->parking_id,
-                'records_id'=>$records->id,
-                'traffic_type'=>'exit',
-                'status'=>0
-            ]);
-            Cache::set('traffic_event',1);
         }
     }
 

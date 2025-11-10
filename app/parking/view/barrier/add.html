@@ -9,7 +9,7 @@
                     {:token_field()}
                 </template>
                 <template #virtual_serialno="{rows}">
-                    <el-form-item label="虚拟序列号" prop="virtual_serialno">
+                    <el-form-item label="虚拟序列号:" prop="virtual_serialno">
                         <el-input v-model="rows.virtual_serialno" placeholder="请获取虚拟序列号" size="small">
                             <template #append>
                                 <el-button type="primary" @click="createVirtualSerialno">生成序列号</el-button>
@@ -17,15 +17,28 @@
                         </el-input>
                     </el-form-item>
                 </template>
+                <template #manual_confirm_time_period="{rows}">
+                    <el-form-item label="设置确认时段:">
+                        <Fieldlist :label='["时间区间"]' :keys='["period_begin","period_end"]' :value="rows.manual_confirm_time_period" @change="changePeriod">
+                            <template #period="{list,row}">
+                                <div class="row">
+                                    <el-input v-model="list[row].period_begin" type="text"></el-input><el-input v-model="list[row].period_end" type="text"></el-input>
+                                </div>
+                            </template>
+                        </Fieldlist>
+                    </el-form-item>
+                </template>
         </yun-form>
     </el-card>
 </template>
 <script>
     import form from "@components/Form.js";
+    import fieldlist from "@components/Fieldlist.js";
     import {inArray,getUniqid} from "@util.js";
     export default {
         components: {
-            'YunForm': form
+            'YunForm': form,
+            'Fieldlist':fieldlist,
         },
         data: {
             tabs:'',
@@ -125,6 +138,12 @@
                 {field:"manual_confirm", tab:2, title:"人工确认开闸",searchList: {0:'否',1:'是'},edit:'radio',visible:function (row) {
                     return row.barrier_type=='entry';
                 }},
+                {field:"manual_confirm_time", tab:2, title:"人工确认时间",searchList: {all_time:'所有时间',check_time:'指定时间'},edit:"radio",visible:function (row) {
+                    return row.manual_confirm==1;
+                }},
+                {field:"manual_confirm_time_period",tab:2,title:"设置确认时段",edit:{form:'slot',value:[{period_begin:'08:00',period_end:'12:00'}]},visible:function (row){
+                    return row.manual_confirm==1 && row.manual_confirm_time=='check_time';
+                }},
                 {
                     field: "plate_type",
                     tab:2,
@@ -160,6 +179,9 @@
         methods: {
             createVirtualSerialno:function (){
                 this.$refs.yunform.setValue('virtual_serialno',getUniqid());
+            },
+            changePeriod:function (e){
+                this.$refs.yunform.setValue('manual_confirm_time_period',e);
             }
         }
     }

@@ -448,7 +448,11 @@ class Zhenshi extends BarrierService {
                     'entry_time' =>($barrier->barrier_type=='entry')?time():null,
                     'exit_time' =>($barrier->barrier_type=='exit')?time():null
                 ],$theadkey);
-                if($barrier_type=='entry' && $barrier->manual_confirm && $service->isProvisional()){
+                if(
+                    $barrier_type=='entry' &&
+                    self::is_manual_confirm($barrier) &&
+                    $service->isProvisional()
+                ){
                     $usetime=round(microtime(true)-$starttime,5);
                     $triggerData['usetime']=$usetime;
                     $triggerData['message']='人工确认';
@@ -534,6 +538,26 @@ class Zhenshi extends BarrierService {
         $usetime=round(microtime(true)-$starttime,5);
         $triggerData['usetime']=$usetime;
         $trigger->save($triggerData);
+        return false;
+    }
+
+    private static function is_manual_confirm(ParkingBarrier $barrier)
+    {
+        if($barrier->manual_confirm){
+            if($barrier->manual_confirm_time=='all_time'){
+                return true;
+            }
+            if($barrier->manual_confirm_time=='check_time'){
+                $now=intval(date('Hi',time()));
+                foreach ($barrier->manual_confirm_time_period as $svalue){
+                    $period_begin=intval(str_replace(':','',$svalue['period_begin']));
+                    $period_end=intval(str_replace(':','',$svalue['period_end']));
+                    if($now>=$period_begin && $now<=$period_end){
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 }

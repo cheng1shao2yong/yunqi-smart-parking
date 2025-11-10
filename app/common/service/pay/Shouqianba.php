@@ -4,6 +4,7 @@ namespace app\common\service\pay;
 
 use app\common\library\Http;
 use app\common\model\PayUnion;
+use app\common\model\Third;
 use app\common\service\PayService;
 use think\facade\Env;
 
@@ -55,12 +56,12 @@ class Shouqianba extends PayService {
         return $result;
     }
 
-    public function activateMpappAppid(string $code)
+    public function activateMpappAppid(string $code,string $device_id)
     {
         $data=[
             'app_id'=>$this->config['mpapp_app_id'],
             'code'=>$code,
-            'device_id'=>'公众号-停车支付',
+            'device_id'=>$device_id,
         ];
         $j_params = json_encode($data);
         $sign = md5($j_params .$this->config['vendor_key']);
@@ -76,12 +77,12 @@ class Shouqianba extends PayService {
         }
     }
 
-    public function activateMiniappAppid(string $code)
+    public function activateMiniappAppid(string $code,string $device_id)
     {
         $data=[
             'app_id'=>$this->config['miniapp_app_id'],
             'code'=>$code,
-            'device_id'=>'公众号-停车支付',
+            'device_id'=>$device_id,
         ];
         $j_params = json_encode($data);
         $sign = md5($j_params .$this->config['vendor_key']);
@@ -139,7 +140,55 @@ class Shouqianba extends PayService {
 
     public function mpAlipay()
     {
-
+        $user=[
+            'user_id'=>$this->user_id,
+            'parking_id'=>$this->parking_id,
+            'property_id'=>$this->property_id,
+        ];
+        $handling_fees=$this->handlingFee();
+        $union=PayUnion::alipay(PayUnion::PAY_TYPE_HANDLE('收钱吧支付'),$user,$this->pay_price,$handling_fees,$this->order_type,$this->attach,$this->order_body);
+        $third=Third::where(['platform'=>'alipay-mini','user_id'=>$this->user_id])->find();
+        $data=[
+            'terminal_sn'=>$this->sub_merch_no,
+            'client_sn'=>$union->out_trade_no,
+            'total_amount'=>(string)intval($union->pay_price*100),
+            'subject'=>$this->order_body,
+            'payway'=>'2',
+            'sub_payway'=>'4',
+            'payer_uid'=>$third->openid,
+            'operator'=>request()->ip(),
+            'notify_url' => request()->domain().'/index/notify/shouqianba'
+        ];
+        $j_params = json_encode($data);
+        $sign = md5($j_params .$this->sub_merch_key);
+        $response=Http::post(self::URL.'upay/v2/precreate',$j_params,'',array(
+            "Format:json",
+            "Content-Type: application/json",
+            "Authorization:".$this->sub_merch_no. ' '. $sign
+        ));
+        if($response->isSuccess()){
+            if(
+                $response->content['result_code']=='200'
+                && $response->content['biz_response']['result_code']=='PRECREATE_SUCCESS'
+            ){
+                $result=[];
+                $result['payInfo']=$response->content['biz_response']['data']['wap_pay_request'];
+                $result['orderId']=$union->out_trade_no;
+                $result['payType']='shouqianba';
+                return $result;
+            }
+            if(
+                $response->content['result_code']=='200'
+                && $response->content['biz_response']['result_code']=='FAIL'
+            ){
+                throw new \Exception($response->content['biz_response']['error_message']);
+            }
+            if(
+                $response->content['result_code']=='400'
+            ){
+                throw new \Exception($response->content['error_message']);
+            }
+        }
     }
 
     public function wechatPcPay()
