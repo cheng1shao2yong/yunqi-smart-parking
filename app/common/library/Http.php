@@ -102,7 +102,7 @@ class Http
         $defaults[CURLOPT_FOLLOWLOCATION] = true;
         $defaults[CURLOPT_RETURNTRANSFER] = true;
         $defaults[CURLOPT_CONNECTTIMEOUT] = 3;
-        $defaults[CURLOPT_TIMEOUT] = 3;
+        $defaults[CURLOPT_TIMEOUT] = 10;
         //$defaults[CURLOPT_ENCODING] = 'gzip,deflate,br';
         if ($cookie){
             $defaults[CURLOPT_COOKIE] = $cookie;

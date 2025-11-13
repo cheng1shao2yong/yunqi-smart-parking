@@ -405,13 +405,6 @@ class ParkingService extends BaseService{
             }
             Utils::open($this->barrier,$this->records_type,function($res) use ($parking,$setting,$records,$rules,$plate,$rulesType){
                 if($res){
-                    $status=ParkingRecords::STATUS('免费出场');
-                    if($this->records_type==ParkingRecords::RECORDSTYPE('手动操作')){
-                        $status=$this->pay_status;
-                    }
-                    if($this->records_type!=ParkingRecords::RECORDSTYPE('手动操作') && $records->pay_fee>0){
-                        $status=ParkingRecords::STATUS('缴费出场');
-                    }
                     Db::startTrans();
                     try{
                         $records->exit_time=$this->exit_time;
@@ -420,7 +413,6 @@ class ParkingService extends BaseService{
                         $records->rules_type=$rulesType;
                         $records->rules_id=$rules?$rules->id:null;
                         $records->cars_id=$plate->cars?$plate->cars->id:null;
-                        $records->status=$status;
                         $records->remark=$this->remark;
                         $records->save();
                         //更新车位总数
@@ -528,6 +520,7 @@ class ParkingService extends BaseService{
                 ParkingMerchantCouponList::createRecordsCoupon($couponlist,$records);
             }
             $pay_price=formatNumber($totalfee-$records->pay_fee-$records->activities_fee-$activities_fee);
+            $records->status=ParkingRecords::STATUS('免费出场');
             if($pay_price<=0 || ($pay_price>0 && $this->checkIsPay($rulesType,$records,['total_fee'=>$totalfee,'activities_time'=>$activities_time,'activities_fee'=>$activities_fee,'pay_fee'=>$records->pay_fee,'pay_price'=>$pay_price]))){
                 $r=true;
             }
@@ -535,7 +528,6 @@ class ParkingService extends BaseService{
                 $records->exit_time=$this->exit_time;
                 $records->exit_barrier=$this->barrier?$this->barrier->id:null;
                 $records->exit_photo=$this->photo;
-                $records->status=ParkingRecords::STATUS('未缴费等待');
             }
             if($r && $activities_fee){
                 $records->activities_fee=$activities_fee;
@@ -667,13 +659,14 @@ class ParkingService extends BaseService{
             $this->recordsPay=ParkingRecordsPay::createBarrierOrder($records,$payunion,$feeArr,$this->barrier?$this->barrier->id:null);
             $records->pay_fee=$feeArr['pay_fee']+$pay_price;
             $records->status=$this->pay_status;
-            $records->save();
             return true;
         }
         if($this->records_type==ParkingRecords::RECORDSTYPE('手动操作') && $this->pay_status==ParkingRecords::STATUS('免费出场')){
+            $records->status=$this->pay_status;
             return true;
         }
         if($this->records_type==ParkingRecords::RECORDSTYPE('手动操作') && $this->pay_status==ParkingRecords::STATUS('未缴费出场')){
+            $records->status=$this->pay_status;
             return true;
         }
         //无感支付检查
@@ -693,7 +686,8 @@ class ParkingService extends BaseService{
             ],JSON_UNESCAPED_UNICODE);
             $union=PayUnion::contactless($user,$pay_price,0,$attach,$records->plate_number.'停车缴费');
             if($contactless->pay($records,$union)){
-                $this->$recordsPay=$recordsPay;
+                $this->recordsPay=$recordsPay;
+                $records->status=ParkingRecords::STATUS('先离后付出场');
                 return true;
             }
         }
@@ -712,8 +706,7 @@ class ParkingService extends BaseService{
                 $this->recordsPay=ParkingRecordsPay::createBarrierOrder($records,$payunion,$feeArr,$this->barrier?$this->barrier->id:null);
                 ParkingStoredLog::addRecordsLog($plate->cars,$pay_price,$remark);
                 $records->pay_fee=$feeArr['pay_fee']+$pay_price;
-                $records->status=ParkingRecords::STATUS('缴费未出场');
-                $records->save();
+                $records->status=ParkingRecords::STATUS('缴费出场');
                 return true;
                 //储值车余额不足
             }else{
@@ -735,13 +728,13 @@ class ParkingService extends BaseService{
                         ParkingRecordsPay::createBarrierOrder($records,$payunion,$feeArr,$this->barrier?$this->barrier->id:null);
                         ParkingStoredLog::addRecordsLog($plate->cars,$balance,$remark);
                         $records->pay_fee=$feeArr['pay_fee']+$balance;
-                        $records->save();
                         $feeArr['pay_price']=$pay_price-$balance;
                         break;
                 }
             }
         }
         $this->recordsPay=ParkingRecordsPay::createBarrierOrder($records,null,$feeArr,$this->barrier?$this->barrier->id:null);
+        $records->status=ParkingRecords::STATUS('未缴费等待');
         return false;
     }
 

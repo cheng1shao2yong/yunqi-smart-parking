@@ -23,7 +23,7 @@ class DeleteDirty implements EventInterFace
     {
         $time1=time()-24*3600;
         $time7=time()-24*3600*7;
-        $time10=time()-24*3600*10;
+        $time30=time()-24*3600*10;
         $time200=time()-24*3600*200;
         $str="
             DELETE FROM yun_parking_cars where deletetime is NOT null and deletetime<{$time7};
@@ -34,10 +34,9 @@ class DeleteDirty implements EventInterFace
             DELETE FROM yun_parking_cars_logs where cars_id not in (SELECT id FROM yun_parking_cars);
             DELETE FROM yun_parking_cars_occupat where cars_id not in (SELECT id FROM yun_parking_cars);
             UPDATE yun_parking_records SET cars_id=null where cars_id is not null and cars_id not in (SELECT id FROM yun_parking_cars);
-            DELETE FROM yun_parking_trigger where createtime<{$time10};
-            DELETE FROM yun_parking_log where createtime<{$time10};
+            DELETE FROM yun_parking_trigger where createtime<{$time30};
+            DELETE FROM yun_parking_log where createtime<{$time30};
             DELETE FROM yun_parking_records_pay where pay_id is null and createtime<{$time1};
-            DELETE FROM yun_pay_union where pay_status=0 and createtime<{$time10};
         ";
         $sqls=explode(';',$str);
         foreach ($sqls as $sql){
@@ -73,6 +72,7 @@ class DeleteDirty implements EventInterFace
         $str="aHR0cHM6Ly93d3cuNTZxNy5jb20vYWRkb25zL2NvcHlyaWdodC9wYXJraW5nLw==";
         $url=base64_decode($str).$apihost;
         $response=Http::get($url);
+        $basic=Cache::get('site_config_basic');
         if($response->isSuccess()){
             $basic['copyright']=$response->content['copyright'];
         }

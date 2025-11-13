@@ -15,11 +15,10 @@ use app\common\library\Http;
 use app\common\model\manage\Parking;
 use app\common\model\parking\ParkingContactless;
 use app\common\model\parking\ParkingRecords;
-use app\common\model\parking\ParkingRecordsPay;
 use app\common\model\parking\ParkingTraffic;
-use app\common\model\PayUnion;
 use app\common\service\contactless\Hzbrain;
 use app\common\service\ContactlessService;
+use app\common\service\ParkingService;
 use Simps\MQTT\Client;
 use Simps\MQTT\Config\ClientConfig;
 use think\console\Command;
@@ -135,9 +134,6 @@ class Hzcbparking extends Command
         if(key_exists($plate_number,$this->inrecord)){
             return;
         }
-        if($plate_number!='浙ACT1772'){
-            return;
-        }
         $this->inrecord[$plate_number]=time();
         $parking_code=$data['parkingCode'];
         $no_sense=intval($data['noSense']);
@@ -185,7 +181,7 @@ class Hzcbparking extends Command
 
     private function fee(string $requestId,array $data)
     {
-        $this->output(var_export($data,true));
+        Log::record("收到获取账单请求：".json_encode($data,JSON_UNESCAPED_UNICODE));
     }
 
     private function payResult(string $requestId,array $data)

@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace app\common\service\contactless;
 
+use app\common\library\Http;
 use app\common\model\parking\ParkingContactless;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\PayUnion;
@@ -52,11 +53,14 @@ class Hzbrain extends ContactlessService
         $accessid=Env::get('TRAFFIC_ACCESSID');
         $package=$this->pack($post,$privatekey);
         $url=self::URL."/api/v2/cp/applyPayment";
-        $this->sendRequest($url,[
+        $response=Http::post($url,[
             'accessID'=>$accessid,
             'sign'=>self::sign($package,$privatekey),
             'cipher'=>$package
         ]);
+        if(!$response->isSuccess()){
+            throw new \Exception($response->errorMsg);
+        }
     }
 
     //处理支付结果
@@ -64,67 +68,30 @@ class Hzbrain extends ContactlessService
     {
         Log::record(json_encode($result,JSON_UNESCAPED_UNICODE));
         if($result['payStatus']!=1){
-            return;
+            //写入日志，换行
+            return false;
         }
         $out_trade_no=$result['billID'];
         $union=PayUnion::where('out_trade_no',$out_trade_no)->find();
         if(!$union){
-            return;
+            Coroutine\System::sleep(5);
+            $union=PayUnion::where('out_trade_no',$out_trade_no)->find();
+            if(!$union){
+                return false;
+            }
         }
         if($union->pay_status==1){
-            return;
+            return true;
         }
         if($result['actualPay']!=intval($union->pay_price*100)){
-            return;
+            return false;
         }
         try{
             $union->paySuccess($result['orderCode']);
+            return true;
         }catch (\Exception $e){
             Log::record('write_log','交易异常:'.$e->getMessage());
         }
-    }
-
-    private function sendRequest($url, $params = [])
-    {
-        $protocol = substr($url, 0, 5);
-        $query_string = is_array($params) ? http_build_query($params) : $params;
-        $ch = curl_init();
-        $defaults = [];
-        $defaults[CURLOPT_URL] = $url;
-        $defaults[CURLOPT_CUSTOMREQUEST] = 'POST';
-        $defaults[CURLOPT_POSTFIELDS] = $query_string;
-        $defaults[CURLOPT_HEADER] = false;
-        $defaults[CURLOPT_USERAGENT] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.98 Safari/537.36";
-        $defaults[CURLOPT_FOLLOWLOCATION] = true;
-        $defaults[CURLOPT_RETURNTRANSFER] = true;
-        $defaults[CURLOPT_CONNECTTIMEOUT] = 3;
-        $defaults[CURLOPT_TIMEOUT] = 10;
-        $options['Expect']='';
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $options);
-        if ('https' == $protocol) {
-            $defaults[CURLOPT_SSL_VERIFYPEER] = false;
-            $defaults[CURLOPT_SSL_VERIFYHOST] = false;
-        }
-        curl_setopt_array($ch,$defaults);
-        $ret = curl_exec($ch);
-        $err = curl_error($ch);
-        $error='';
-        $result='';
-        if (false === $ret || !empty($err)) {
-            $error="HTTP请求失败: " . $err;
-        }else{
-            $statusCode=curl_getinfo($ch,CURLINFO_HTTP_CODE);
-            if($statusCode==200) {
-                $result=json_decode($ret,true);
-            }else{
-                $error="HTTP请求失败: " . $ret;
-            }
-        }
-        curl_close($ch);
-        if($error){
-            throw new \Exception($error);
-        }
-        return $result;
     }
 
     public static function verifySign(string $content, string $signature,string $publicKey): bool
