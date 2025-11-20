@@ -78,7 +78,7 @@ class Index extends Api
     {
         $serialno = $this->request->get('serialno');
         if ($serialno) {
-            $barrier=ParkingBarrier::findBarrierBySerialno($serialno,['status'=>'normal']);
+            $barrier=ParkingBarrier::findBarrierBySerialno($serialno,['status'=>'normal','barrier_type'=>'exit']);
             if (!$barrier) {
                 $this->error('通道不存在或已经被禁用');
             }
@@ -86,8 +86,17 @@ class Index extends Api
                 'barrier_id'=>$barrier->id,
                 'parking_id'=>$barrier->parking_id,
             ])->order('id desc')->find();
+            //已经付款
             if($pay && ($pay->pay_id || $pay->createtime<=time() - $barrier->limit_pay_time)){
                 $pay=false;
+            }
+            //未付款，但已经换别的车辆识别
+            if($pay && !$pay->pay_id){
+                $trigger=ParkingTrigger::where(['serialno'=>$barrier->serialno,'parking_id'=>$barrier->parking_id])->order('id desc')->find();
+                $records=$pay->records;
+                if($trigger->plate_number!=$records->plate_number){
+                    $pay=false;
+                }
             }
             if(!$pay){
                 //检测逃费追缴

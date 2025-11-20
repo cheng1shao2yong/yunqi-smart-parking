@@ -127,6 +127,17 @@ class KfRs485 extends BoardService
         return self::buildPlayVoicePacket(0x01, '余额不足，请充值');
     }
 
+    //余额不足显示
+    public static function insufficientBalanceScreen(ParkingBarrier $barrier,string $plate_number)
+    {
+        $frames = [];
+        $frames[] = self::makeDisplayPacket(0, 0x15, $plate_number, $barrier->screen_time);
+        $frames[] = self::makeDisplayPacket(1, 0x15, '储值车', $barrier->screen_time);
+        $frames[] = self::makeDisplayPacket(2, 0x15, '余额不足', $barrier->screen_time);
+        $frames[] = self::makeDisplayPacket(3, 0x15, '请充值', $barrier->screen_time);
+        return implode('', $frames);
+    }
+
     //支付成功语音
     public static function paySuccessVoice()
     {

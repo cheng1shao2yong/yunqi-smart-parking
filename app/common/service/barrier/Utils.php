@@ -148,6 +148,9 @@ class Utils
                 case '余额不足语音':
                     $dataStream=$boardClass::insufficientBalanceVoice();
                     break;
+                case '余额不足显示':
+                    $dataStream=$boardClass::insufficientBalanceScreen($barrier,$param['plate_number']);
+                    break;
                 case '支付成功语音':
                     $dataStream=$boardClass::paySuccessVoice();
                     break;
@@ -272,13 +275,13 @@ class Utils
     {
         if($recordsType==ParkingRecords::RECORDSTYPE('自动识别') || $recordsType==ParkingRecords::RECORDSTYPE('人工确认')){
             self::send($barrier,'开闸');
-            self::send($barrier,'内场放行显示',['plate_number'=>$plate->plate_number]);
             if($barrier->barrier_type=='entry'){
                 self::send($barrier,'入场语音',['plate'=>$plate,'rulesType'=>$rulesType]);
             }
             if($barrier->barrier_type=='exit'){
                 self::send($barrier,'免费离场语音',['plate'=>$plate,'rulesType'=>$rulesType]);
             }
+            self::send($barrier,'内场放行显示',['plate_number'=>$plate->plate_number]);
         }
     }
 
@@ -288,8 +291,8 @@ class Utils
             if($open){
                 self::send($barrier,'开闸');
             }
-            self::send($barrier,'无入场记录放行显示',['plate_number'=>$plate_number]);
             self::send($barrier,'无入场记录放行语音');
+            self::send($barrier,'无入场记录放行显示',['plate_number'=>$plate_number]);
         }
     }
 
@@ -394,21 +397,10 @@ class Utils
         ]);
     }
 
-    public static function insufficientBalance(ParkingBarrier $barrier)
+    public static function insufficientBalance(ParkingBarrier $barrier,string $plate_number)
     {
-        self::send($barrier,'开闸异常显示',['message'=>'余额不足']);
         self::send($barrier,'余额不足语音');
-    }
-
-    public static function test()
-    {
-        $barrier1=ParkingBarrier::find(17);
-        $barrier2=ParkingBarrier::find(18);
-        $barrier3=ParkingBarrier::find(19);
-        $records=ParkingRecords::find(111);
-        self::send($barrier1,'支付成功显示',['barrier'=>$barrier1,'records'=>$records]);
-        self::send($barrier2,'支付成功显示',['barrier'=>$barrier2,'records'=>$records]);
-        self::send($barrier3,'支付成功显示',['barrier'=>$barrier3,'records'=>$records]);
+        self::send($barrier,'余额不足显示',['plate_number'=>$plate_number]);
     }
 
     public static function getVersion(ParkingBarrier $barrier)

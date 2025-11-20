@@ -31,7 +31,7 @@ class Dashboard extends ParkingBase
         if($this->request->isAjax()){
             $panel=[
                 ParkingSetting::where('parking_id',$this->parking->id)->value('parking_space_total'),
-                ParkingRecords::where('parking_id',$this->parking->id)->whereIn('status',[0,1,6])->count(),
+                ParkingRecords::parkingSpaceEntry($this->parking),
                 ParkingRecords::where(['parking_id'=>$this->parking->id,'rules_type'=>'provisional'])->whereIn('status',[0,1,6])->count(),
                 ParkingCars::where(['parking_id'=>$this->parking->id,'rules_type'=>'monthly'])->count()
             ];

@@ -320,6 +320,9 @@ class Index extends Base
                 }
             }
         }
+        foreach ($menulist as $key=>$meuns){
+            $menulist[$key]=array_values($meuns);
+        }
         $this->success('',$menulist);
     }
 

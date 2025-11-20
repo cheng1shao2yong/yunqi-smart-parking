@@ -57,6 +57,12 @@ class SfmAndroid extends BoardService
         throw new \Exception('暂不支持此功能');
     }
 
+    //余额不足显示
+    public static function insufficientBalanceScreen(ParkingBarrier $barrier,string $plate_number)
+    {
+        throw new \Exception('暂不支持此功能');
+    }
+
     //支付成功语音
     public static function paySuccessVoice(){
         throw new \Exception('暂不支持此功能');

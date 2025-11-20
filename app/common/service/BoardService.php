@@ -31,6 +31,7 @@ abstract class BoardService{
         '免费离场显示',
         '开闸异常显示',
         '人工确认显示',
+        '余额不足显示',
         '设置广告',
         '无入场记录放行显示',
         '内场放行显示',
@@ -70,6 +71,8 @@ abstract class BoardService{
     abstract public static function openGateExceptionDisplay(ParkingBarrier $barrier,string $message);
     //余额不足语音
     abstract public static function insufficientBalanceVoice();
+    //余额不足显示
+    abstract public static function insufficientBalanceScreen(ParkingBarrier $barrier,string $plate_number);
     //支付成功语音
     abstract public static function paySuccessVoice();
     //支付成功显示
@@ -109,5 +112,75 @@ abstract class BoardService{
     public static function isVoiceAction(string $name)
     {
         return in_array($name,self::VOICE_ACTIONS);
+    }
+
+    public static function getQrcodeView(string $top,string $footer,string $qrcodeUrl='',string $qrcodeText='')
+    {
+        $view=<<<EOF
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="qrcode.min.js"></script>
+    <style>
+        .container{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+        }
+        .top{
+            text-align: center;
+            font-size: 4.5em;
+            font-weight: bold;
+        }
+        .qrcode{
+            width: 80%;
+            margin: 40px auto;
+        }
+        .qrcode img{
+            width: 85%;
+            margin: 40px auto;
+        }
+        .footer{
+            text-align: center;
+            font-size: 3em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top">{$top}</div>
+        <div class="qrcode" id="qrcode"></div>
+        <div class="footer">{$footer}</div>
+    </div>
+    <script>
+        var qrcodeUrl='{$qrcodeUrl}';
+        var qrcodeText='{$qrcodeText}';
+        if(qrcodeUrl){
+            document.getElementById('qrcode').innerHTML='<img src="'+qrcodeUrl+'" style="width: 100%;height: 100%;margin: 0;"/>';
+        }
+        if(qrcodeText){
+            //获取屏幕的宽度
+            var width=window.screen.width;
+            new QRCode("qrcode", {
+                text: qrcodeText,
+                width: width,
+                height: width,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+    </script>
+</body>
+</html>
+EOF;
+        return $view;
     }
 }

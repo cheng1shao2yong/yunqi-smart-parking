@@ -8,5 +8,6 @@ return [
         'Queue' => 'app\admin\command\Queue',
         'Mqtt' => 'app\admin\command\Mqtt',
         'Hzcbparking' => 'app\admin\command\Hzcbparking',
+        'Test' => 'app\admin\command\Test',
     ],
 ];

@@ -530,7 +530,7 @@ class Zhenshi extends BarrierService {
                 ParkingScreen::sendRedMessage($outsideBarrier,$plate_number.'开闸失败，'.$message);
             }
             if(strpos($message,'余额不足')!==false){
-                Utils::insufficientBalance($barrier);
+                Utils::insufficientBalance($barrier,$plate_number);
             }else{
                 Utils::openGateException($barrier,$message);
             }

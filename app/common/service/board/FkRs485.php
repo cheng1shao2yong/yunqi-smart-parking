@@ -126,6 +126,18 @@ class FkRs485 extends BoardService
         $dataStream = pack('C*', ...$data);
         return $dataStream;
     }
+    //余额不足显示
+    public static function insufficientBalanceScreen(ParkingBarrier $barrier,string $plate_number)
+    {
+        $l1=self::convertScreenline($barrier->screen_time,1,$plate_number);
+        $l2=self::convertScreenline($barrier->screen_time,2,'储值车');
+        $l3=self::convertScreenline($barrier->screen_time,1,'余额不足');
+        $l4=self::convertScreenline($barrier->screen_time,2,'请充值');
+        $message=array_merge($l1,$l2,$l3,$l4);
+        $data=self::convertArrayToHex($message,0x29);
+        $dataStream = pack('C*', ...$data);
+        return $dataStream;
+    }
     //支付成功语音
     public static function paySuccessVoice(){
         $data=self::convertArrayToHex([0x7e,0x18,0x28,0x02],0x22);

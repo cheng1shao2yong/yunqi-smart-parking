@@ -450,7 +450,7 @@ class ParkingService extends BaseService{
     private function recovery(string $type)
     {
         $plate=$this->getObj(ParkingPlate::class);
-        $recoverylist=ParkingRecovery::where(['plate_number'=>$plate->plate_number,'pay_id'=>null])->select();
+        $recoverylist=ParkingRecovery::where(['plate_number'=>$plate->plate_number,'pay_id'=>null])->where('total_fee','>',0)->select();
         if($this->records_type==ParkingRecords::RECORDSTYPE('自动识别') && !empty($recoverylist)){
             foreach ($recoverylist as $recovery){
                 if(($recovery->search_parking && in_array($this->parking->id,explode(',',$recovery->search_parking))) || is_null($recovery->search_parking)){
@@ -480,7 +480,7 @@ class ParkingService extends BaseService{
                         }
                         if($recovery->exit_set==1){
                             ParkingScreen::sendRedMessage($this->barrier,'车辆存在欠费，付费后才能出场');
-                            $this->throwException('车辆存在欠费，请扫入场码付费后出场');
+                            $this->throwException('车辆存在欠费，请扫出场码付费后出场');
                         }
                         if($recovery->exit_set==2){
                             ParkingScreen::sendRecoveryMessage($this->barrier,$recovery->id,$plate->plate_number,$this->barrier->id,$this->photo);
