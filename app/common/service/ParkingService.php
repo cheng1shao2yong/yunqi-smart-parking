@@ -393,6 +393,9 @@ class ParkingService extends BaseService{
             //查看15分钟内的计费情况
             $access=false;
             if($records->account_time && $records->account_time>time()-15*60 && $records->total_fee==($records->activities_fee+$records->pay_fee)){
+                if($records->status==ParkingRecords::STATUS('缴费未出场')){
+                    $records->status=ParkingRecords::STATUS('缴费出场');
+                }
                 $access=true;
             }
             if(!$access){
@@ -523,6 +526,9 @@ class ParkingService extends BaseService{
             $records->status=ParkingRecords::STATUS('免费出场');
             if($pay_price<=0 || ($pay_price>0 && $this->checkIsPay($rulesType,$records,['total_fee'=>$totalfee,'activities_time'=>$activities_time,'activities_fee'=>$activities_fee,'pay_fee'=>$records->pay_fee,'pay_price'=>$pay_price]))){
                 $r=true;
+                if($records->pay_fee>0){
+                    $records->status=ParkingRecords::STATUS('缴费出场');
+                }
             }
             if($this->records_type==ParkingRecords::RECORDSTYPE('自动识别')){
                 $records->exit_time=$this->exit_time;
