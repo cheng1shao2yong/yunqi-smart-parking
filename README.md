@@ -3,7 +3,7 @@
 **技术支持与运维服务：+微信【Cheng-ShaoYong】**
 
 ## 一、功能介绍
- <p><img src="./storage/images/7.png" style="width: 1000%;"></p>
+ <p><img src="./storage/images/7.jpg" style="width: 1000%;"></p>
 
 ## 二、产品截图
 #### 1、平台管理端
