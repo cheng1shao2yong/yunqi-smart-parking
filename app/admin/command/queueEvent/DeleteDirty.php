@@ -67,14 +67,15 @@ class DeleteDirty implements EventInterFace
                 }
             }
         }
-        $apihost=get_domain('api');
         //域名授权标识，请勿删除，否则将无法使用
+        $apihost=parse_url(get_domain('api'))['host'];
         $str="aHR0cHM6Ly93d3cuNTZxNy5jb20vYWRkb25zL2NvcHlyaWdodC9wYXJraW5nLw==";
         $url=base64_decode($str).$apihost;
         $response=Http::get($url);
         $basic=Cache::get('site_config_basic');
         if($response->isSuccess()){
             $basic['copyright']=$response->content['copyright'];
+            $basic['copyright_status']=$response->content['status'];
         }
         Cache::set('site_config_basic',$basic);
     }

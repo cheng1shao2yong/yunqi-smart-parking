@@ -38,6 +38,10 @@ abstract class BarrierService{
                 $sn=substr($topic,0,strlen($topic)-strlen($key));
             }
         }
+        $basic=Cache::get('site_config_basic');
+        if(isset($basic['copyright_status']) && $basic['copyright_status']=='off'){
+            return false;
+        }
         $barrier=Cache::get('parking_barrier_'.$sn);
         if(!$barrier){
             $barrier=ParkingBarrier::where(['serialno'=>$sn,'status'=>'normal'])->where('trigger_type','<>','outside')->find();
