@@ -8,7 +8,7 @@
                 v-if="columns"
                 :columns="columns"
                 ref="yunTable"
-                toolbar="refresh,free,check,cancel"
+                toolbar="refresh,free,check,cancel,auto"
                 :extend="extend">
                 <template #formatter="{field,rows}">
                     <template v-if="field=='plate_number'">
@@ -19,16 +19,18 @@
                     <el-button :disabled="selections.length===0 || tab=='recovery'" v-if="tool=='free'" @click.stop="checkFrees(selections)" type="success"><i class="fa fa-rocket"></i>&nbsp;免费出场</el-button>
                     <el-button :disabled="selections.length===0 || tab=='recovery'" v-if="tool=='check'" @click.stop="checkRecords(selections)" type="primary"><i class="fa fa-cog"></i>&nbsp;配置追缴</el-button>
                     <el-button :disabled="selections.length===0 || tab=='evading'" v-if="tool=='cancel'" @click.stop="cancelRecoverys(selections)" type="danger"><i class="fa fa-close"></i>&nbsp;取消追缴</el-button>
+                    <el-button v-if="tool=='auto'" @click.stop="autoRecoverys()" type="warning"><i class="fa fa-superpowers"></i>&nbsp;自动追缴</el-button>
                 </template>
         </yun-table>
     </el-card>
 </template>
 <script>
     import table from "@components/Table.js";
+    import form from "@components/Form.js";
     import {formatDuration,parseNumber} from "@util.js";
     import platetype from "@components/PlateType.js";
     export default{
-        components: {'YunTable': table,'PlateType': platetype},
+        components: {'YunTable': table,'PlateType': platetype,'YunForm':form},
         data: {
             tab:'evading',
             type:Yunqi.data.type,
@@ -202,6 +204,15 @@
                             that.$refs.yunTable.reload();
                         }
                     }
+                });
+            },
+            autoRecoverys:function (){
+                Yunqi.api.open({
+                    url:'evading/add?ids=auto',
+                    width:800,
+                    height:550,
+                    title:'自动追缴',
+                    icon:'fa fa-superpowers'
                 });
             },
             checkFrees:function (selections){

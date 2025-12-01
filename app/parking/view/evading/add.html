@@ -40,7 +40,7 @@
                     </el-form-item>
                 </template>
                 <template #msg="{rows}">
-                    <el-form-item label="">
+                    <el-form-item label="发送消息:">
                         <el-checkbox-group v-model="rows.msg">
                             <el-checkbox :value="1" :label="1">入场发送通知给管理员</el-checkbox>
                         </el-checkbox-group>
@@ -58,14 +58,24 @@
         data:{
             parkings:Yunqi.data.parkings,
             columns:[
-                {field:"records_id",title:"逃费记录",edit:"selects",searchList:Yunqi.data.records,rules:"required"},
+                {field:"records_id",title:"逃费记录",edit:(Yunqi.data.records=='auto')?'hidden':"selects",searchList:(Yunqi.data.records=='auto')?{}:Yunqi.data.records,rules:"required"},
                 {field:"recovery_type",title:"追缴方式",edit:{form:'radio',change:'changeRecoveryType'},rules:"required",searchList: Yunqi.data.recoveryType},
                 {field:"tips",title:"",edit:'slot'},
                 {field:"entry_set",title:"入场设置",edit:"slot",rules:"required"},
                 {field:"exit_set",title:"出场设置",edit:"slot",rules:"required"},
                 {field:"msg",title:"推送消息",edit:"slot"},
+                {field:"status",title:"启用状态",edit:(Yunqi.data.records=='auto')?'radio':"hidden",searchList:{normal:'启用',hidden:'禁用'}},
             ],
-            row:{records_id:Object.keys(Yunqi.data.records),recovery_type:'local',msg:[1],entry_set_disabled:false,exit_set_disabled:false}
+            row:{
+                records_id:(Yunqi.data.records=='auto')?'auto':Object.keys(Yunqi.data.records),
+                recovery_type:(Yunqi.data.records=='auto' && Yunqi.data.auto)?Yunqi.data.auto.recovery_type:'local',
+                entry_set:(Yunqi.data.records=='auto' && Yunqi.data.auto)?Yunqi.data.auto.entry_set:'',
+                exit_set:(Yunqi.data.records=='auto' && Yunqi.data.auto)?Yunqi.data.auto.exit_set:'',
+                msg:(Yunqi.data.records=='auto' && Yunqi.data.auto)?[Yunqi.data.auto.msg]:[1],
+                status:(Yunqi.data.records=='auto' && Yunqi.data.auto)?Yunqi.data.auto.status:'normal',
+                entry_set_disabled:false,
+                exit_set_disabled:false
+            }
         },
         methods: {
             changeRecoveryType:function (e){

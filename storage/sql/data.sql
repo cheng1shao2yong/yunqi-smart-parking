@@ -5,19 +5,20 @@ SET FOREIGN_KEY_CHECKS=0;
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_accesskey`;
 CREATE TABLE `yun_accesskey` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int DEFAULT NULL,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `title` varchar(50) DEFAULT NULL,
   `access_type` varchar(10) DEFAULT NULL,
   `access_key` varchar(255) DEFAULT NULL,
   `access_secret` varchar(255) DEFAULT NULL,
-  `parking_id` int DEFAULT NULL,
-  `merch_id` int DEFAULT NULL,
+  `parking_id` int(11) DEFAULT NULL,
+  `merchant_id` int(11) DEFAULT NULL,
   `status` varchar(30) DEFAULT 'normal',
-  `createtime` int DEFAULT NULL,
-  `updatetime` int DEFAULT NULL,
-  `deletetime` int DEFAULT NULL,
+  `createtime` int(11) DEFAULT NULL,
+  `updatetime` int(11) DEFAULT NULL,
+  `deletetime` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of yun_accesskey
@@ -4131,7 +4132,7 @@ INSERT INTO `yun_config` VALUES ('5', 'logo', 'basic', null, '站点Logo', '', '
 INSERT INTO `yun_config` VALUES ('6', 'logo_white', 'basic', null, '亮色Logo', '', 'image', '/assets/img/logo-white.png', 'required', '0', '');
 INSERT INTO `yun_config` VALUES ('7', 'forbiddenip', 'basic', null, 'IP黑名单', '', 'textarea', '', '', '0', '');
 INSERT INTO `yun_config` VALUES ('8', 'version', 'basic', null, '版本号', '', 'text', '1.6.6', 'required', '0', '');
-INSERT INTO `yun_config` VALUES ('9', 'copyright', 'basic', '', '版权标识', '', 'text', '贵阳云起信息科技有限公司', 'required', '0', '');
+INSERT INTO `yun_config` VALUES ('9', 'copyright', 'basic', '', '版权标识', '未购买商业版权的用户请勿修改这个配置，否则我公司将采取法律手段来维护此权益', 'text', '贵阳云起信息科技有限公司', 'required', '0', '');
 INSERT INTO `yun_config` VALUES ('10', 'plate_begin', 'basic', '', '车牌号前缀', '', 'text', '贵A', 'required', '0', '');
 INSERT INTO `yun_config` VALUES ('13', 'qqmap_key', 'addons', 'qqmap', '腾讯地图KEY', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('16', 'uniapp_miniapp_id', 'addons', 'uniapp', '小程序id', '', 'text', '', '', '1', '');
@@ -4520,20 +4521,21 @@ CREATE TABLE `yun_queue` (
 -- ----------------------------
 -- Records of yun_queue
 -- ----------------------------
-INSERT INTO `yun_queue` VALUES ('1', '发送消息', 'SendMsg', '0', '', '60', '629240', '2025-09-11 15:05:44', 'normal', '', '1694141040', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('2', '处理过期优惠券', 'Coupon', '0', '', '3600', '58458', '2025-09-11 14:12:35', 'normal', '', '1719195660', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('3', '处理过期二维码', 'Qrcode', '0', '', '86400', '414', '2025-09-11 14:12:26', 'normal', '', '1719475320', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('4', '处理手动开闸记录', 'ManualOpen', '0', '', '3600', '7762', '2025-09-11 14:12:36', 'normal', '', '1729137420', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('5', '通知管理员开发票', 'Invoice', '0', '', '3600', '623', '2025-09-11 14:12:56', 'normal', '', '1730253060', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('6', '删除脏数据', 'DeleteDirty', '0', '{\"H\":\"03\"}', '86400', '267', '2025-09-11 03:24:38', 'normal', '', '1734409260', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('7', '同步白名单', 'Whitelist', '0', '', '3600', '6389', '2025-09-11 14:13:03', 'normal', '', '1734513720', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('8', '处理多位多车', 'Occupat', '0', '', '60', '336338', '2025-09-11 15:05:39', 'normal', '', '1737214260', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('9', '上传交管平台', 'Traffic', '0', '', '60', '220950', '2025-09-11 15:05:41', 'normal', '', '1744184700', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('10', '月卡报停恢复', 'CarsStop', '0', '{\"H\":\"00\"}', '86400', '155', '2025-09-11 00:00:15', 'normal', '', '1744185360', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('11', '月租到期通知', 'MonthlyNotice', '0', '{\"H\":\"11\"}', '86400', '149', '2025-09-11 11:53:46', 'normal', '', '1744775580', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('12', '处理每日资金结算', 'DailyCashFlow', '0', '{\"H\":\"02\"}', '86400', '23', '2025-09-11 02:00:00', 'normal', '', '1755502020', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('13', '检查过期的管理员账号', 'CheckAdmin', '0', '{\"H\":\"03\"}', '86400', '10', '2025-09-11 03:00:00', 'normal', '', '1756714500', '1757574368', null);
-INSERT INTO `yun_queue` VALUES ('14', '斗拱每日结算', 'DougongSettle', '0', '{\"H\":\"23\",\"i\":\"55\"}', '86401', '10', '2025-09-10 23:55:09', 'normal', '', '1756716300', '1757574368', null);
+INSERT INTO `yun_queue` VALUES ('1', '发送消息', 'SendMsg', '0', '', '60', '727449', '2025-12-01 16:10:15', 'normal', '', '1694141040', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('3', '处理过期优惠券', 'Coupon', '0', '', '3600', '60096', '2025-12-01 16:05:22', 'normal', '', '1719195660', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('5', '处理过期二维码', 'Qrcode', '0', '', '86400', '483', '2025-12-01 11:03:51', 'normal', '', '1719475320', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('9', '处理手动开闸记录', 'ManualOpen', '0', '', '3600', '9400', '2025-12-01 16:05:23', 'normal', '', '1729137420', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('10', '通知管理员开发票', 'Invoice', '0', '', '3600', '1707', '2025-12-01 15:49:55', 'normal', '', '1730253060', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('11', '删除脏数据', 'DeleteDirty', '0', '{\"H\":\"03\"}', '86400', '305', '2025-11-01 03:00:00', 'normal', '', '1734409260', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('12', '同步白名单', 'Whitelist', '0', '', '3600', '8027', '2025-12-01 16:05:23', 'normal', '', '1734513720', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('14', '处理多位多车', 'Occupat', '0', '', '60', '434547', '2025-12-01 16:10:15', 'normal', '', '1737214260', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('18', '上传交管平台', 'Traffic', '0', '', '60', '319159', '2025-12-01 16:10:15', 'normal', '', '1744184700', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('19', '月卡报停恢复', 'CarsStop', '0', '{\"H\":\"00\"}', '86400', '223', '2025-12-01 00:00:00', 'normal', '', '1744185360', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('20', '月租到期通知', 'MonthlyNotice', '0', '{\"H\":\"11\"}', '86400', '218', '2025-12-01 11:03:51', 'normal', '', '1744775580', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('21', '处理每日资金结算', 'DailyCashFlow', '0', '{\"H\":\"02\"}', '86400', '69', '2025-12-01 02:00:00', 'normal', '', '1755502020', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('22', '检查过期的管理员账号', 'CheckAdmin', '0', '{\"H\":\"03\"}', '86400', '78', '2025-12-01 03:00:00', 'normal', '', '1756714500', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('23', '斗拱每日结算', 'DougongSettle', '0', '{\"H\":\"23\",\"i\":\"55\"}', '86400', '78', '2025-11-30 23:55:00', 'normal', '', '1756716300', '1764576616', null);
+INSERT INTO `yun_queue` VALUES ('24', '自动追缴逃费', 'AutoRecovery', '0', '{\"H\":\"03\"}', '86400', '0', null, 'normal', '', '1764574440', '1764576616', null);
 
 -- ----------------------------
 -- Table structure for yun_third

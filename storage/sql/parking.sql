@@ -803,6 +803,21 @@ CREATE TABLE `yun_parking_recovery` (
 ) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
+-- Table structure for yun_parking_recovery_auto
+-- ----------------------------
+DROP TABLE IF EXISTS `yun_parking_recovery_auto`;
+CREATE TABLE `yun_parking_recovery_auto` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `parking_id` int DEFAULT NULL,
+  `recovery_type` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `entry_set` tinyint DEFAULT NULL,
+  `exit_set` tinyint DEFAULT NULL,
+  `msg` tinyint DEFAULT NULL,
+  `status` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ----------------------------
 -- Table structure for yun_parking_rules
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_rules`;

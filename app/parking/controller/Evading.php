@@ -15,6 +15,7 @@ use app\common\controller\ParkingBase;
 use app\common\model\manage\Parking;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecovery;
+use app\common\model\parking\ParkingRecoveryAuto;
 use think\annotation\route\Group;
 use think\annotation\route\Route;
 
@@ -94,44 +95,68 @@ class Evading extends ParkingBase
             if($recovery_type=='platform'){
                 $this->error('请先加入《平台追缴计划》！');
             }
-            $list=ParkingRecovery::with(['records'])->where('parking_id',$this->parking->id)->whereIn('records_id',$records_id)->select();
-            if(count($list)>0){
-                $this->error('【'.$list[0]->records->plate_number.'-￥'.$list[0]->records->total_fee.'】追缴记录已存在');
-            }
-            $msg=$this->request->post('row.msg');
-            $arr=[];
-            foreach ($records_id as $v){
-                $records=ParkingRecords::where(['parking_id'=>$this->parking->id,'id'=>$v])->find();
-                $search_parking=null;
-                if($recovery_type==ParkingRecovery::RECOVERYTYPE('车场追缴')){
-                    $search_parking=$this->parking->id;
+            //自动追缴
+            if($records_id=='auto'){
+                $auto=ParkingRecoveryAuto::where(['parking_id'=>$this->parking->id])->find();
+                if(!$auto){
+                    $auto=new ParkingRecoveryAuto();
+                    $auto->parking_id=$this->parking->id;
                 }
-                if($recovery_type==ParkingRecovery::RECOVERYTYPE('集团追缴')){
-                    $search_parking=Parking::where('property_id',$this->parking->property_id)->column('id');
-                    $search_parking=implode(',',$search_parking);
+                $auto->recovery_type=$recovery_type;
+                $auto->status=$this->request->post('row.status');
+                $auto->entry_set=$this->request->post('row.entry_set');
+                $auto->exit_set=$this->request->post('row.exit_set');
+                $auto->msg=$this->request->post('row.msg')?1:0;
+                $auto->save();
+                $this->success('设置成功');
+            }else{
+                $list=ParkingRecovery::with(['records'])->where('parking_id',$this->parking->id)->whereIn('records_id',$records_id)->select();
+                if(count($list)>0){
+                    $this->error('【'.$list[0]->records->plate_number.'-￥'.$list[0]->records->total_fee.'】追缴记录已存在');
                 }
-                $arr[]=[
-                    'parking_id'=>$this->parking->id,
-                    'records_id'=>$records->id,
-                    'plate_number'=>$records->plate_number,
-                    'total_fee'=>round($records->total_fee-$records->pay_fee-$records->activities_fee,2),
-                    'search_parking'=>$search_parking,
-                    'recovery_type'=>$recovery_type,
-                    'entry_set'=>$this->request->post('row.entry_set'),
-                    'exit_set'=>$this->request->post('row.exit_set'),
-                    'msg'=>$msg?1:0,
-                ];
+                $msg=$this->request->post('row.msg');
+                $arr=[];
+                foreach ($records_id as $v){
+                    $records=ParkingRecords::where(['parking_id'=>$this->parking->id,'id'=>$v])->find();
+                    $search_parking=null;
+                    if($recovery_type==ParkingRecovery::RECOVERYTYPE('车场追缴')){
+                        $search_parking=$this->parking->id;
+                    }
+                    if($recovery_type==ParkingRecovery::RECOVERYTYPE('集团追缴')){
+                        $search_parking=Parking::where('property_id',$this->parking->property_id)->column('id');
+                        $search_parking=implode(',',$search_parking);
+                    }
+                    $arr[]=[
+                        'parking_id'=>$this->parking->id,
+                        'records_id'=>$records->id,
+                        'plate_number'=>$records->plate_number,
+                        'total_fee'=>round($records->total_fee-$records->pay_fee-$records->activities_fee,2),
+                        'search_parking'=>$search_parking,
+                        'recovery_type'=>$recovery_type,
+                        'entry_set'=>$this->request->post('row.entry_set'),
+                        'exit_set'=>$this->request->post('row.exit_set'),
+                        'msg'=>$msg?1:0,
+                    ];
+                }
+                $recovery=new ParkingRecovery();
+                $recovery->saveAll($arr);
+                $this->success();
             }
-            $recovery=new ParkingRecovery();
-            $recovery->saveAll($arr);
-            $this->success();
         }
         $ids=$this->request->get('ids');
-        $ids=explode(',',$ids);
-        $list=ParkingRecords::where('id','in',$ids)->where('parking_id',$this->parking->id)->field('id,plate_number,total_fee')->select();
-        $records=[];
-        foreach ($list as $v){
-            $records[$v->id]=$v['plate_number'].'-￥'.$v['total_fee'];
+        if($ids=='auto'){
+            $auto=ParkingRecoveryAuto::where(['parking_id'=>$this->parking->id])->find();
+            $this->assign('auto',$auto);
+            $this->assign('records','auto');
+        }else{
+            $ids=explode(',',$ids);
+            $list=ParkingRecords::where('id','in',$ids)->where('parking_id',$this->parking->id)->field('id,plate_number,total_fee')->select();
+            $records=[];
+            foreach ($list as $v){
+                $records[$v->id]=$v['plate_number'].'-￥'.$v['total_fee'];
+            }
+            $this->assign('auto','');
+            $this->assign('records',$records);
         }
         if($this->parking->property_id){
             $parkings=Parking::where('property_id',$this->parking->property_id)->column('title','id');
@@ -140,7 +165,6 @@ class Evading extends ParkingBase
                 $this->parking->id=>$this->parking->title
             ];
         }
-        $this->assign('records',$records);
         $this->assign('parkings',$parkings);
         return $this->fetch();
     }
