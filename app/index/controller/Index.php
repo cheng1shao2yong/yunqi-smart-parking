@@ -10,6 +10,7 @@ use app\common\model\manage\Parking;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecovery;
 use app\common\model\parking\ParkingRecoveryAuto;
+use app\common\model\PayUnion;
 use think\annotation\route\Get;
 use think\facade\Cache;
 

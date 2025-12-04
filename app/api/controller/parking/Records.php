@@ -169,17 +169,6 @@ class Records extends Base
         exit;
     }
 
-    #[Get('photo')]
-    public function photo()
-    {
-        $url=$this->request->get('url');
-        [$isplate,$plate_number,$plate_type]=ParkingScreen::checkPlate($url);
-        if(!$isplate){
-            $this->error('没有检测到车辆');
-        }
-        $this->success('',compact('plate_number','plate_type'));
-    }
-
     #[Get('list')]
     public function list()
     {

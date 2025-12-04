@@ -4,6 +4,8 @@ declare (strict_types = 1);
 namespace app\api\controller\parking;
 
 use app\common\model\parking\ParkingInvoice;
+use app\common\model\parking\ParkingSentryboxOperate;
+use app\common\model\PayRefund;
 use app\common\model\PayUnion;
 use think\annotation\route\Get;
 use think\annotation\route\Group;
@@ -134,5 +136,72 @@ class Finance extends Base
             $this->error('退款失败，'.$e->getMessage());
         }
         $this->success('退款成功');
+    }
+
+    #[Get('operate')]
+    public function operate()
+    {
+        $page=$this->request->get('page/d');
+        $list=ParkingSentryboxOperate::where(function ($query){
+            $starttime=$this->request->get('starttime');
+            $endtime=$this->request->get('endtime');
+            $contact=$this->request->get('contact');
+            if($starttime){
+                $starttime=strtotime($starttime.' 00:00:00');
+            }
+            if($endtime){
+                $endtime=strtotime($endtime.' 23:59:59');
+            }
+            if($starttime && $endtime){
+                $query->whereBetween('createtime',[$starttime,$endtime]);
+            }elseif($starttime){
+                $query->where('createtime','>=',$starttime);
+            }elseif($endtime){
+                $query->where('createtime','<=',$endtime);
+            }
+            if($contact){
+                $query->where('operator_name','=',$contact);
+            }
+            $query->where('parking_id','=',$this->parking_id);
+        })
+        ->with(['sentrybox'])
+        ->order('id desc')
+        ->limit(($page-1)*10,10)
+        ->select();
+        $this->success('',$list);
+    }
+
+    #[Get('refund-list')]
+    public function refundList()
+    {
+        $page=$this->request->get('page/d');
+        $list=PayRefund::where(function ($query){
+            $out_trade_no=$this->request->get('out_trade_no');
+            $starttime=$this->request->get('starttime');
+            $endtime=$this->request->get('endtime');
+            if($out_trade_no){
+               $pay=PayUnion::where(['out_trade_no'=>$out_trade_no])->value('id');
+               $query->where('pay_id',$pay);
+            }
+            if($starttime){
+                $starttime=$starttime.' 00:00:00';
+            }
+            if($endtime){
+                $endtime=$endtime.' 23:59:59';
+            }
+            if($starttime && $endtime){
+                $query->whereBetween('refund_time',[$starttime,$endtime]);
+            }elseif($starttime){
+                $query->where('refund_time','>=',$starttime);
+            }elseif($endtime){
+                $query->where('refund_time','<=',$endtime);
+            }
+            $query->where('pay_refund.parking_id','=',$this->parking_id);
+        })
+        ->withJoin(['pay'],'left')
+        ->order('id desc')
+        ->limit(($page-1)*10,10)
+        ->select();
+        $this->success('',$list);
     }
 }

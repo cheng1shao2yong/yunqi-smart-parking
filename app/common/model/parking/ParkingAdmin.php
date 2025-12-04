@@ -87,14 +87,14 @@ class ParkingAdmin Extends Model
             'id'=>'entry',
             'name'=>'手动入场',
             'controller'=>\app\api\controller\parking\Records::class,
-            'action'=>'getInfo,photo,entry',
+            'action'=>'getInfo,entry',
             'menus'=>'parking/records/entry'
         ],
         [
             'id'=>'exit',
             'name'=>'手动出场',
             'controller'=>\app\api\controller\parking\Records::class,
-            'action'=>'getInfo,photo,exit,qrcode',
+            'action'=>'getInfo,exit,qrcode',
             'menus'=>'parking/records/exit'
         ],
         [
@@ -236,6 +236,20 @@ class ParkingAdmin Extends Model
             'controller'=>\app\api\controller\parking\Finance::class,
             'action'=>'invoice',
             'menus'=>'parking/finance/invoice'
+        ],
+        [
+            'id'=>'finance-refund',
+            'name'=>'退款记录',
+            'controller'=>\app\api\controller\parking\Finance::class,
+            'action'=>'refundList',
+            'menus'=>'parking/finance/refund-list'
+        ],
+        [
+            'id'=>'finance-operate',
+            'name'=>'交班记录',
+            'controller'=>\app\api\controller\parking\Finance::class,
+            'action'=>'operate',
+            'menus'=>'parking/finance/operate'
         ],
     ];
 
@@ -423,7 +437,17 @@ class ParkingAdmin Extends Model
                 'title' => '发票申领',
                 'page' => 'parking/finance/invoice',
                 'icon' => 'xfapiao.png'
-            ]
+            ],
+            [
+                'title' => '退款记录',
+                'page' => 'parking/finance/refund-list',
+                'icon' => 'refund.png'
+            ],
+            [
+                'title' => '交班记录',
+                'page' => 'parking/finance/operate',
+                'icon' => 'jiaoban.png'
+            ],
         ]
     ];
 

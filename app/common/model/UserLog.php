@@ -73,7 +73,7 @@ class UserLog Extends Model
         $log->user_id=$user_id;
         $log['type']=$module;
         $log->before=$before;
-        $log->change=$change;
+        $log['change']=$change;
         $log->after=$after;
         $log->remark=$remark;
         $log->save();

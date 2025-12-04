@@ -118,7 +118,7 @@ class ParkingStoredLog Extends Model
         $log->cars_id=$cars->id;
         $log->log_type=$log_type;
         $log->before=$before;
-        $log->change=$change;
+        $log['change']=$change;
         $log->after=$after;
         if($payunion){
             $log->pay_id=$payunion->id;

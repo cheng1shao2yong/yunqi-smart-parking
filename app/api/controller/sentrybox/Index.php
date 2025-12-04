@@ -6,6 +6,7 @@ namespace app\api\controller\sentrybox;
 use app\common\model\manage\Parking;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecovery;
+use app\common\model\parking\ParkingSentryboxOperate;
 use app\common\model\parking\ParkingTemporary;
 use app\common\model\parking\ParkingTrigger;
 use app\common\service\barrier\Utils;
@@ -19,6 +20,7 @@ use think\annotation\route\Get;
 use think\annotation\route\Group;
 use think\annotation\route\Post;
 use think\exception\HttpResponseException;
+use think\facade\Db;
 use think\Response;
 
 function getParkingIds(int $parking_id){
@@ -138,7 +140,15 @@ class Index extends BaseController
         $hide_window=$this->sentrybox->hide_window;
         $title=Parking::where('id',$this->sentrybox->parking_id)->value("title")." - ".$this->sentrybox->title;
         $open_set=$this->sentrybox->open_set;
-        $this->success('',compact('title','open_set','screen','mqttConfig','tips','update','hide_window'));
+        $operator=$this->sentrybox->operator;
+        $show_operate=false;
+        if(count($operator)>0){
+            $operate=ParkingSentryboxOperate::where(['parking_id'=>$this->sentrybox->parking_id,'sentrybox_id'=>$this->sentrybox->id])->order('id desc')->find();
+            if(!$operate){
+                $show_operate=true;
+            }
+        }
+        $this->success('',compact('title','open_set','operator','show_operate','screen','mqttConfig','tips','update','hide_window'));
     }
 
     #[Post('open')]
@@ -360,6 +370,50 @@ class Index extends BaseController
             $this->error($e->getMessage());
         }
         $this->success('出场成功');
+    }
+
+    #[Post('operate')]
+    public function operate()
+    {
+        $postdata=$this->request->post();
+        if($postdata['operate']){
+            unset($postdata['operate']['createtime']);
+            unset($postdata['operate']['updatetime']);
+            $postdata['operate']['endtime']=date('Y-m-d H:i:s');
+            ParkingSentryboxOperate::where('id',$postdata['operate']['id'])->update($postdata['operate']);
+        }
+        $insert=[
+            'parking_id'=>$this->sentrybox->parking_id,
+            'sentrybox_id'=>$this->sentrybox->id,
+            'operator_name'=>$postdata['operator_name'],
+            'operator_desc'=>$postdata['operator_desc'],
+            'starttime'=>date('Y-m-d H:i:s'),
+        ];
+        $operate=new ParkingSentryboxOperate();
+        $operate->save($insert);
+        $this->success('',$operate);
+    }
+
+    #[Get('get-operate')]
+    public function getOperate()
+    {
+        $operate=ParkingSentryboxOperate::where(['parking_id'=>$this->sentrybox->parking_id,'sentrybox_id'=>$this->sentrybox->id])->order('id desc')->find();
+        if($operate){
+            $prefix=getDbPrefix();
+            $starttime=strtotime($operate->starttime);
+            $endtime=time();
+            $operate->starttime=date('Y-m-d H:i',$starttime);
+            $operate->endtime=date('Y-m-d H:i',$endtime);
+            $sql="select count(1) as count from {$prefix}parking_records where parking_id={$operate->parking_id} and entry_barrier in ({$this->sentrybox->barriers}) and entry_time between {$starttime} and {$endtime}";
+            $operate->entry=Db::query($sql)[0]['count'];
+            $sql="select count(1) as count from {$prefix}parking_records where parking_id={$operate->parking_id} and exit_barrier in ({$this->sentrybox->barriers}) and exit_time between {$starttime} and {$endtime}";
+            $operate->exit=Db::query($sql)[0]['count'];
+            $sql="select sum(pay_price) as fee from {$prefix}parking_records_pay where parking_id={$operate->parking_id} and barrier_id in ({$this->sentrybox->barriers}) and pay_id is not null and pay_id not in (select pay_id from {$prefix}parking_records_filter where pay_id is not null and parking_id={$operate->parking_id}) and createtime between {$starttime} and {$endtime}";
+            $operate->online_fee=Db::query($sql)[0]['fee']??0;
+            $sql="select sum(pay_fee) as fee from {$prefix}parking_records where parking_id={$operate->parking_id} and exit_barrier in ({$this->sentrybox->barriers}) and status=9 and exit_time between {$starttime} and {$endtime}";
+            $operate->underline_fee=Db::query($sql)[0]['fee']??0;
+        }
+        $this->success('',$operate);
     }
 
     #[Get('download')]

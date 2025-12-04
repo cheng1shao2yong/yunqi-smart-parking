@@ -14,4 +14,12 @@ class ParkingSentrybox extends Model
         }
         return null;
     }
+
+    public function getOperatorAttr($data)
+    {
+        if($data){
+            return json_decode($data,true);
+        }
+        return null;
+    }
 }

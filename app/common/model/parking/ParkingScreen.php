@@ -68,7 +68,7 @@ class ParkingScreen extends Model
                     [$activities_fee,$activities_time,$coupon_type,$couponlist,$coupont_title]=$service->getActivitiesFee($records,$total_fee);
                     ParkingMerchantCouponList::settleCoupon($records,$coupon_type,$couponlist);
                     $records->status=ParkingRecords::STATUS('手动开闸出场');
-                    if($remark=='现金收费'){
+                    if(strpos($remark,'现金')!==false){
                         $payunion=PayUnion::underline(
                             $recordspay->pay_price,
                             PayUnion::ORDER_TYPE('停车缴费'),

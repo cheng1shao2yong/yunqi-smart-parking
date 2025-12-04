@@ -12,6 +12,7 @@ declare (strict_types = 1);
 namespace app\parking\controller;
 
 use app\common\model\manage\Parking;
+use app\common\model\parking\ParkingSentryboxOperate;
 use app\parking\traits\Actions;
 use app\common\controller\ParkingBase;
 use app\common\model\parking\ParkingSentrybox;
@@ -66,8 +67,12 @@ class Sentrybox extends ParkingBase
     {
         if ($this->request->isPost()) {
             $remark=$this->request->post('row.remark');
+            $operator=$this->request->post('row.operator');
             if($remark){
                 $this->postParams['remark']=json_encode($remark,JSON_UNESCAPED_UNICODE);
+            }
+            if($operator){
+                $this->postParams['operator']=json_encode($operator,JSON_UNESCAPED_UNICODE);
             }
             $this->postParams['parking_id']=$this->parking->id;
             $this->postParams['uniqid']=uniqid();
@@ -80,25 +85,36 @@ class Sentrybox extends ParkingBase
     {
         if ($this->request->isPost()) {
             $remark=$this->request->post('row.remark');
+            $operator=$this->request->post('row.operator');
             $this->postParams['remark']=null;
+            $this->postParams['operator']=null;
             if($remark){
                 $this->postParams['remark']=json_encode($remark,JSON_UNESCAPED_UNICODE);
+            }
+            if($operator){
+                $this->postParams['operator']=json_encode($operator,JSON_UNESCAPED_UNICODE);
             }
         }
         return $this->_edit();
     }
 
-    #[Route('GET','downurl')]
-    public function downurl()
+    #[Route('GET,JSON','operate')]
+    public function operate()
     {
-        $id=$this->request->param('id');
-        $box=ParkingSentrybox::where(['id'=>$id,'parking_id'=>$this->parking->id])->find();
-        $host=$this->request->host();
-        $url='http://'.substr($host,0,strpos($host,'.',1)).'-screen.'.substr($host,strpos($host,'.',1)+1).'?uniqid='.$box->uniqid;
-        $filename=$box->title.'.html';
-        header("Content-Disposition: attachment; filename=\"$filename\"");
-        header("Content-Type: text/html");
-        echo "<script>location.href=\"{$url}\"</script>";
-        exit;
+        if (false === $this->request->isAjax()) {
+            $this->assign('sentrybox',ParkingSentrybox::where(['parking_id'=>$this->parking->id])->column('title','id'));
+            return $this->fetch();
+        }
+        $this->model=new ParkingSentryboxOperate();
+        $where=[];
+        $where[]=['parking_id','=',$this->parking->id];
+        [$where, $order, $limit, $with] = $this->buildparams($where);
+        $list = $this->model
+            ->with(['sentrybox'])
+            ->where($where)
+            ->order($order)
+            ->paginate($limit);
+        $result = ['total' => $list->total(), 'rows' => $list->items()];
+        return json($result);
     }
 }

@@ -11,6 +11,9 @@
                     <el-form-item label="开闸理由:">
                         <Fieldlist @change="changeRemark" :label='[]' :keys='["remark"]' :value="rows.remark || null"></Fieldlist>
                     </el-form-item>
+                    <el-form-item label="值班人员:">
+                        <Fieldlist @change="changeOperator" :label='["姓名","班次"]' :keys='["name","desc"]' :value="rows.operator || null"></Fieldlist>
+                    </el-form-item>
                 </template>
         </yun-form>
     </el-card>
@@ -30,8 +33,9 @@
                 {field: "password", title: "锁屏密码", edit: "text", rules: "required"},
                 {field: "barriers", title: "包含通道", edit: {form:'select',multiple:true},searchList:Yunqi.data.barrier,rules: "required"},
                 {field: "open_set", title: "开闸设置", rules: "required",edit: {form:'radio',value:'direct'},searchList: {direct:'直接开闸',delay:'识别车辆后开闸'}},
-                {field: "remark", title: "开闸原因", edit: "slot"},
-                {field: "hide_window", title: "窗口超时", edit: {form:'input',type:'number',append:"分钟",value:10}},
+                {field: "remark", title: "开闸理由", edit: "slot"},
+                {field: "operator", title: "值班人员", edit: "slot"},
+                {field: "hide_window", title: "窗口超时", edit: {form:'input',type:'number',append:"分钟",value:5}},
                 {field: "status", title:"启用状态",searchList:{'normal':'是','hidden':'否'},edit:{form:'radio',value:'normal'}}
             ],
             row: Yunqi.data.row || {}
@@ -40,6 +44,9 @@
             changeRemark:function (e){
                 this.$refs.yunForm.setValue('remark',e);
             },
+            changeOperator:function (e){
+                this.$refs.yunForm.setValue('operator',e);
+            }
         }
     }
 </script>
