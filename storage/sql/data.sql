@@ -3937,25 +3937,25 @@ INSERT INTO `yun_auth_group` VALUES ('4', '1', '系统管理员', '1,19,5,15,6,2
 -- ----------------------------
 DROP TABLE IF EXISTS `yun_auth_rule`;
 CREATE TABLE `yun_auth_rule` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `pid` int unsigned NOT NULL DEFAULT '0' COMMENT '父ID',
-  `controller` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '规则名称',
-  `action` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '规则名称',
-  `icon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '图标',
-  `menutype` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '菜单类型',
-  `ismenu` tinyint unsigned DEFAULT '0' COMMENT '是否为菜单',
-  `isplatform` tinyint(1) DEFAULT '0',
-  `extend` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '扩展属性',
-  `weigh` int DEFAULT '0' COMMENT '权重',
-  `addons` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '状态',
-  `createtime` int unsigned DEFAULT NULL COMMENT '创建时间',
-  `updatetime` int unsigned DEFAULT NULL COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  KEY `pid` (`pid`),
-  KEY `weigh` (`weigh`)
-) ENGINE=InnoDB AUTO_INCREMENT=118 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='节点表';
+ `id` int unsigned NOT NULL AUTO_INCREMENT,
+ `pid` int unsigned NOT NULL DEFAULT '0' COMMENT '父ID',
+ `controller` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '规则名称',
+ `action` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+ `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '规则名称',
+ `icon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '图标',
+ `menutype` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '菜单类型',
+ `ismenu` tinyint unsigned DEFAULT '0' COMMENT '是否为菜单',
+ `isplatform` tinyint(1) DEFAULT '0',
+ `extend` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '扩展属性',
+ `weigh` int DEFAULT '0' COMMENT '权重',
+ `addons` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+ `status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '状态',
+ `createtime` int unsigned DEFAULT NULL COMMENT '创建时间',
+ `updatetime` int unsigned DEFAULT NULL COMMENT '更新时间',
+ PRIMARY KEY (`id`),
+ KEY `pid` (`pid`),
+ KEY `weigh` (`weigh`)
+) ENGINE=InnoDB AUTO_INCREMENT=120 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='节点表';
 
 -- ----------------------------
 -- Records of yun_auth_rule
@@ -4062,9 +4062,9 @@ INSERT INTO `yun_auth_rule` VALUES ('102', '101', 'app\\admin\\controller\\finan
 INSERT INTO `yun_auth_rule` VALUES ('103', '40', 'app\\parking\\controller\\Cars', '[\"recharge\",\"logview\",\"importplate\",\"listplate\",\"delplate\",\"addplate\"]', '[\"充值\",\"记录\",\"导车牌\",\"看车牌\",\"删车牌\",\"加车牌\"]', null, null, '0', '0', null, '69', null, null, '1719468569', '1733124088');
 INSERT INTO `yun_auth_rule` VALUES ('104', '37', 'app\\parking\\controller\\White', 'index', '离线白名单', 'fa fa-snowflake-o', 'tab', '1', '0', null, '896', null, 'normal', '1734410163', '1734410163');
 INSERT INTO `yun_auth_rule` VALUES ('105', '104', 'app\\parking\\controller\\White', '[\"index\",\"synch\",\"timer\",\"del\"]', '[\"查看\",\"同步\",\"定时设置\",\"删除\"]', null, null, '0', '0', null, '895', null, null, '1734410439', '1734584055');
-INSERT INTO `yun_auth_rule` VALUES ('106', '55', 'app\\parking\\controller\\Charge', 'index', '充电减免', 'fa fa-plug', 'tab', '1', '0', null, '894', null, 'normal', '1735534192', '1735534192');
+INSERT INTO `yun_auth_rule` VALUES ('106', '55', 'app\\parking\\controller\\Charge', 'index', '充电减免', 'fa fa-plug', 'tab', '1', '0', null, '894', null, 'normal', '1735534192', '1756710332');
 INSERT INTO `yun_auth_rule` VALUES ('107', '55', 'app\\parking\\controller\\Charge', 'list', '充电记录', 'fa fa-th-list', 'tab', '1', '0', null, '893', null, 'normal', '1735534240', '1735534240');
-INSERT INTO `yun_auth_rule` VALUES ('108', '106', 'app\\parking\\controller\\Charge', '[\"setting\"]', '[\"设置\"]', null, null, '0', '0', null, '892', null, null, '1735534279', '1735534279');
+INSERT INTO `yun_auth_rule` VALUES ('108', '106', 'app\\parking\\controller\\Charge', '[\"index\",\"add\",\"edit\",\"del\"]', '[\"查看\",\"添加\",\"修改\",\"删除\"]', null, null, '0', '0', null, '892', null, null, '1735534279', '1756710364');
 INSERT INTO `yun_auth_rule` VALUES ('109', '107', 'app\\parking\\controller\\Charge', '[\"list\"]', '[\"查看\"]', null, null, '0', '0', null, '891', null, null, '1735534298', '1735534298');
 INSERT INTO `yun_auth_rule` VALUES ('111', '102', 'app\\admin\\controller\\finance\\Pay', '[\"index\",\"detail\",\"download\",\"refund\"]', '[\"查看\",\"详情\",\"下载\",\"退款\"]', null, null, '0', '0', null, '889', null, null, '1739776991', '1739776991');
 INSERT INTO `yun_auth_rule` VALUES ('112', '63', 'app\\parking\\controller\\Pay', 'refundList', '退款记录', 'fa fa-exclamation-circle', 'tab', '1', '0', null, '888', null, 'normal', '1739778030', '1739778030');
@@ -4073,6 +4073,8 @@ INSERT INTO `yun_auth_rule` VALUES ('114', '12', 'app\\admin\\controller\\user\\
 INSERT INTO `yun_auth_rule` VALUES ('115', '114', 'app\\admin\\controller\\user\\Daili', '[\"index\",\"add\",\"edit\",\"multi\",\"del\"]', '[\"查看\",\"添加\",\"编辑\",\"更新\",\"删除\"]', null, null, '0', '0', null, '885', null, null, '1740474742', '1740474742');
 INSERT INTO `yun_auth_rule` VALUES ('116', '7', 'app\\admin\\controller\\auth\\Depart', 'index', '部门管理', 'fa fa-address-book', 'tab', '1', '0', null, '989', null, 'normal', '1749700647', '1749700850');
 INSERT INTO `yun_auth_rule` VALUES ('117', '116', 'app\\admin\\controller\\auth\\Depart', '[\"index\",\"add\",\"del\",\"multi\",\"edit\"]', '[\"查看\",\"添加\",\"删除\",\"更新\",\"编辑\"]', null, null, '0', '0', null, '955', null, null, '1749712222', '1749962509');
+INSERT INTO `yun_auth_rule` VALUES ('118', '63', 'app\\parking\\controller\\Sentrybox', 'operate', '交班记录', 'fa fa-building-o', 'tab', '1', '0', null, '882', null, 'normal', '1764746716', '1764746835');
+INSERT INTO `yun_auth_rule` VALUES ('119', '118', 'app\\parking\\controller\\Sentrybox', '[\"operate\"]', '[\"查看\"]', null, null, '0', '0', null, '881', null, null, '1764746764', '1764746764');
 
 -- ----------------------------
 -- Table structure for yun_category

@@ -805,17 +805,39 @@ CREATE TABLE `yun_parking_recovery` (
 -- ----------------------------
 -- Table structure for yun_parking_recovery_auto
 -- ----------------------------
+-- ----------------------------
 DROP TABLE IF EXISTS `yun_parking_recovery_auto`;
 CREATE TABLE `yun_parking_recovery_auto` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `parking_id` int DEFAULT NULL,
-  `recovery_type` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `entry_set` tinyint DEFAULT NULL,
-  `exit_set` tinyint DEFAULT NULL,
-  `msg` tinyint DEFAULT NULL,
-  `status` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ `id` int NOT NULL AUTO_INCREMENT,
+ `parking_id` int DEFAULT NULL,
+ `recovery_type` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+ `entry_set` tinyint DEFAULT NULL,
+ `exit_set` tinyint DEFAULT NULL,
+ `msg` tinyint DEFAULT NULL,
+ `status` varchar(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+ PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- ----------------------------
+-- Table structure for yun_parking_sentrybox_operate
+-- ----------------------------
+DROP TABLE IF EXISTS `yun_parking_sentrybox_operate`;
+CREATE TABLE `yun_parking_sentrybox_operate` (
+ `id` int NOT NULL AUTO_INCREMENT,
+ `parking_id` int DEFAULT NULL,
+ `sentrybox_id` int DEFAULT NULL,
+ `operator_name` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+ `operator_desc` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+ `starttime` datetime DEFAULT NULL,
+ `endtime` datetime DEFAULT NULL,
+ `entry` int DEFAULT NULL,
+ `exit` int DEFAULT NULL,
+ `online_fee` decimal(10,2) DEFAULT NULL,
+ `underline_fee` decimal(10,2) DEFAULT NULL,
+ `createtime` int unsigned DEFAULT NULL,
+ `updatetime` int DEFAULT NULL,
+ PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Table structure for yun_parking_rules
