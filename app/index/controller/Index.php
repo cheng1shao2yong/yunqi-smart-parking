@@ -6,6 +6,7 @@ namespace app\index\controller;
 use app\common\controller\BaseController;
 use app\common\library\Http;
 use app\common\library\ParkingTestAccount;
+use app\common\middleware\MerchantCheck;
 use app\common\model\manage\Parking;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecovery;
