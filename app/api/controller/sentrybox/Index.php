@@ -142,7 +142,7 @@ class Index extends BaseController
         $open_set=$this->sentrybox->open_set;
         $operator=$this->sentrybox->operator;
         $show_operate=false;
-        if(count($operator)>0){
+        if($operator && count($operator)>0){
             $operate=ParkingSentryboxOperate::where(['parking_id'=>$this->sentrybox->parking_id,'sentrybox_id'=>$this->sentrybox->id])->order('id desc')->find();
             if(!$operate){
                 $show_operate=true;
