@@ -51,7 +51,6 @@ CREATE TABLE `yun_addons` (
 -- ----------------------------
 INSERT INTO `yun_addons` VALUES ('1', '0d625e87d4ad05466418933bd9f35872', '', 'area', 'plugin', '省份城市地区数据', '省份城市地区数据非常多，所以框架默认并不包含，而是通过扩展的方式提供。 ', '贵阳云起信息科技', 'https://48rmn452q3.k.topthink.com/@48rmwkl52q/shengfenchengshidiqushuju.html', '0', '1.0.0', '1', '0');
 INSERT INTO `yun_addons` VALUES ('3', 'f9c100723543f1720c97cea15ae9de85', '', 'qqmap', 'plugin', '腾讯地图位置选择', '在腾讯地图上选择位置，搜索地名选择位置等', '贵阳云起信息科技', 'https://48rmn452q3.k.topthink.com/@48rmwkl52q/tengxundituweizhixuanze.html', '0', '1.0.0', '1', '0');
-INSERT INTO `yun_addons` VALUES ('8', 'ce0329c498b030aac89005f4ca71926d', null, 'tencent_orc', 'plugin', '腾讯Orc图像识别', '安装前先导入包composer require tencentcloud/tiia，支持商品识别，车辆识别，宠物识别等', '贵阳云起信息科技', '', '0', '1.0.0', '1', '0');
 INSERT INTO `yun_addons` VALUES ('10', 'a7a3dba9bddef06cebe4ca201a2c2ed5', null, 'uniapp', 'app', 'uniapp开发脚手架', 'uniapp开发常用模块，用户注册登陆，公众号、小程序、App开发的常用功能等，持续更新', '贵阳云起信息科技', 'https://48rmn452q3.k.topthink.com/@48rmwkl52q/uniappkaifajiaoshoujia.html', '0', '1.0.4', '1', '0');
 
 -- ----------------------------
@@ -4162,8 +4161,6 @@ INSERT INTO `yun_config` VALUES ('61', 'access_key', 'aliyun', '', 'AccessKey', 
 INSERT INTO `yun_config` VALUES ('62', 'access_secret', 'aliyun', '', 'AccessSecret', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('63', 'oss_bucket', 'aliyun', '', 'OSS-Bucket', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('64', 'oss_domain', 'aliyun', '', 'OSS-存储地址', '', 'text', '', '', '1', '');
-INSERT INTO `yun_config` VALUES ('68', 'tencent_orc_secret_id', 'addons', 'tencent_orc', 'SecretId', '', 'text', '', '', '1', '');
-INSERT INTO `yun_config` VALUES ('69', 'tencent_orc_secret_key', 'addons', 'tencent_orc', 'SecretKey', '', 'text', '', '', '1', '');
 INSERT INTO `yun_config` VALUES ('74', 'parking_entry_phone', 'basic', '', '停车场加盟电话', '', 'text', '13027867015', 'required', '1', '');
 INSERT INTO `yun_config` VALUES ('75', 'agent_phone', 'basic', '', '合作代理电话', '', 'text', '13027867015', 'required', '1', '');
 -- ----------------------------

@@ -80,6 +80,7 @@ class Saifeimu extends BarrierService {
             $service=PayService::newInstance([
                 'pay_type_handle'=>$parking->pay_type_handle,
                 'parking_id'=>$parking->id,
+                'sub_merch_config'=>$parking->sub_merch_config,
                 'sub_merch_no'=>$parking->sub_merch_no,
                 'sub_merch_key'=>$parking->sub_merch_key,
                 'split_merch_no'=>$parking->split_merch_no,

@@ -118,7 +118,8 @@ class Parking extends Backend
                     ParkingAdmin::addAdmin($row,$parkadmin,$admin);
                 };
             }
-        } 
+        }
+        $this->get_sub_merch_config();
         return $this->_add();
     }
 
@@ -160,6 +161,7 @@ class Parking extends Backend
                     }
                 };
             }
+            return $this->_edit();
         }else{
             $ids = $this->request->get('ids');
             $row = $this->model->find($ids);
@@ -179,9 +181,22 @@ class Parking extends Backend
                     'password'=>'',
                 ];
             }
+            $this->get_sub_merch_config();
             return $this->_edit($row);
         }
-        return $this->_edit();
+    }
+
+    private function get_sub_merch_config()
+    {
+        $folder=root_path().'app/common/service/pay/custom';
+        $sub_merch_config=[];
+        $files = scandir($folder);
+        foreach ($files as $file) {
+            if (is_file($folder . '/' . $file)) {
+                $sub_merch_config[$file]='/common/service/pay/custom/'.$file;
+            }
+        }
+        $this->assign('sub_merch_config',$sub_merch_config);
     }
 
     #[Route('POST','bind')]

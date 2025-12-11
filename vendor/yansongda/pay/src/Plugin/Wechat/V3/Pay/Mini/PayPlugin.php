@@ -78,7 +78,6 @@ class PayPlugin implements PluginInterface
         if ($payload->has('payer.sub_openid')) {
             $data['sub_appid'] = $config['sub_mini_app_id'] ?? '';
         }
-
         return $data;
     }
 }

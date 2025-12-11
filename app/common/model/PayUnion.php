@@ -62,6 +62,7 @@ class PayUnion extends Model{
 
     const PAY_TYPE_HANDLE=[
         'custom'=>'微信支付宝商户支付',
+        'subwechat'=>'微信服务商支付',
         'yibao'=>'易宝支付',
         'guotong'=>'国通支付',
         'dougong'=>'斗拱支付',
@@ -70,6 +71,7 @@ class PayUnion extends Model{
 
     const PAY_TYPE_PARAMS=[
         'custom'=>[],
+        'subwechat'=>['sub_merch_no'],
         'yibao'=>['sub_merch_no','split_merch_no'],
         'guotong'=>['sub_merch_no'],
         'dougong'=>['sub_merch_no'],
@@ -273,6 +275,7 @@ class PayUnion extends Model{
         $service=PayService::newInstance([
             'pay_type_handle'=>$pay_type_handle,
             'pay_union'=>$this,
+            'sub_merch_config'=>$parking->sub_merch_config,
             'sub_merch_no'=>$parking->sub_merch_no,
             'sub_merch_key'=>$parking->sub_merch_key,
             'refund_price'=>$refund_price,

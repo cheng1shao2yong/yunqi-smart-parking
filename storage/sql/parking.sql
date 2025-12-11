@@ -20,6 +20,7 @@ CREATE TABLE `yun_parking` (
   `phone` varchar(30) DEFAULT NULL,
   `uniqid` varchar(50) DEFAULT NULL,
   `pay_type_handle` varchar(30) DEFAULT NULL,
+  `sub_merch_config` varchar(255) DEFAULT NULL,
   `sub_merch_no` varchar(30) DEFAULT NULL,
   `sub_merch_key` varchar(50) DEFAULT NULL,
   `split_merch_no` varchar(30) DEFAULT NULL,

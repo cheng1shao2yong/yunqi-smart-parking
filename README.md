@@ -142,6 +142,8 @@
 #### 7、在微信小程序中设置普通二维码配置
 <img src="./storage/images/15.png" style="width: 60%;">
 
+#### 8、车主端支持支付宝，将uniapp打包成支付宝小程序提交，openid配置管理中将获取openid改为获取user_id，同样的完成扫普通二维码配置
+
 ### 岗亭打包（岗亭PC端）
 #### 1、下载用户端源码，https://gitee.com/lcfms/yunqi-smart-parking---gangting
 #### 2、修改/RtspPlayer/Properties/Settings.settings文件的api域名为：api.test.com

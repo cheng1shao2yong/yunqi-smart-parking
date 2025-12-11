@@ -58,7 +58,6 @@ class Wechat implements ProviderInterface
     public function __call(string $shortcut, array $params): null|Collection|MessageInterface|Rocket
     {
         $plugin = '\Yansongda\Pay\Shortcut\Wechat\\'.Str::studly($shortcut).'Shortcut';
-
         return Artful::shortcut($plugin, ...$params);
     }
 
@@ -128,7 +127,6 @@ class Wechat implements ProviderInterface
     public function callback(null|array|ServerRequestInterface $contents = null, ?array $params = null): Collection|Rocket
     {
         $request = $this->getCallbackParams($contents);
-
         Event::dispatch(new CallbackReceived('wechat', clone $request, $params, null));
 
         return $this->pay(

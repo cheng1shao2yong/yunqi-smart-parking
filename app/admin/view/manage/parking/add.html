@@ -79,6 +79,9 @@ export default{
                 return row.use_property==='0';
             }},
             {field:"pay_type_handle",tab:2,title:"支付接口",edit: {form:'select'},searchList:Yunqi.data.pay_type_handle,rules:'required'},
+            {field:"sub_merch_config",tab:2,title:"支付配置文件",edit:'select',searchList:Yunqi.data.sub_merch_config,visible:function (row){
+                return row.pay_type_handle=='custom';
+            }},
             {field:"sub_merch_no",tab:2,title:"子商户编号",edit:'text',visible:function (row){
                 let pay_type_params=Yunqi.data.pay_type_params[row.pay_type_handle];
                 return inArray(pay_type_params,'sub_merch_no');

@@ -86,7 +86,6 @@ class Pay
         foreach (self::$providers as $provider) {
             Artful::load($provider);
         }
-
         return $result;
     }
 
