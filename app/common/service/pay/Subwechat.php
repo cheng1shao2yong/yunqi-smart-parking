@@ -42,13 +42,13 @@ class Subwechat extends PayService {
                     'notify_url' => request()->domain().'/index/notify/custom',
                     // 「选填」公众号 的 app_id
                     // 可在 mp.weixin.qq.com 设置与开发->基本配置->开发者ID(AppID) 查看
-                    'mp_app_id' => '',
+                    'mp_app_id' => site_config("addons.uniapp_mpapp_id"),
                     // 「选填」小程序 的 app_id
-                    'mini_app_id' => 'wxd5484f7dd1ef122c',
+                    'mini_app_id' => site_config("addons.uniapp_miniapp_id"),
                     // 「选填」app 的 app_id
                     'app_id' => '',
                     // 「选填」服务商模式下，子公众号 的 app_id
-                    'sub_mp_app_id' => site_config("addons.uniapp_mpapp_id"),
+                    'sub_mp_app_id' => '',
                     // 「选填」服务商模式下，子 app 的 app_id
                     'sub_app_id' => '',
                     // 「选填」服务商模式下，子小程序 的 app_id
