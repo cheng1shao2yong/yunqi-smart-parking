@@ -7,14 +7,23 @@
                 <template #default>
                     {:token_field()}
                 </template>
-                <template #remark="{rows}">
-                    <el-form-item label="开闸理由:">
-                        <Fieldlist @change="changeRemark" :label='[]' :keys='["remark"]' :value="rows.remark || null"></Fieldlist>
-                    </el-form-item>
-                    <el-form-item label="值班人员:">
-                        <Fieldlist @change="changeOperator" :label='["姓名","班次"]' :keys='["name","desc"]' :value="rows.operator || null"></Fieldlist>
-                    </el-form-item>
-                </template>
+            <template #remark="{rows}">
+                <el-form-item label="开闸理由:">
+                    <Fieldlist @change="changeRemark" :label='[]' :keys='["remark"]' :value="rows.remark || null"></Fieldlist>
+                </el-form-item>
+            </template>
+            <template #operator="{rows}">
+                <el-form-item label="值班人员:">
+                    <Fieldlist @change="changeOperator" :label='["姓名","班次"]' :keys='["name","desc"]' :value="rows.operator || null"></Fieldlist>
+                </el-form-item>
+            </template>
+            <template #hide_window="{rows}">
+                <el-form-item label="窗口超时:">
+                    <el-input v-model="rows.hide_window">
+                        <template #append>分钟</template>
+                    </el-input>
+                </el-form-item>
+            </template>
         </yun-form>
     </el-card>
 </template>
@@ -35,6 +44,7 @@
                 {field: "open_set", title: "开闸设置", rules: "required",edit: {form:'radio',value:'direct'},searchList: {direct:'直接开闸',delay:'识别车辆后开闸'}},
                 {field: "remark", title: "开闸理由", edit: "slot"},
                 {field: "operator", title: "值班人员", edit: "slot"},
+                {field: "merch_id", title: "绑定商户", edit: "select",searchList: Yunqi.data.merch},
                 {field: "hide_window", title: "窗口超时", edit: {form:'input',type:'number',append:"分钟",value:5}},
                 {field: "status", title:"启用状态",searchList:{'normal':'是','hidden':'否'},edit:{form:'radio',value:'normal'}}
             ],

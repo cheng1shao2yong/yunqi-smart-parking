@@ -14,6 +14,7 @@ namespace app\parking\controller;
 use app\common\model\manage\Parking;
 use app\common\model\parking\ParkingSentryboxOperate;
 use app\parking\traits\Actions;
+use app\common\model\parking\ParkingMerchant;
 use app\common\controller\ParkingBase;
 use app\common\model\parking\ParkingSentrybox;
 use app\common\model\parking\ParkingBarrier;
@@ -37,6 +38,7 @@ class Sentrybox extends ParkingBase
         }else{
             $parking_id=[$this->parking->id];
         }
+        $this->assign('merch',ParkingMerchant::where('parking_id',$this->parking->id)->column('merch_name','id'));
         $this->assign('barrier',ParkingBarrier::where(['pid'=>0])->whereIn('parking_id',$parking_id)->column('title','id'));
         $this->postParams['parking_id']=$this->parking->id;
     }

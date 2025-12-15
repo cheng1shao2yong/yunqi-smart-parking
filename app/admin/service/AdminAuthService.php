@@ -149,6 +149,9 @@ class AdminAuthService extends AuthService{
         }
         Session::delete("admin");
         Session::save();
+        Cache::delete('admin_rule_list_'.$this->id);
+        Cache::delete('admin_menu_list_'.$this->id);
+        Cache::delete('admin_platform_list_'.$this->id);
         return true;
     }
 

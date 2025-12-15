@@ -906,6 +906,7 @@ CREATE TABLE `yun_parking_sentrybox` (
   `token` varchar(50) DEFAULT NULL,
   `remark` varchar(255) DEFAULT NULL,
   `operator` varchar(255) DEFAULT NULL,
+  `merch_id` int DEFAULT NULL,
   `hide_window` tinyint DEFAULT '10',
   `open_set` varchar(30) DEFAULT NULL,
   `status` varchar(255) DEFAULT NULL,

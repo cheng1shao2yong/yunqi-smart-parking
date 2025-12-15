@@ -4,10 +4,12 @@ declare (strict_types = 1);
 namespace app\api\controller\sentrybox;
 
 use app\common\model\manage\Parking;
+use app\common\model\parking\ParkingMerchant;
+use app\common\model\parking\ParkingMerchantCoupon;
+use app\common\model\parking\ParkingMerchantCouponList;
 use app\common\model\parking\ParkingRecords;
 use app\common\model\parking\ParkingRecovery;
 use app\common\model\parking\ParkingSentryboxOperate;
-use app\common\model\parking\ParkingTemporary;
 use app\common\model\parking\ParkingTrigger;
 use app\common\service\barrier\Utils;
 use app\common\controller\BaseController;
@@ -148,7 +150,12 @@ class Index extends BaseController
                 $show_operate=true;
             }
         }
-        $this->success('',compact('title','open_set','operator','show_operate','screen','mqttConfig','tips','update','hide_window'));
+        $coupon=[];
+        if($this->sentrybox->merch_id){
+            $couponids=ParkingMerchant::where('id',$this->sentrybox->merch_id)->value("coupon");
+            $coupon=ParkingMerchantCoupon::whereIn('id',$couponids)->field('id,title,coupon_type')->select();
+        }
+        $this->success('',compact('title','open_set','coupon','operator','show_operate','screen','mqttConfig','tips','update','hide_window'));
     }
 
     #[Post('open')]
@@ -414,6 +421,31 @@ class Index extends BaseController
             $operate->underline_fee=Db::query($sql)[0]['fee']??0;
         }
         $this->success('',$operate);
+    }
+
+    #[Post('send-coupon')]
+    public function sendCoupon()
+    {
+        $barrier_id=$this->request->post('barrier_id');
+        $coupon_id=$this->request->post('coupon_id');
+        $records_id=$this->request->post('records_id');
+        if(!$records_id){
+            $this->error('没有记录，发券失败');
+        }
+        if(!$this->sentrybox->merch_id){
+            $this->error('商户不存在');
+        }
+        $merchant=ParkingMerchant::find($this->sentrybox->merch_id);
+        $coupon=ParkingMerchantCoupon::find($coupon_id);
+        $records=ParkingRecords::find($records_id);
+        try{
+            ParkingMerchantCouponList::given($merchant,$coupon,$records->plate_number,'岗亭发券');
+        }catch (\Exception $e){
+            $this->error($e->getMessage());
+        }
+        $barrier=ParkingBarrier::find($barrier_id);
+        $trigger=ParkingTrigger::where(['serialno'=>$barrier->serialno,'plate_number'=>$records->plate_number])->order('id desc')->find();
+        $this->success('发券成功',['trigger_id'=>$trigger->id]);
     }
 
     #[Get('download')]

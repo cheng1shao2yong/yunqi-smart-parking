@@ -283,7 +283,6 @@ trait Functions{
 
     private function getActivitiesFee(Parking $parking,ParkingPlate $plate,ParkingRecords $records,$exit_time,$totalFee)
     {
-        $exit_time=strtotime('2025-09-13 10:14:00');
         $activities_fee=0;
         $usetime=0;
         $end_time=$records->entry_time;
