@@ -42,6 +42,13 @@ class Profile extends Backend
     public function index()
     {
         if (false === $this->request->isAjax()) {
+            $thirdLogin=addons_installed('uniapp') && site_config("addons.uniapp_scan_login");
+            $field='id,username,nickname,mobile,avatar';
+            if($thirdLogin){
+                $field.=',third_id';
+            }
+            $this->assign('thirdLogin',$thirdLogin);
+            $this->assign('admininfo',Admin::field($field)->find($this->auth->id));
             return $this->fetch();
         }
         $where=[];

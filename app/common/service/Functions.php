@@ -62,7 +62,17 @@ trait Functions{
             ->where('exit_time','>',$exit_time-$top_time)
             ->sum('pay_fee');
             if($payfee>0 && $payfee>=$top_fee){
-                return 0;
+                $lastrecords=ParkingRecords::where([
+                    'parking_id'=>$parking->id,
+                    'rules_id'=>$rules->id,
+                    'plate_number'=>$plate->plate_number
+                ])->where('id','<',$records->id)->order('id desc')->find();
+                $entry_time=$lastrecords->entry_time+$top_time>$entry_time?$lastrecords->entry_time+$top_time:$entry_time;
+                $account=new ParkingAccount($parking);
+                $account->unAllowFreeTime();
+                $account->setRecords($records->plate_type,$special,$entry_time,$exit_time,$rules)->fee();
+                $fee14=$account->getTotal();
+                return $fee14;
             }
             if($payfee>0 && $payfee<$top_fee){
                 $lastfee=$top_fee-$payfee;

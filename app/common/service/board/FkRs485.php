@@ -33,7 +33,7 @@ class FkRs485 extends BoardService
         if($rulesType==ParkingRules::RULESTYPE('月租车') || $rulesType==ParkingRules::RULESTYPE('VIP车')){
             $message=self::monthlyVoiceAndScreen($barrier,$plate,'voice',$plate_number);
         }else{
-            $message=array_merge($plate_number,[0x01]);
+            $message=self::provisionalVoiceAndScreen($barrier,$plate_number,'voice');
         }
         $data=self::convertArrayToHex($message,0x22);
         $dataStream = pack('C*', ...$data);
@@ -43,7 +43,7 @@ class FkRs485 extends BoardService
     public static function entryDisplay(ParkingBarrier $barrier,ParkingPlate $plate,string $rulesType){
         $l1=self::convertScreenline($barrier->screen_time,1,$plate->plate_number);
         $l2=self::convertScreenline($barrier->screen_time,2,ParkingRules::RULESTYPE[$rulesType]);
-        $l3=self::convertScreenline($barrier->screen_time,1,'一车一杆');
+        $l3=self::provisionalVoiceAndScreen($barrier,'','screen');
         $l4=self::convertScreenline($barrier->screen_time,2,'减速慢行');
         if($rulesType==ParkingRules::RULESTYPE('月租车') || $rulesType==ParkingRules::RULESTYPE('VIP车')){
             $l3=self::monthlyVoiceAndScreen($barrier,$plate,'screen',$l3);
@@ -313,6 +313,28 @@ class FkRs485 extends BoardService
         $arr=self::stringToGbkHexArray($string);
         $length=count($arr);
         return array_merge([$time,$color,$length],$arr);
+    }
+
+    private static function provisionalVoiceAndScreen(ParkingBarrier $barrier,mixed $plate_number,string $type)
+    {
+        $message_entry=self::MESSAGE_ENTRY;
+        $message_exit=self::MESSAGE_EXIT;
+        $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
+        $setting=$parking->setting;
+        if($type=='screen'){
+            $blessing_screen=[
+                'entry'=>self::convertScreenline($barrier->screen_time,1,$message_entry[$setting->provisional_entry_tips]),
+                'exit'=>self::convertScreenline($barrier->screen_time,1,$message_exit[$setting->provisional_exit_tips])
+            ];
+            return $blessing_screen[$barrier->barrier_type];
+        }
+        if($type=='voice'){
+            $blessing_voice=[
+                'entry'=>array_merge($plate_number,[$setting->provisional_entry_tips]),
+                'exit'=>array_merge($plate_number,[$setting->provisional_exit_tips])
+            ];
+            return $blessing_voice[$barrier->barrier_type];
+        }
     }
 
     private static function monthlyVoiceAndScreen(ParkingBarrier $barrier,ParkingPlate $plate,string $type,mixed $default)

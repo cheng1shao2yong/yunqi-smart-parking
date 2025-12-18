@@ -959,10 +959,11 @@ CREATE TABLE `yun_parking_setting` (
   `special_free` varchar(255) DEFAULT NULL,
   `push_traffic` tinyint DEFAULT '0' COMMENT '推送到交管平台',
   `infield` varchar(255) DEFAULT NULL,
-  `fuzzy_match` tinyint DEFAULT '0' COMMENT '模糊匹配',
   `temporary_check_cars` tinyint DEFAULT '1' COMMENT '无牌车检测车辆通行',
   `monthly_entry_tips` tinyint DEFAULT '39',
   `monthly_exit_tips` tinyint DEFAULT '2',
+  `provisional_entry_tips` tinyint DEFAULT '1',
+  `provisional_exit_tips` tinyint DEFAULT '2',
   `beian_pad` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `parking_id` (`parking_id`)

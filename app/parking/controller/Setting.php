@@ -34,8 +34,8 @@ class Setting extends ParkingBase
         $this->setting=ParkingSetting::where(['parking_id'=>$this->parking->id])->find();
         $this->assign('rules_type',ParkingRules::RULESTYPE);
         $this->assign('special',ParkingMode::SPECIAL);
-        $this->assign('monthly_entry_tips',Zhenshi::MESSAGE_ENTRY);
-        $this->assign('monthly_exit_tips',Zhenshi::MESSAGE_EXIT);
+        $this->assign('entry_tips',Zhenshi::MESSAGE_ENTRY);
+        $this->assign('exit_tips',Zhenshi::MESSAGE_EXIT);
     }
 
     #[Route('GET,POST','index')]

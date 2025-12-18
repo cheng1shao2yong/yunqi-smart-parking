@@ -28,7 +28,7 @@ class SfmRs485 extends BoardService
         if ($rulesType == ParkingRules::RULESTYPE('月租车') || $rulesType == ParkingRules::RULESTYPE('VIP车')) {
             $text =self::monthlyVoice($barrier,$plate,'voice',$plate_number);
         } else {
-            $text =$plate_number . '|欢迎光临';
+            $text =$plate_number . '|'.self::provisionalVoice($barrier);
         }
         $json=[
             'actionName'=>'directTextsDisplay',
@@ -43,7 +43,7 @@ class SfmRs485 extends BoardService
     {
         $frames = [];
         $frames[] = $plate->plate_number;
-        $frames[] = '一车一杆';
+        $frames[] = self::provisionalScreen($barrier);
         $frames[] = ParkingRules::RULESTYPE[$rulesType];
         $frames[] = '减速慢行';
         if ($rulesType == ParkingRules::RULESTYPE('月租车') || $rulesType == ParkingRules::RULESTYPE('VIP车')) {
@@ -416,6 +416,30 @@ EOF;
         }
         self::$queue++;
         return self::$queue%9+1;
+    }
+
+    private static function provisionalScreen(ParkingBarrier $barrier)
+    {
+        $message_entry=self::MESSAGE_ENTRY;
+        $message_exit=self::MESSAGE_EXIT;
+        $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
+        $setting=$parking->setting;
+        $blessing_screen=[
+            'entry'=>$message_entry[$setting->provisional_entry_tips],
+            'exit'=>$message_exit[$setting->provisional_exit_tips]
+        ];
+        return $blessing_screen[$barrier->barrier_type];
+    }
+
+    private static function provisionalVoice(ParkingBarrier $barrier)
+    {
+        $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
+        $setting=$parking->setting;
+        $blessing_voice=[
+            'entry'=>Zhenshi::MESSAGE_ENTRY[$setting->provisional_entry_tips],
+            'exit'=>Zhenshi::MESSAGE_EXIT[$setting->provisional_exit_tips]
+        ];
+        return $blessing_voice[$barrier->barrier_type];
     }
 
     private static function monthlyVoice(ParkingBarrier $barrier,ParkingPlate $plate,string $type,string $plate_number)

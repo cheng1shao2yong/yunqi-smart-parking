@@ -498,7 +498,13 @@ class PayUnion extends Model{
                 ];
                 $time=strtotime(date('Y-m-d 00:00:00',time()));
                 $endtime=$rules->online_apply_days*3600*24+$time-1;
-                $third=Third::where(['user_id'=>$this->user_id,'platform'=>'miniapp'])->find();
+                if($this->pay_type=='wechat-miniapp'){
+                    $platform='miniapp';
+                }
+                if($this->pay_type=='alipay'){
+                    $platform='alipay-mini';
+                }
+                $third=Third::where(['user_id'=>$this->user_id,'platform'=>$platform])->find();
                 $cars=ParkingCars::addCars($rules,$contact,$mobile,$this->user_id,[$plates],['endtime'=>$endtime,'third_id'=>$third->id]);
                 ParkingStoredLog::addRechargeLog($cars,$this);
             }
@@ -547,7 +553,13 @@ class PayUnion extends Model{
                 'plate_type'=>'blue',
                 'car_models'=>'small',
             ];
-            $third=Third::where(['user_id'=>$this->user_id,'platform'=>'miniapp'])->find();
+            if($this->pay_type=='wechat-miniapp'){
+                $platform='miniapp';
+            }
+            if($this->pay_type=='alipay'){
+                $platform='alipay-mini';
+            }
+            $third=Third::where(['user_id'=>$this->user_id,'platform'=>$platform])->find();
             $cars=ParkingCars::addCars($rules,$contact,$mobile,$this->user_id,[$plates],['third_id'=>$third->id]);
             ParkingMonthlyRecharge::recharge($cars,'end',$this);
         }

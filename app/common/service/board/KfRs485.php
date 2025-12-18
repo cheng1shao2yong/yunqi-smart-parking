@@ -36,7 +36,7 @@ class KfRs485 extends BoardService
         if ($rulesType == ParkingRules::RULESTYPE('月租车') || $rulesType == ParkingRules::RULESTYPE('VIP车')) {
             $text =self::monthlyVoice($barrier,$plate,'voice',$plate_number);
         } else {
-            $text =$plate_number . '，欢迎光临';
+            $text =$plate_number.'，'.self::provisionalVoice($barrier);
         }
         return self::buildPlayVoicePacket(0x01, $text);
     }
@@ -48,7 +48,7 @@ class KfRs485 extends BoardService
     {
         $frames = [];
         $frames[] = self::makeDisplayPacket(0, 0x15, $plate->plate_number, $barrier->screen_time);
-        $frames[] = self::makeDisplayPacket(1, 0x15, '一车一杆', $barrier->screen_time);
+        $frames[] = self::makeDisplayPacket(1, 0x15, self::provisionalScreen($barrier), $barrier->screen_time);
         $frames[] = self::makeDisplayPacket(2, 0x15, ParkingRules::RULESTYPE[$rulesType], $barrier->screen_time);
         $frames[] = self::makeDisplayPacket(3, 0x15, '减速慢行', $barrier->screen_time);
         if ($rulesType == ParkingRules::RULESTYPE('月租车') || $rulesType == ParkingRules::RULESTYPE('VIP车')) {
@@ -274,6 +274,30 @@ class KfRs485 extends BoardService
         $frames[] = self::makeDisplayPacket(2, 0x15, '一车一杆', $barrier->screen_time);
         $frames[] = self::makeDisplayPacket(3, 0x15, '减速慢行', $barrier->screen_time);
         return implode('', $frames);
+    }
+
+    private static function provisionalScreen(ParkingBarrier $barrier)
+    {
+        $message_entry=self::MESSAGE_ENTRY;
+        $message_exit=self::MESSAGE_EXIT;
+        $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
+        $setting=$parking->setting;
+        $blessing_screen=[
+            'entry'=>$message_entry[$setting->provisional_entry_tips],
+            'exit'=>$message_exit[$setting->provisional_exit_tips]
+        ];
+        return $blessing_screen[$barrier->barrier_type];
+    }
+
+    private static function provisionalVoice(ParkingBarrier $barrier)
+    {
+        $parking=Parking::cache('parking_'.$barrier->parking_id,24*3600)->withJoin(['setting'])->find($barrier->parking_id);
+        $setting=$parking->setting;
+        $blessing_voice=[
+            'entry'=>Zhenshi::MESSAGE_ENTRY[$setting->provisional_entry_tips],
+            'exit'=>Zhenshi::MESSAGE_EXIT[$setting->provisional_exit_tips]
+        ];
+        return $blessing_voice[$barrier->barrier_type];
     }
 
     private static function monthlyVoice(ParkingBarrier $barrier,ParkingPlate $plate,string $type,string $plate_number)
