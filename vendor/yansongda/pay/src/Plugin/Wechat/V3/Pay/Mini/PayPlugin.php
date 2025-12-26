@@ -55,7 +55,6 @@ class PayPlugin implements PluginInterface
         ));
 
         Logger::info('[Wechat][Pay][Mini][PayPlugin] 插件装载完毕', ['rocket' => $rocket]);
-
         return $next($rocket);
     }
 

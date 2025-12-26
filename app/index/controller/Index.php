@@ -5,7 +5,9 @@ namespace app\index\controller;
 
 use app\common\controller\BaseController;
 use app\common\library\ParkingTestAccount;
+use app\common\model\manage\Parking;
 use think\annotation\route\Get;
+use think\facade\Cache;
 
 class Index extends BaseController
 {

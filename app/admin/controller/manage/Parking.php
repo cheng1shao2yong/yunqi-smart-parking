@@ -21,7 +21,7 @@ use think\facade\Session;
 #[Group("manage/parking")]
 class Parking extends Backend
 {
-    protected $noNeedRight=['queue'];
+    protected $noNeedRight=['queue','property'];
 
     use Actions{
         add as _add;
@@ -72,6 +72,13 @@ class Parking extends Backend
             });
         $result = ['total' => $list->total(), 'rows' => $list->items()];
         return json($result);
+    }
+
+    #[Route('GET,JSON','property')]
+    public function property()
+    {
+        $this->model=new Property();
+        return $this->selectpage();
     }
 
     #[Route('GET','queue')]

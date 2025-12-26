@@ -94,6 +94,9 @@ class AddPayloadSignaturePlugin implements PluginInterface
             get_wechat_sign($config, $contents),
         );
 
-        return 'WECHATPAY2-SHA256-RSA2048 '.$auth;
+        $result = 'WECHATPAY2-SHA256-RSA2048 '.$auth;
+        //print_r($result);
+        //exit;
+        return $result;
     }
 }

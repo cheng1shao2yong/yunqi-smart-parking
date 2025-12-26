@@ -41,7 +41,7 @@ export default{
             {
                 field:"property_id",
                 title:"集团账号",
-                operate: {form:'selectpage',url:'manage/property/index',labelField:'title',keyField:'id'},
+                operate: {form:'selectpage',url:'manage/parking/property',labelField:'title',keyField:'id'},
                 formatter:function (data,row){
                     return row.property?row.property.title:'';
                 }

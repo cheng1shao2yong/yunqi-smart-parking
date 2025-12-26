@@ -23,28 +23,31 @@ class Subwechat extends PayService {
                 'default' => [
                     // 「必填」商户号，服务商模式下为服务商商户号
                     // 可在 https://pay.weixin.qq.com/ 账户中心->商户信息 查看
-                    'mch_id' => Env::get('WECHAT_MERCH_NO'),
+                    //'mch_id' => Env::get('WECHAT_MERCH_NO'),
+                    'mch_id' => '1673386330',
                     // 「选填」v2商户私钥
                     'mch_secret_key_v2' => '',
                     // 「必填」v3 商户秘钥
                     // 即 API v3 密钥(32字节，形如md5值)，可在 账户中心->API安全 中设置
-                    'mch_secret_key' => Env::get('WECHAT_MERCH_KEY'),
+                    //'mch_secret_key' => Env::get('WECHAT_MERCH_KEY'),
+                    'mch_secret_key' => '283d281a2f3cbfc716414178a7613c6f',
                     // 「必填」商户私钥 字符串或路径
                     // 即 API证书 PRIVATE KEY，可在 账户中心->API安全->申请API证书 里获得
                     // 文件名形如：apiclient_key.pem
-                    'mch_secret_cert' => root_path().'cert/apiclient_key.pem',
+                    'mch_secret_cert' => root_path().'test-cert/apiclient_key.pem',
                     // 「必填」商户公钥证书路径
                     // 即 API证书 CERTIFICATE，可在 账户中心->API安全->申请API证书 里获得
                     // 文件名形如：apiclient_cert.pem
-                    'mch_public_cert_path' => root_path().'cert/apiclient_cert.pem',
+                    'mch_public_cert_path' => root_path().'test-cert/apiclient_cert.pem',
                     // 「必填」微信回调url
                     // 不能有参数，如?号，空格等，否则会无法正确回调
-                    'notify_url' => request()->domain().'/index/notify/custom',
+                    'notify_url' => request()->domain().'/index/notify/subwechat',
                     // 「选填」公众号 的 app_id
                     // 可在 mp.weixin.qq.com 设置与开发->基本配置->开发者ID(AppID) 查看
-                    'mp_app_id' => site_config("addons.uniapp_mpapp_id"),
+                    'mp_app_id' => '',
                     // 「选填」小程序 的 app_id
-                    'mini_app_id' => site_config("addons.uniapp_miniapp_id"),
+                    //'mini_app_id' => site_config("addons.uniapp_miniapp_id"),
+                    'mini_app_id' => 'wxd5484f7dd1ef122c',
                     // 「选填」app 的 app_id
                     'app_id' => '',
                     // 「选填」服务商模式下，子公众号 的 app_id
@@ -59,7 +62,7 @@ class Subwechat extends PayService {
                     // 「选填」（适用于 2024-11 及之前开通微信支付的老商户）微信支付平台证书序列号及证书路径，强烈建议 php-fpm 模式下配置此参数
                     // 「必填」微信支付公钥ID及证书路径，key 填写形如 PUB_KEY_ID_0000000000000024101100397200000006 的公钥id，见 https://pay.weixin.qq.com/doc/v3/merchant/4013053249
                     'wechat_public_cert_path' => [
-                        'PUB_KEY_ID_0116733863302025121000381848002602' => root_path().'cert/pub_key.pem',
+                        'PUB_KEY_ID_0116733863302025121000381848002602' => root_path().'test-cert/pub_key.pem',
                     ],
                     // 「选填」默认为正常模式。可选为： MODE_NORMAL, MODE_SERVICE
                     'mode' => Pay::MODE_SERVICE,
@@ -86,7 +89,8 @@ class Subwechat extends PayService {
                 'currency' => 'CNY',
             ],
             'payer' => [
-                'sp_openid' => $third->openid
+                //'sp_openid' => $third->openid
+                'sp_openid' => 'oar0P7QmNvzx2Sx0-Fg7gUGIPKaA',
             ]
         ];
         $this->config['wechat']['default']['sub_mch_id']=$this->sub_merch_no;
