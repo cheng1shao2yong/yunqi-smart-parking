@@ -419,6 +419,10 @@ class Index extends BaseController
             $operate->online_fee=Db::query($sql)[0]['fee']??0;
             $sql="select sum(pay_fee) as fee from {$prefix}parking_records where parking_id={$operate->parking_id} and exit_barrier in ({$this->sentrybox->barriers}) and status=9 and exit_time between {$starttime} and {$endtime}";
             $operate->underline_fee=Db::query($sql)[0]['fee']??0;
+            $sql="select count(1) as count from {$prefix}parking_records where parking_id={$operate->parking_id} and exit_barrier in ({$this->sentrybox->barriers}) and activities_fee>0 and exit_time between {$starttime} and {$endtime}";
+            $operate->activities_num=Db::query($sql)[0]['count'];
+            $sql="select sum(activities_fee) as fee from {$prefix}parking_records where parking_id={$operate->parking_id} and exit_barrier in ({$this->sentrybox->barriers}) and exit_time between {$starttime} and {$endtime}";
+            $operate->activities_fee=Db::query($sql)[0]['fee']??0;
         }
         $this->success('',$operate);
     }

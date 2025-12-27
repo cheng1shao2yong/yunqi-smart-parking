@@ -835,6 +835,8 @@ CREATE TABLE `yun_parking_sentrybox_operate` (
  `exit` int DEFAULT NULL,
  `online_fee` decimal(10,2) DEFAULT NULL,
  `underline_fee` decimal(10,2) DEFAULT NULL,
+ `activities_fee` decimal(10,2) DEFAULT NULL,
+ `activities_num` int DEFAULT NULL,
  `createtime` int unsigned DEFAULT NULL,
  `updatetime` int DEFAULT NULL,
  PRIMARY KEY (`id`)
